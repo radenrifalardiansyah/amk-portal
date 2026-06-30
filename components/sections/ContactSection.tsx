@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
 const WA_NUMBER = '6285155336838'
 
@@ -12,10 +14,25 @@ const WhatsAppIcon = () => (
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', company: '', service: '', message: '' })
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    setLoading(true)
     const { name, company, service, message } = form
+
+    try {
+      await addDoc(collection(db, 'leads'), {
+        name,
+        company: company || null,
+        service,
+        message,
+        createdAt: serverTimestamp(),
+      })
+    } catch {
+      // buka WA tetap jalan meski Firestore gagal
+    }
+
     const text =
       'Halo Tim AMK,%0A%0A' +
       'Saya ingin berkonsultasi mengenai proyek digital.%0A' +
@@ -24,6 +41,7 @@ export default function ContactSection() {
       `*Layanan Diminati:* ${service}%0A%0A` +
       `*Pesan:*%0A${message}`
     window.open(`https://wa.me/${WA_NUMBER}?text=${text}`, '_blank')
+    setLoading(false)
   }
 
   const inputClass =
@@ -119,10 +137,11 @@ export default function ContactSection() {
 
               <button
                 type="submit"
-                className="w-full magnetic-btn py-4 bg-primary text-white font-headline font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex justify-center items-center space-x-2"
+                disabled={loading}
+                className="w-full magnetic-btn py-4 bg-primary text-white font-headline font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex justify-center items-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Kirim ke WhatsApp Kami</span>
-                <span className="material-symbols-outlined">send</span>
+                <span>{loading ? 'Mengirim...' : 'Kirim ke WhatsApp Kami'}</span>
+                <span className="material-symbols-outlined">{loading ? 'hourglass_empty' : 'send'}</span>
               </button>
             </form>
           </div>
