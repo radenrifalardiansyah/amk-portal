@@ -3,8 +3,9 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import type { HeroContent } from '@/lib/services'
 
-export default function HeroSection() {
+export default function HeroSection({ content }: { content: HeroContent }) {
   const btnRef = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
@@ -39,34 +40,33 @@ export default function HeroSection() {
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-outline-variant/30 bg-surface-container-low/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs font-medium tracking-widest uppercase text-on-surface-variant">
-              Creative Digital Agency Bogor
+              {content.badge}
             </span>
           </div>
 
           <h1 className="text-6xl md:text-8xl font-headline font-bold tracking-[-0.04em] text-primary leading-[0.9] flex flex-col">
-            <span>Collaboration</span>
-            <span>Meets</span>
+            <span>{content.titleLine1}</span>
+            <span>{content.titleLine2}</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-container">
-              Innovation
+              {content.titleLine3}
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-on-surface-variant max-w-lg leading-relaxed font-body">
-            Digital Creative Agency inovatif di Bogor sebagai One-Stop Solution untuk estetika visual,
-            produksi video sinematik, dan strategi pemasaran berbasis data.
+            {content.description}
           </p>
 
           <div className="flex items-center space-x-6 pt-4">
             <Link
-              href="/#contact"
+              href={content.primaryCtaHref}
               ref={btnRef}
               className="magnetic-btn btn-pulse px-8 py-4 hero-gradient text-on-primary font-headline font-extrabold text-lg rounded-xl hover:scale-105 transition-all duration-300 relative overflow-hidden flex items-center justify-center"
             >
               <div className="shine-sweep" />
-              <span className="relative z-10">Mulai Kolaborasi</span>
+              <span className="relative z-10">{content.primaryCtaLabel}</span>
             </Link>
-            <Link href="/#services" className="group flex items-center space-x-3 text-primary font-headline font-bold">
-              <span>Explore Services</span>
+            <Link href={content.secondaryCtaHref} className="group flex items-center space-x-3 text-primary font-headline font-bold">
+              <span>{content.secondaryCtaLabel}</span>
               <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform">
                 arrow_forward
               </span>
@@ -79,7 +79,7 @@ export default function HeroSection() {
           <div className="aspect-square rounded-full border border-primary/5 absolute -inset-20 animate-[spin_35s_linear_infinite_reverse]" />
           <div className="relative z-10 w-full h-[500px]">
             <Image
-              src="/images/company.png"
+              src={content.image}
               alt="Hero Visual"
               fill
               className="rounded-[2rem] shadow-2xl shadow-primary/20 border border-outline-variant/20 object-cover animate-float"

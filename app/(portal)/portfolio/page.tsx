@@ -1,20 +1,21 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { portfolioProjects } from '@/data/portfolio'
-import RevealProvider from '@/components/RevealProvider'
+import { portfolioService } from '@/lib/services'
+
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'Portfolio | AMK Creative Agency',
   description: 'Jelajahi karya-karya terpilih PT. Adikara Mandala Kreasi — dari produksi video sinematik, hybrid event, hingga strategi digital.',
 }
 
-export default function PortfolioPage() {
+export default async function PortfolioPage() {
+  const projects = await portfolioService.getAll()
+
   return (
     <>
-      <RevealProvider />
       <main>
-        {/* Hero */}
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(37,99,235,0.08),transparent_50%)]" />
           <div className="max-w-6xl mx-auto px-8 text-center relative z-10">
@@ -30,10 +31,9 @@ export default function PortfolioPage() {
           </div>
         </section>
 
-        {/* Grid */}
         <section className="max-w-6xl mx-auto px-8 py-20">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {portfolioProjects.map((project, i) => (
+            {projects.map((project, i) => (
               <Link
                 key={project.slug}
                 href={`/portfolio/${project.slug}`}

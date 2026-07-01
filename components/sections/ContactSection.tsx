@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-
-const WA_NUMBER = '6285155336838'
+import { leadsService } from '@/lib/services'
+import type { ContactContent } from '@/lib/services'
 
 const WhatsAppIcon = () => (
   <svg className="w-6 h-6 text-[#25D366]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -12,7 +10,7 @@ const WhatsAppIcon = () => (
   </svg>
 )
 
-export default function ContactSection() {
+export default function ContactSection({ content }: { content: ContactContent }) {
   const [form, setForm] = useState({ name: '', company: '', service: '', message: '' })
   const [loading, setLoading] = useState(false)
 
@@ -22,15 +20,9 @@ export default function ContactSection() {
     const { name, company, service, message } = form
 
     try {
-      await addDoc(collection(db, 'leads'), {
-        name,
-        company: company || null,
-        service,
-        message,
-        createdAt: serverTimestamp(),
-      })
+      await leadsService.create({ name, company, service, message })
     } catch {
-      // buka WA tetap jalan meski Firestore gagal
+      // WA tetap terbuka meski Firestore gagal
     }
 
     const text =
@@ -40,7 +32,7 @@ export default function ContactSection() {
       `*Perusahaan:* ${company || '-'}%0A` +
       `*Layanan Diminati:* ${service}%0A%0A` +
       `*Pesan:*%0A${message}`
-    window.open(`https://wa.me/${WA_NUMBER}?text=${text}`, '_blank')
+    window.open(`https://wa.me/${content.waNumber}?text=${text}`, '_blank')
     setLoading(false)
   }
 
@@ -53,18 +45,17 @@ export default function ContactSection() {
       <div className="max-w-7xl mx-auto px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 reveal-left">
-            <h2 className="text-5xl font-headline font-bold text-primary">Mari Berkarya Bersama</h2>
+            <h2 className="text-5xl font-headline font-bold text-primary">{content.heading}</h2>
             <p className="text-xl text-on-surface-variant leading-relaxed">
-              Punya ide proyek luar biasa atau butuh konsultasi terkait strategi digital Anda? Jangan ragu untuk
-              menyapa kami.
+              {content.description}
             </p>
             <div className="flex items-center space-x-4 p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm hover-lift">
               <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center">
                 <WhatsAppIcon />
               </div>
               <div>
-                <p className="font-bold text-lg text-on-surface">Respon Cepat via WhatsApp</p>
-                <p className="text-sm text-on-surface-variant">Kami biasanya membalas dalam waktu 1 jam kerja.</p>
+                <p className="font-bold text-lg text-on-surface">{content.waResponseTitle}</p>
+                <p className="text-sm text-on-surface-variant">{content.waResponseSubtitle}</p>
               </div>
             </div>
           </div>
@@ -76,26 +67,15 @@ export default function ContactSection() {
                   <label htmlFor="wa-name" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
                     Nama Lengkap
                   </label>
-                  <input
-                    type="text"
-                    id="wa-name"
-                    required
-                    className={inputClass}
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
+                  <input type="text" id="wa-name" required className={inputClass}
+                    value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="wa-company" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
                     Perusahaan / Instansi
                   </label>
-                  <input
-                    type="text"
-                    id="wa-company"
-                    className={inputClass}
-                    value={form.company}
-                    onChange={(e) => setForm({ ...form, company: e.target.value })}
-                  />
+                  <input type="text" id="wa-company" className={inputClass}
+                    value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
                 </div>
               </div>
 
@@ -103,20 +83,12 @@ export default function ContactSection() {
                 <label htmlFor="wa-service" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
                   Layanan yang Diminati
                 </label>
-                <select
-                  id="wa-service"
-                  required
-                  className={`${inputClass} appearance-none`}
-                  value={form.service}
-                  onChange={(e) => setForm({ ...form, service: e.target.value })}
-                >
+                <select id="wa-service" required className={`${inputClass} appearance-none`}
+                  value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
                   <option value="" disabled>Pilih Layanan Utama</option>
-                  <option value="Cinematic Visuals (Video Produksi)">Cinematic Visuals (Video Produksi)</option>
-                  <option value="Pro Audio (Podcast/Sonic Branding)">Pro Audio (Podcast/Sonic Branding)</option>
-                  <option value="Data-Driven Marketing (Precision Growth)">Data-Driven Marketing (Precision Growth)</option>
-                  <option value="AI Creative Assistant (Market Intelligence)">AI Creative Assistant (Market Intelligence)</option>
-                  <option value="O2O Brand Experience (Hybrid Activation)">O2O Brand Experience (Hybrid Activation)</option>
-                  <option value="Konsultasi Umum">Konsultasi Umum / Lainnya</option>
+                  {content.serviceOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
                 </select>
               </div>
 
@@ -124,22 +96,13 @@ export default function ContactSection() {
                 <label htmlFor="wa-message" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
                   Pesan Singkat
                 </label>
-                <textarea
-                  id="wa-message"
-                  rows={4}
-                  required
-                  className={`${inputClass} resize-none`}
+                <textarea id="wa-message" rows={4} required className={`${inputClass} resize-none`}
                   placeholder="Ceritakan sedikit tentang kebutuhan Anda..."
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                />
+                  value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full magnetic-btn py-4 bg-primary text-white font-headline font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex justify-center items-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
+              <button type="submit" disabled={loading}
+                className="w-full magnetic-btn py-4 bg-primary text-white font-headline font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex justify-center items-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed">
                 <span>{loading ? 'Mengirim...' : 'Kirim ke WhatsApp Kami'}</span>
                 <span className="material-symbols-outlined">{loading ? 'hourglass_empty' : 'send'}</span>
               </button>

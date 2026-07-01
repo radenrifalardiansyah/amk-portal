@@ -1,13 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { PortfolioProject } from '@/data/portfolio'
 
-const previews = [
-  { slug: 'nippon', image: '/images/company.png', category: 'Cinematic Visuals', title: 'Nippon Express Global' },
-  { slug: 'aston',  image: '/images/office.png',  category: 'Brand Experience',  title: 'Aston Bogor Hybrid Event', delay: '0.2s' },
-  { slug: 'jica',   image: '/images/tech.png',    category: 'Digital Strategy',   title: 'JICA Innovation Hub', delay: '0.4s' },
-]
-
-export default function PortfolioSection() {
+export default function PortfolioSection({ previews }: { previews: PortfolioProject[] }) {
   return (
     <section className="py-24 bg-surface-container-low reveal" id="portfolio">
       <div className="max-w-7xl mx-auto px-8">
@@ -28,12 +23,12 @@ export default function PortfolioSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {previews.map((item) => (
+          {previews.map((item, i) => (
             <Link
               key={item.slug}
               href={`/portfolio/${item.slug}`}
               className="reveal-scale group relative overflow-hidden rounded-2xl aspect-video bg-surface-bright shadow-lg block"
-              style={item.delay ? { transitionDelay: item.delay } : {}}
+              style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
             >
               <Image
                 src={item.image}

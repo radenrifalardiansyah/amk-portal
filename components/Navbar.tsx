@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import type { CompanyProfile } from '@/lib/services'
 
 const navLinks = [
   { label: 'Home', href: '/#home' },
@@ -13,8 +14,10 @@ const navLinks = [
   { label: 'Contact', href: '/#contact' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ company }: { company?: CompanyProfile }) {
   const [isOpen, setIsOpen] = useState(false)
+  const logoUrl = company?.logoUrl || '/images/logo.png'
+  const shortName = company?.shortName || 'AMK'
 
   const closeMenu = () => setIsOpen(false)
 
@@ -25,10 +28,11 @@ export default function Navbar() {
         <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center space-x-3 text-2xl font-bold tracking-tighter text-on-surface font-headline">
             <Image
-              src="/images/logo.png"
-              alt="AMK Logo"
+              src={logoUrl}
+              alt={`${shortName} Logo`}
               width={64}
               height={64}
+              unoptimized
               className="h-16 w-auto object-contain mix-blend-multiply"
             />
           </Link>

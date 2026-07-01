@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import RevealProvider from '@/components/RevealProvider'
+import { siteContentService } from '@/lib/services'
+
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
@@ -14,43 +16,25 @@ export const metadata: Metadata = {
   },
 }
 
-const missions = [
-  'Kami fokus memproduksi karya visual premium, seperti foto, film, video dan musik dengan standar estetika tinggi yang diperkuat oleh kekuatan storytelling yang mendalam.',
-  'Secara konsisten mengimplementasikan teknologi mutakhir seperti AI dan Data-Driven Marketing ke dalam setiap strategi kampanye untuk memastikan hasil yang inovatif dan terukur bagi klien.',
-  'Membangun ekosistem bisnis yang sehat dan berkelanjutan bagi para Key Partners serta talenta kreatif melalui sistem manajemen yang transparan dan profesional.',
-  'Memberikan dampak nyata dengan menyediakan platform distribusi serta eksibisi yang inklusif bagi karya-karya lokal agar dapat bersaing di kancah yang lebih luas.',
-]
+export default async function AboutPage() {
+  const content = await siteContentService.getAboutPage()
+  const { missions, businessUnits } = content
 
-const businessUnits = [
-  { code: '59122', title: 'Production House & Digital Content', desc: 'Fokus pada produksi film, iklan, dan konten digital berkualitas tinggi.' },
-  { code: '73100', title: 'Integrated Advertising Planning', desc: 'Perencanaan iklan terpadu secara online maupun offline.' },
-  { code: '59201', title: 'Audio Production & Podcasting', desc: 'Layanan audio profesional, podcast, hingga dubbing.' },
-  { code: '60202', title: 'TV Program Provision', desc: 'Penyediaan konten kreatif untuk program televisi.' },
-  { code: '59132', title: 'Broadcasting Rights & Licensing', desc: 'Lisensi hak tayang untuk platform OTT dan Bioskop.' },
-  { code: '59202', title: 'Copyright Management', desc: 'Pengelolaan hak cipta dan publishing.' },
-  { code: '59140', title: 'Modern Mobile Cinema', desc: 'Eksibisi film dan non-bioskop atau layar tancap modern.' },
-  { code: '46412', title: 'Merchandise & Uniform', desc: 'Produksi serta distribusi merchandise dan uniform / seragam korporat.' },
-  { code: '63111', title: 'AI & Data for Creative Strategy', desc: 'Pemanfaatan teknologi AI dan analisis data untuk strategi kreatif yang terukur.' },
-]
-
-export default function AboutPage() {
   return (
     <>
-      <RevealProvider />
       <main>
         {/* Hero */}
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(37,99,235,0.08),transparent_50%)]" />
           <div className="max-w-6xl mx-auto px-8 text-center relative z-10">
             <span className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary/10 text-primary text-xs uppercase tracking-[0.3em] font-bold mb-6">
-              Tentang AMK
+              {content.badge}
             </span>
             <h1 className="text-5xl md:text-6xl font-headline font-bold text-primary leading-tight">
-              Visi, Misi, dan Unit Bisnis PT. Adikara Mandala Kreasi
+              {content.heroTitle}
             </h1>
             <p className="mt-6 max-w-3xl mx-auto text-lg text-on-surface-variant leading-relaxed">
-              Kami hadir sebagai mitra kreatif yang membangun pengalaman brand menyeluruh melalui produksi video,
-              pemasaran digital, branding, audio, dan solusi AI yang menciptakan dampak nyata.
+              {content.heroDescription}
             </p>
           </div>
         </section>
@@ -59,11 +43,9 @@ export default function AboutPage() {
           {/* Visi */}
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">Visi Kami</h2>
+              <h2 className="text-4xl font-headline font-bold text-primary">{content.visionTitle}</h2>
               <p className="text-lg text-on-surface-variant leading-relaxed">
-                Menjadi ekosistem kreatif digital terintegrasi terdepan di Indonesia yang secara harmonis menyatukan
-                seni visual, teknologi data, dan strategi komunikasi tingkat tinggi untuk memberdayakan brand serta
-                para kreator di skala global.
+                {content.visionText}
               </p>
             </div>
           </div>
@@ -71,10 +53,9 @@ export default function AboutPage() {
           {/* Misi */}
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">Misi Kami</h2>
+              <h2 className="text-4xl font-headline font-bold text-primary">{content.missionTitle}</h2>
               <p className="text-lg text-on-surface-variant leading-relaxed">
-                Kami berfokus pada eksekusi kreatif yang terukur, kolaborasi yang personal, dan solusi end-to-end
-                untuk membantu setiap brand mencapai tujuan bisnisnya.
+                {content.missionIntro}
               </p>
             </div>
             <div className="grid gap-6">
@@ -92,11 +73,9 @@ export default function AboutPage() {
           {/* Unit Bisnis */}
           <section className="space-y-10">
             <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">Unit Bisnis Kami</h2>
+              <h2 className="text-4xl font-headline font-bold text-primary">{content.businessUnitsTitle}</h2>
               <p className="text-lg text-on-surface-variant leading-relaxed">
-                PT. Adikara Mandala Kreasi (AMK) didukung oleh legalitas hukum yang kuat di berbagai sektor strategis
-                industri kreatif. Kami mengintegrasikan kreatifitas tradisional dengan teknologi masa depan melalui
-                klasifikasi usaha dengan KLBI berikut:
+                {content.businessUnitsIntro}
               </p>
             </div>
             <div className="grid gap-6 lg:grid-cols-3">

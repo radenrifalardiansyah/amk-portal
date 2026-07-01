@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { services } from '@/data/services'
+import type { Service } from '@/data/services'
 
-export default function ServicesSection() {
+export default function ServicesSection({ services }: { services: Service[] }) {
   return (
     <section className="py-24" id="services">
       <div className="max-w-7xl mx-auto px-8">

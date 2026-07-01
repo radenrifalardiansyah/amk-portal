@@ -2,16 +2,18 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getServiceBySlug, services } from '@/data/services'
-import RevealProvider from '@/components/RevealProvider'
+import { servicesService } from '@/lib/services'
+
+export const revalidate = 0
 
 export async function generateStaticParams() {
-  return services.map((s) => ({ slug: s.slug }))
+  const slugs = await servicesService.getAllSlugs()
+  return slugs.map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const service = getServiceBySlug(slug)
+  const service = await servicesService.getBySlug(slug)
   if (!service) return {}
   return {
     title: `${service.title} | AMK Creative Agency`,
@@ -22,14 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const service = getServiceBySlug(slug)
+  const service = await servicesService.getBySlug(slug)
   if (!service) notFound()
 
   return (
     <>
-      <RevealProvider />
       <main>
-        {/* Hero */}
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.05),transparent_70%)] animate-fluid" />
@@ -43,7 +43,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        {/* Details */}
         <section className="py-20 bg-surface-container-lowest">
           <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
             <div className="reveal-left">
@@ -51,13 +50,11 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                 <Image src={service.image} alt={service.imageAlt} fill className="object-cover" />
               </div>
             </div>
-
             <div className="space-y-8 reveal-right">
               <div>
                 <h3 className="text-3xl font-headline font-bold text-primary mb-4">{service.heading}</h3>
                 <p className="text-on-surface-variant leading-relaxed">{service.body}</p>
               </div>
-
               <div className="grid gap-6">
                 {service.features.map((feature) => (
                   <div key={feature.title} className="flex items-start space-x-4">
@@ -75,7 +72,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        {/* CTA */}
         <section className="py-20 bg-primary/5 text-center">
           <h2 className="text-3xl font-headline font-bold text-primary mb-6">{service.ctaTitle}</h2>
           <Link

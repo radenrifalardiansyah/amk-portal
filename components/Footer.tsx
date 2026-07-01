@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { CompanyProfile } from '@/lib/services'
 
 const InstagramIcon = () => (
   <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -19,48 +20,70 @@ const WhatsAppIcon = () => (
   </svg>
 )
 
-export default function Footer() {
+function formatPhoneDisplay(phone: string) {
+  const digits = phone.replace(/\D/g, '')
+  const local = digits.startsWith('62') ? `0${digits.slice(2)}` : digits
+  return local.replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+export default function Footer({ company }: { company?: CompanyProfile }) {
+  const logoUrl = company?.logoUrl || '/images/logo.png'
+  const shortName = company?.shortName || 'AMK'
+  const tagline = company?.tagline || 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.'
+  const phone = company?.phone || '6285155336838'
+  const email = company?.email || 'adikaramandalakreasi@gmail.com'
+  const copyrightText = company?.copyrightText || 'PT. Adikara Mandala Kreasi - All rights reserved.'
+  const year = new Date().getFullYear()
+
   return (
     <footer className="bg-surface-container-low border-t border-outline-variant/20 w-full py-12 px-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto font-['Inter'] text-sm text-on-surface-variant">
         <div className="space-y-6 reveal-left">
           <div className="text-xl font-bold text-on-surface font-headline">
             <Image
-              src="/images/logo.png"
-              alt="AMK Logo"
+              src={logoUrl}
+              alt={`${shortName} Logo`}
               width={64}
               height={64}
+              unoptimized
               className="h-16 w-auto object-contain mix-blend-multiply"
             />
           </div>
           <p className="leading-relaxed">
-            Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.
+            {tagline}
           </p>
+          {company?.address && (
+            <p className="leading-relaxed">{company.address}</p>
+          )}
           <div className="flex flex-wrap gap-4">
             <Link href="/#about" className="hover:text-primary transition-opacity">About Us</Link>
             <Link href="/#services" className="hover:text-primary transition-opacity">Services</Link>
             <Link href="/#portfolio" className="hover:text-primary transition-opacity">Portfolio</Link>
             <Link href="/#leadership" className="hover:text-primary transition-opacity">Leadership</Link>
             <br />
-            <a href="#" className="hover:text-primary transition-opacity flex items-center space-x-2">
-              <InstagramIcon />
-              <span>Instagram</span>
-            </a>
-            <a href="#" aria-label="Kunjungi LinkedIn PT AMK" className="hover:text-primary transition-opacity flex items-center space-x-2">
-              <LinkedInIcon />
-              <span>LinkedIn</span>
-            </a>
+            {company?.instagramUrl && (
+              <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-opacity flex items-center space-x-2">
+                <InstagramIcon />
+                <span>Instagram</span>
+              </a>
+            )}
+            {company?.linkedinUrl && (
+              <a href={company.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi LinkedIn ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+                <LinkedInIcon />
+                <span>LinkedIn</span>
+              </a>
+            )}
           </div>
         </div>
 
         <div className="space-y-6 reveal">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
           <div className="space-y-4">
-            <a href="https://wa.me/6285155336838" className="block hover:text-primary transition-opacity">
-              WhatsApp: 0851 5533 6838
+            <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
+              WhatsApp: {formatPhoneDisplay(phone)}
             </a>
-            <a href="mailto:adikaramandalakreasi@gmail.com" className="block hover:text-primary transition-opacity">
-              Email: adikaramandalakreasi@gmail.com
+            <a href={`mailto:${email}`} className="block hover:text-primary transition-opacity">
+              Email: {email}
             </a>
           </div>
         </div>
@@ -68,7 +91,7 @@ export default function Footer() {
         <div className="space-y-6 reveal-right">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
           <a
-            href="https://wa.me/6285155336838"
+            href={`https://wa.me/${phone}`}
             target="_blank"
             rel="noopener noreferrer"
             className="magnetic-btn inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"
@@ -77,7 +100,7 @@ export default function Footer() {
             <span>Hubungi via WhatsApp</span>
           </a>
           <p className="pt-8">
-            Copyright &copy; 2026 PT. Adikara Mandala Kreasi - All rights reserved.{' '}
+            Copyright &copy; {year} {copyrightText}{' '}
             <br />
             Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-primary">RMedia Solution</a>
           </p>

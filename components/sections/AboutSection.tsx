@@ -1,17 +1,16 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { AboutHomeContent } from '@/lib/services'
 
-export default function AboutSection() {
+export default function AboutSection({ content }: { content: AboutHomeContent }) {
   return (
     <section className="py-24 bg-surface-container-lowest relative reveal" id="about">
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div className="space-y-8 reveal-left">
-            <h2 className="text-4xl font-headline font-bold text-primary">The Architects of Experience</h2>
+            <h2 className="text-4xl font-headline font-bold text-primary">{content.heading}</h2>
             <p className="text-on-surface-variant text-lg leading-relaxed">
-              PT. Adikara Mandala Kreasi (AMK) lahir dari visi untuk menyatukan presisi teknis dengan estetika
-              yang tak terbatas. Kami bukan sekadar agensi; kami adalah mitra strategis yang menerjemahkan
-              ambisi bisnis Anda menjadi realitas digital yang memukau.
+              {content.paragraph}
             </p>
             <Link
               href="/about"
@@ -28,7 +27,7 @@ export default function AboutSection() {
                 <span className="material-symbols-outlined text-primary text-3xl">verified</span>
                 <div>
                   <p className="text-xs text-on-surface-variant uppercase tracking-widest">Nomor Induk Berusaha</p>
-                  <p className="text-xl font-bold font-headline text-primary">NIB: 2407250043491</p>
+                  <p className="text-xl font-bold font-headline text-primary">{content.nib}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -36,7 +35,7 @@ export default function AboutSection() {
                 <div>
                   <p className="text-xs text-on-surface-variant uppercase tracking-widest">Headquarters</p>
                   <p className="text-lg font-medium text-on-surface">
-                    Jl. Ring Road Jl. Raya Bubulak No.A-4, Kota Bogor.
+                    {content.address}
                   </p>
                 </div>
               </div>
@@ -52,21 +51,21 @@ export default function AboutSection() {
                 playsInline
                 className="rounded-2xl h-64 w-full object-cover reveal-scale"
               >
-                <source src="/videos/logo_videos.mp4" type="video/mp4" />
+                <source src={content.videoSrc} type="video/mp4" />
               </video>
               <div className="bg-primary-container/10 p-6 rounded-2xl border border-primary/20 reveal-scale">
-                <p className="text-4xl font-bold text-primary font-headline">100+</p>
-                <p className="text-sm text-on-surface-variant">Projects Delivered</p>
+                <p className="text-4xl font-bold text-primary font-headline">{content.stat1Value}</p>
+                <p className="text-sm text-on-surface-variant">{content.stat1Label}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div className="bg-surface-container-highest p-6 rounded-2xl reveal-scale">
-                <p className="text-4xl font-bold text-primary font-headline">2026</p>
-                <p className="text-sm text-on-surface-variant">Future Ready</p>
+                <p className="text-4xl font-bold text-primary font-headline">{content.stat2Value}</p>
+                <p className="text-sm text-on-surface-variant">{content.stat2Label}</p>
               </div>
               <div className="relative h-80 rounded-2xl overflow-hidden reveal-scale">
                 <Image
-                  src="/images/teamwork.png"
+                  src={content.teamImage}
                   alt="Team Work"
                   fill
                   className="object-cover grayscale hover:grayscale-0 transition-all duration-500"

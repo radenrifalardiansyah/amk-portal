@@ -1,12 +1,7 @@
 import Image from 'next/image'
+import type { Leader } from '@/lib/services'
 
-const leaders = [
-  { name: 'Rizqi Maulana', role: 'Leading Director', image: '/images/risqi.jpeg' },
-  { name: 'Meida Pitaloka', role: 'Commissioner', image: '/images/meida.jpeg', delay: '0.2s' },
-  { name: 'Luthfi Hafiz', role: 'Head of Operations', image: '/images/luthfi.jpeg', delay: '0.4s' },
-]
-
-export default function LeadershipSection() {
+export default function LeadershipSection({ leaders }: { leaders: Leader[] }) {
   return (
     <section className="py-24" id="leadership">
       <div className="max-w-7xl mx-auto px-8">
@@ -16,11 +11,11 @@ export default function LeadershipSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {leaders.map((leader) => (
+          {leaders.map((leader, i) => (
             <div
-              key={leader.name}
+              key={leader.id}
               className="reveal-scale group relative overflow-hidden rounded-3xl bg-surface-container text-center pb-8 border border-outline-variant/10 hover-lift"
-              style={leader.delay ? { transitionDelay: leader.delay } : {}}
+              style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
             >
               <div className="aspect-[3/4] overflow-hidden mb-6 relative">
                 <Image

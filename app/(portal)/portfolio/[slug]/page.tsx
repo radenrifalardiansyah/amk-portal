@@ -2,16 +2,18 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getProjectBySlug, portfolioProjects } from '@/data/portfolio'
-import RevealProvider from '@/components/RevealProvider'
+import { portfolioService } from '@/lib/services'
+
+export const revalidate = 0
 
 export async function generateStaticParams() {
-  return portfolioProjects.map((p) => ({ slug: p.slug }))
+  const slugs = await portfolioService.getAllSlugs()
+  return slugs.map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const project = getProjectBySlug(slug)
+  const project = await portfolioService.getBySlug(slug)
   if (!project) return {}
   return {
     title: `${project.title} | AMK Portfolio`,
@@ -22,12 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PortfolioDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const project = getProjectBySlug(slug)
+  const project = await portfolioService.getBySlug(slug)
   if (!project) notFound()
 
   return (
     <>
-      <RevealProvider />
       <main>
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.05),transparent_70%)] animate-fluid" />

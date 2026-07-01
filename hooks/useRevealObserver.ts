@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export function useRevealObserver() {
+  const pathname = usePathname()
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -20,5 +23,5 @@ export function useRevealObserver() {
       .forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [])
+  }, [pathname])
 }
