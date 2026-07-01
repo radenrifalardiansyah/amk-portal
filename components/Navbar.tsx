@@ -12,6 +12,7 @@ const navLinks = [
   { label: 'Portfolio', href: '/#portfolio' },
   { label: 'Leadership', href: '/#leadership' },
   { label: 'Key Partners', href: '/#key-partners' },
+  { label: 'News', href: '/#news' },
   { label: 'Contact', href: '/#contact' },
 ]
 

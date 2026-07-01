@@ -9,6 +9,7 @@ export { siteContentService } from './siteContentService'
 export { badgesService } from './badgesService'
 export { analyticsService } from './analyticsService'
 export { keyPartnersService } from './keyPartnersService'
+export { newsService } from './newsService'
 
 export type { Lead, CreateLeadInput } from './leadsService'
 export type { PageView, CreatePageViewInput, DeviceType } from './analyticsService'
@@ -18,6 +19,7 @@ export type { Badge } from './badgesService'
 export type { Leader } from './leadersService'
 export type { Client } from './clientsService'
 export type { KeyPartner, KeyPartnerMember } from './keyPartnersService'
+export type { NewsArticle, NewsStatus } from './newsService'
 export type {
   HeroContent, AboutHomeContent, AboutPageContent, ContactContent, BusinessUnit, CompanyProfile,
 } from './siteContentService'

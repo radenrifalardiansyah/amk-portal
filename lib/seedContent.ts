@@ -1,6 +1,6 @@
 import {
   advantagesService, keyPartnersService, clientsService, leadersService,
-  badgesService, servicesService, portfolioService, siteContentService,
+  badgesService, servicesService, portfolioService, siteContentService, newsService,
 } from '@/lib/services'
 
 export interface SeedResult {
@@ -17,6 +17,7 @@ export async function seedInitialContent(): Promise<SeedResult[]> {
     { label: 'Clients', run: () => clientsService.seedDefaults() },
     { label: 'Leadership', run: () => leadersService.seedDefaults() },
     { label: 'Badges', run: () => badgesService.seedDefaults() },
+    { label: 'News', run: () => newsService.seedDefaults() },
   ]
 
   const results: SeedResult[] = []

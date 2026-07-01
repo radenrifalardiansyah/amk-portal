@@ -6,7 +6,7 @@ import StatCard from '@/components/admin/StatCard'
 import AreaTrendChart from '@/components/admin/charts/AreaTrendChart'
 import DonutChart from '@/components/admin/charts/DonutChart'
 import BarList from '@/components/admin/charts/BarList'
-import { leadsService, portfolioService, servicesService, advantagesService, leadersService, clientsService, analyticsService } from '@/lib/services'
+import { leadsService, portfolioService, servicesService, advantagesService, leadersService, clientsService, analyticsService, newsService } from '@/lib/services'
 import type { Lead, PageView } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
 
@@ -79,6 +79,7 @@ export default function DashboardPage() {
   const [advantagesCount, setAdvantagesCount] = useState(0)
   const [leadersCount, setLeadersCount] = useState(0)
   const [clientsCount, setClientsCount] = useState(0)
+  const [newsCount, setNewsCount] = useState(0)
 
   useEffect(() => {
     const unsub = leadsService.subscribe((data) => setLeads(data))
@@ -91,18 +92,20 @@ export default function DashboardPage() {
 
   const fetchCounts = useCallback(async () => {
     try {
-      const [p, s, a, l, c] = await Promise.all([
+      const [p, s, a, l, c, n] = await Promise.all([
         portfolioService.getCount(),
         servicesService.getCount(),
         advantagesService.getCount(),
         leadersService.getCount(),
         clientsService.getCount(),
+        newsService.getCount(),
       ])
       setPortfolioCount(p)
       setServicesCount(s)
       setAdvantagesCount(a)
       setLeadersCount(l)
       setClientsCount(c)
+      setNewsCount(n)
     } catch (e) {
       console.error('fetchCounts error:', e)
     }
@@ -120,7 +123,8 @@ export default function DashboardPage() {
     { label: 'Advantages', value: advantagesCount, color: theme.chartPalette[2] },
     { label: 'Leaders', value: leadersCount, color: theme.chartPalette[3] },
     { label: 'Clients', value: clientsCount, color: theme.chartPalette[4] },
-  ], [portfolioCount, servicesCount, advantagesCount, leadersCount, clientsCount])
+    { label: 'News', value: newsCount, color: theme.chartPalette[5] },
+  ], [portfolioCount, servicesCount, advantagesCount, leadersCount, clientsCount, newsCount])
   const last7DaysLeads = useMemo(
     () => leadsTrend.slice(-7).reduce((sum, d) => sum + d.value, 0),
     [leadsTrend],
@@ -146,10 +150,11 @@ export default function DashboardPage() {
         <StatCard title="Services"     value={servicesCount}      icon="design_services"   delay="0.25s" />
       </div>
       {/* Stat Cards — row 2 */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <StatCard title="Advantages"   value={advantagesCount}    icon="auto_awesome"      delay="0.2s" />
         <StatCard title="Leaders"      value={leadersCount}       icon="people"            delay="0.25s" />
         <StatCard title="Clients"      value={clientsCount}       icon="handshake"         delay="0.3s" />
+        <StatCard title="News"         value={newsCount}          icon="newspaper"         delay="0.35s" />
       </div>
 
       {/* Charts — visits */}
@@ -232,7 +237,7 @@ export default function DashboardPage() {
           {[
             { label: 'Rata-rata kunjungan/hari', value: (viewsTrend.reduce((s, d) => s + d.value, 0) / viewsTrend.length).toFixed(1) },
             { label: 'Rata-rata leads/hari', value: (leadsTrend.reduce((s, d) => s + d.value, 0) / leadsTrend.length).toFixed(1) },
-            { label: 'Total konten portal', value: portfolioCount + servicesCount + advantagesCount + leadersCount + clientsCount },
+            { label: 'Total konten portal', value: portfolioCount + servicesCount + advantagesCount + leadersCount + clientsCount + newsCount },
             { label: 'Layanan terpopuler', value: serviceBreakdown[0]?.label ?? '—' },
           ].map((row, i, arr) => (
             <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: 10, borderBottom: i < arr.length - 1 ? `1px solid ${theme.divider}` : 'none' }}>
