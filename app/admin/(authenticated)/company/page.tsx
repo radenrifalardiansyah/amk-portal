@@ -95,6 +95,7 @@ export default function CompanyProfilePage() {
     setSaving(true)
     try {
       await siteContentService.saveCompany(company)
+      window.dispatchEvent(new Event('company-profile-updated'))
       showToast('success', 'Profil perusahaan berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan profil perusahaan')

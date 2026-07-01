@@ -11,7 +11,7 @@ export interface Advantage {
   order: number
 }
 
-const staticData: Advantage[] = [
+const seedData: Advantage[] = [
   {
     id: 'precision',
     icon: 'target',
@@ -48,10 +48,9 @@ export const advantagesService = {
   async getAll(): Promise<Advantage[]> {
     try {
       const snap = await getDocs(query(collection(db, COL), orderBy('order', 'asc')))
-      if (snap.empty) return staticData
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Advantage))
     } catch {
-      return staticData
+      return []
     }
   },
 
@@ -68,5 +67,12 @@ export const advantagesService = {
       const snap = await getDocs(collection(db, COL))
       return snap.size
     } catch { return 0 }
+  },
+
+  async seedDefaults(): Promise<boolean> {
+    const snap = await getDocs(collection(db, COL))
+    if (!snap.empty) return false
+    await Promise.all(seedData.map((item) => setDoc(doc(db, COL, item.id), { ...item })))
+    return true
   },
 }

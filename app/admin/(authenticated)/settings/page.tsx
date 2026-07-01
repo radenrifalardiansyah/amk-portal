@@ -6,6 +6,7 @@ import Toast from '@/components/admin/Toast'
 import { usersService } from '@/lib/services'
 import type { AdminUser } from '@/lib/services'
 import { uploadMedia } from '@/lib/upload'
+import { seedInitialContent, type SeedResult } from '@/lib/seedContent'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
@@ -69,11 +70,12 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
   )
 }
 
-type TabKey = 'profile' | 'security'
+type TabKey = 'profile' | 'security' | 'system'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profil', icon: 'person' },
   { key: 'security', label: 'Keamanan', icon: 'lock' },
+  { key: 'system', label: 'Sistem', icon: 'database' },
 ]
 
 export default function SettingsPage() {
@@ -91,6 +93,9 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
+
+  const [seeding, setSeeding] = useState(false)
+  const [seedResults, setSeedResults] = useState<SeedResult[] | null>(null)
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -187,6 +192,23 @@ export default function SettingsPage() {
       showToast('error', 'Gagal mengubah password')
     } finally {
       setChangingPassword(false)
+    }
+  }
+
+  const handleSeed = async () => {
+    setSeeding(true)
+    setSeedResults(null)
+    try {
+      const results = await seedInitialContent()
+      setSeedResults(results)
+      const newlySeeded = results.filter((r) => r.seeded).length
+      showToast('success', newlySeeded > 0
+        ? `${newlySeeded} koleksi berhasil diisi ke Firestore`
+        : 'Semua koleksi sudah terisi, tidak ada yang diubah')
+    } catch {
+      showToast('error', 'Gagal menjalankan seed data')
+    } finally {
+      setSeeding(false)
     }
   }
 
@@ -308,6 +330,38 @@ export default function SettingsPage() {
                 </button>
               </div>
             </>
+          )}
+
+          {activeTab === 'system' && (
+            <SectionCard title="Seed Konten Awal" subtitle="Isi Firestore dengan konten awal untuk koleksi yang masih kosong">
+              <p style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.6 }}>
+                Aksi ini hanya mengisi koleksi Firestore yang saat ini <strong>masih kosong</strong> (Services, Portfolio,
+                Advantages, Key Partners, Clients, Leadership, Badges, dan konten Home/About/Contact/Profil Perusahaan).
+                Koleksi yang sudah punya data tidak akan ditimpa, sehingga aman dijalankan berkali-kali.
+              </p>
+              <div>
+                <button onClick={handleSeed} disabled={seeding}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: seeding ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: seeding ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: seeding ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                  {seeding
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Mengisi Firestore...</>
+                    : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>cloud_upload</span>Seed Konten Awal ke Firestore</>}
+                </button>
+              </div>
+
+              {seedResults && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+                  {seedResults.map((r) => (
+                    <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, color: r.seeded ? theme.accent : theme.textMuted }}>
+                        {r.seeded ? 'check_circle' : 'remove_circle_outline'}
+                      </span>
+                      <span style={{ color: theme.textSecondary }}>{r.label}</span>
+                      <span style={{ color: theme.textMuted }}>{r.seeded ? '— diisi' : '— sudah ada data, dilewati'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
           )}
         </div>
       )}

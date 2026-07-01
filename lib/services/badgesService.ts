@@ -9,7 +9,7 @@ export interface Badge {
   order: number
 }
 
-const staticData: Badge[] = [
+const seedData: Badge[] = [
   { id: 'core-pillar', name: 'Core Pillar', order: 1 },
   { id: 'ai-creative', name: 'AI Creative', order: 2 },
   { id: 'o2o-brand', name: 'O2O Brand', order: 3 },
@@ -21,10 +21,9 @@ export const badgesService = {
   async getAll(): Promise<Badge[]> {
     try {
       const snap = await getDocs(query(collection(db, COL), orderBy('order', 'asc')))
-      if (snap.empty) return staticData
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Badge))
     } catch {
-      return staticData
+      return []
     }
   },
 
@@ -41,5 +40,12 @@ export const badgesService = {
       const snap = await getDocs(collection(db, COL))
       return snap.size
     } catch { return 0 }
+  },
+
+  async seedDefaults(): Promise<boolean> {
+    const snap = await getDocs(collection(db, COL))
+    if (!snap.empty) return false
+    await Promise.all(seedData.map((item) => setDoc(doc(db, COL, item.id), { ...item })))
+    return true
   },
 }

@@ -71,7 +71,29 @@ export interface CompanyProfile {
 
 const COL = 'site_content'
 
-const defaults = {
+const empty = {
+  hero: {
+    badge: '', titleLine1: '', titleLine2: '', titleLine3: '', description: '',
+    primaryCtaLabel: '', primaryCtaHref: '', secondaryCtaLabel: '', secondaryCtaHref: '', image: '',
+  } as HeroContent,
+  aboutHome: {
+    heading: '', paragraph: '', nib: '', address: '',
+    stat1Value: '', stat1Label: '', stat2Value: '', stat2Label: '', videoSrc: '', teamImage: '',
+  } as AboutHomeContent,
+  aboutPage: {
+    badge: '', heroTitle: '', heroDescription: '', visionTitle: '', visionText: '',
+    missionTitle: '', missionIntro: '', missions: [], businessUnitsTitle: '', businessUnitsIntro: '', businessUnits: [],
+  } as AboutPageContent,
+  contact: {
+    heading: '', description: '', waNumber: '', waResponseTitle: '', waResponseSubtitle: '', serviceOptions: [],
+  } as ContactContent,
+  company: {
+    legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '',
+    instagramUrl: '', linkedinUrl: '', copyrightText: '',
+  } as CompanyProfile,
+}
+
+const seedData = {
   hero: {
     badge: 'Creative Digital Agency Bogor',
     titleLine1: 'Collaboration',
@@ -179,18 +201,33 @@ async function saveContent<T extends object>(key: string, data: T): Promise<void
 }
 
 export const siteContentService = {
-  getHero: () => getContent<HeroContent>('hero', defaults.hero),
+  getHero: () => getContent<HeroContent>('hero', empty.hero),
   saveHero: (data: HeroContent) => saveContent('hero', data),
 
-  getAboutHome: () => getContent<AboutHomeContent>('aboutHome', defaults.aboutHome),
+  getAboutHome: () => getContent<AboutHomeContent>('aboutHome', empty.aboutHome),
   saveAboutHome: (data: AboutHomeContent) => saveContent('aboutHome', data),
 
-  getAboutPage: () => getContent<AboutPageContent>('aboutPage', defaults.aboutPage),
+  getAboutPage: () => getContent<AboutPageContent>('aboutPage', empty.aboutPage),
   saveAboutPage: (data: AboutPageContent) => saveContent('aboutPage', data),
 
-  getContact: () => getContent<ContactContent>('contact', defaults.contact),
+  getContact: () => getContent<ContactContent>('contact', empty.contact),
   saveContact: (data: ContactContent) => saveContent('contact', data),
 
-  getCompany: () => getContent<CompanyProfile>('company', defaults.company),
+  getCompany: () => getContent<CompanyProfile>('company', empty.company),
   saveCompany: (data: CompanyProfile) => saveContent('company', data),
+
+  async seedDefaults(): Promise<{ key: string; seeded: boolean }[]> {
+    const keys = ['hero', 'aboutHome', 'aboutPage', 'contact', 'company'] as const
+    const results: { key: string; seeded: boolean }[] = []
+    for (const key of keys) {
+      const snap = await getDoc(doc(db, COL, key))
+      if (snap.exists()) {
+        results.push({ key, seeded: false })
+        continue
+      }
+      await saveContent(key, seedData[key])
+      results.push({ key, seeded: true })
+    }
+    return results
+  },
 }

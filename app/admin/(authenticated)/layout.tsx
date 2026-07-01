@@ -43,6 +43,7 @@ const navGroups: NavGroup[] = [
       { href: '/admin/advantages', icon: 'military_tech',  label: 'Advantages', subtitle: 'Kelola keunggulan yang ditampilkan di homepage' },
       { href: '/admin/leadership', icon: 'groups',         label: 'Leadership', subtitle: 'Kelola tim kepemimpinan yang ditampilkan di homepage' },
       { href: '/admin/clients',    icon: 'handshake',      label: 'Clients', subtitle: 'Kelola logo klien yang ditampilkan di homepage' },
+      { href: '/admin/key-partners', icon: 'diversity_3',  label: 'Key Partners', subtitle: 'Kelola daftar mitra kunci yang ditampilkan di halaman About' },
     ],
   },
   {
@@ -100,7 +101,10 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
   }, [router])
 
   useEffect(() => {
-    siteContentService.getCompany().then(setCompany).catch(() => {})
+    const refetchCompany = () => siteContentService.getCompany().then(setCompany).catch(() => {})
+    refetchCompany()
+    window.addEventListener('company-profile-updated', refetchCompany)
+    return () => window.removeEventListener('company-profile-updated', refetchCompany)
   }, [])
 
   useEffect(() => { setSidebarOpen(false) }, [pathname])

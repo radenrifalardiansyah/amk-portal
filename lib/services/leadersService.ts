@@ -16,7 +16,7 @@ export interface Leader {
   instagram?: string
 }
 
-const staticData: Leader[] = [
+const seedData: Leader[] = [
   { id: 'rizqi',  name: 'Rizqi Maulana',  role: 'Leading Director',   image: '/images/risqi.jpeg',  order: 1 },
   { id: 'meida',  name: 'Meida Pitaloka', role: 'Commissioner',        image: '/images/meida.jpeg',  order: 2 },
   { id: 'luthfi', name: 'Luthfi Hafiz',   role: 'Head of Operations',  image: '/images/luthfi.jpeg', order: 3 },
@@ -28,10 +28,9 @@ export const leadersService = {
   async getAll(): Promise<Leader[]> {
     try {
       const snap = await getDocs(query(collection(db, COL), orderBy('order', 'asc')))
-      if (snap.empty) return staticData
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Leader))
     } catch {
-      return staticData
+      return []
     }
   },
 
@@ -48,5 +47,12 @@ export const leadersService = {
       const snap = await getDocs(collection(db, COL))
       return snap.size
     } catch { return 0 }
+  },
+
+  async seedDefaults(): Promise<boolean> {
+    const snap = await getDocs(collection(db, COL))
+    if (!snap.empty) return false
+    await Promise.all(seedData.map((item) => setDoc(doc(db, COL, item.id), { ...item })))
+    return true
   },
 }

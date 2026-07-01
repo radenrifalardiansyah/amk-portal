@@ -18,7 +18,7 @@ export interface Client {
   picPhone?: string
 }
 
-const staticData: Client[] = [
+const seedData: Client[] = [
   { id: 'nippon',    name: 'Nippon Express',        src: '/images/clients/nippon.png',    order: 1 },
   { id: 'jica',      name: 'JICA',                  src: '/images/clients/jica.png',      order: 2 },
   { id: 'kabbogor',  name: 'Kabupaten Bogor',        src: '/images/clients/kabbogor.png',  order: 3 },
@@ -41,10 +41,9 @@ export const clientsService = {
   async getAll(): Promise<Client[]> {
     try {
       const snap = await getDocs(query(collection(db, COL), orderBy('order', 'asc')))
-      if (snap.empty) return staticData
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Client))
     } catch {
-      return staticData
+      return []
     }
   },
 
@@ -61,5 +60,12 @@ export const clientsService = {
       const snap = await getDocs(collection(db, COL))
       return snap.size
     } catch { return 0 }
+  },
+
+  async seedDefaults(): Promise<boolean> {
+    const snap = await getDocs(collection(db, COL))
+    if (!snap.empty) return false
+    await Promise.all(seedData.map((item) => setDoc(doc(db, COL, item.id), { ...item })))
+    return true
   },
 }
