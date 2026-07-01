@@ -141,18 +141,20 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: theme.bg }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 14, overflow: 'hidden',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontSize: 13, fontWeight: 700,
-          background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-          boxShadow: '0 8px 24px rgba(37,99,235,0.28)',
-          fontFamily: theme.fontHeadline,
-        }}>
-          {company?.logoUrl
-            ? <img src={company.logoUrl} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : brandName}
-        </div>
+        {company?.logoUrl ? (
+          <img src={company.logoUrl} alt={brandName} style={{ width: 48, height: 48, objectFit: 'contain' }} />
+        ) : (
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 13, fontWeight: 700,
+            background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+            boxShadow: '0 8px 24px rgba(37,99,235,0.28)',
+            fontFamily: theme.fontHeadline,
+          }}>
+            {brandName}
+          </div>
+        )}
         <p style={{ color: theme.textMuted, fontSize: 13 }}>Memverifikasi sesi...</p>
       </div>
     )
@@ -193,18 +195,20 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
         {/* Logo */}
         <div style={{ padding: collapsed ? '20px 10px 12px' : '20px 20px 16px', borderBottom: `1px solid ${theme.divider}`, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 11, flexShrink: 0, overflow: 'hidden',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
-              background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-              boxShadow: '0 6px 16px rgba(37,99,235,0.25)',
-              fontFamily: theme.fontHeadline,
-            }}>
-              {company?.logoUrl
-                ? <img src={company.logoUrl} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : brandName}
-            </div>
+            {company?.logoUrl ? (
+              <img src={company.logoUrl} alt={brandName} style={{ width: 36, height: 36, flexShrink: 0, objectFit: 'contain' }} />
+            ) : (
+              <div style={{
+                width: 36, height: 36, borderRadius: 11, flexShrink: 0, overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
+                background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+                boxShadow: '0 6px 16px rgba(37,99,235,0.25)',
+                fontFamily: theme.fontHeadline,
+              }}>
+                {brandName}
+              </div>
+            )}
             {!collapsed && (
               <div style={{ minWidth: 0 }}>
                 <p

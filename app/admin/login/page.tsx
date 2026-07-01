@@ -93,18 +93,24 @@ export default function AdminLoginPage() {
         <div style={{ padding: '36px 36px 32px' }}>
           {/* Logo & Title */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
-            <div style={{
-              width: 60, height: 60, borderRadius: 18, overflow: 'hidden',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 16, color: '#fff', fontSize: 15, fontWeight: 700, letterSpacing: '0.04em',
-              background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-              boxShadow: '0 8px 32px rgba(37,99,235,0.3)',
-              fontFamily: theme.fontHeadline,
-            }}>
-              {company?.logoUrl
-                ? <img src={company.logoUrl} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : brandName}
-            </div>
+            {company?.logoUrl ? (
+              <img
+                src={company.logoUrl}
+                alt={brandName}
+                style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 16 }}
+              />
+            ) : (
+              <div style={{
+                width: 60, height: 60, borderRadius: 18, overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16, color: '#fff', fontSize: 15, fontWeight: 700, letterSpacing: '0.04em',
+                background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+                boxShadow: '0 8px 32px rgba(37,99,235,0.3)',
+                fontFamily: theme.fontHeadline,
+              }}>
+                {brandName}
+              </div>
+            )}
             <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, marginBottom: 6 }}>
               Admin Portal
             </h1>
