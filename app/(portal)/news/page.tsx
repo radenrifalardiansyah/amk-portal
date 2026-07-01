@@ -7,6 +7,18 @@ export const revalidate = 0
 export const metadata: Metadata = {
   title: 'Berita | AMK Creative Agency',
   description: 'Kabar terbaru, pencapaian, dan wawasan dari PT. Adikara Mandala Kreasi.',
+  alternates: { canonical: '/news' },
+  openGraph: {
+    title: 'Berita | AMK Creative Agency',
+    description: 'Kabar terbaru, pencapaian, dan wawasan dari PT. Adikara Mandala Kreasi.',
+    url: '/news',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Berita | AMK Creative Agency',
+    description: 'Kabar terbaru, pencapaian, dan wawasan dari PT. Adikara Mandala Kreasi.',
+  },
 }
 
 export default async function NewsPage() {

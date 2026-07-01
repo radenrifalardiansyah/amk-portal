@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { servicesService } from '@/lib/services'
+import { SITE_URL } from '@/lib/seo'
 
 export const revalidate = 0
 
@@ -18,7 +19,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${service.title} | AMK Creative Agency`,
     description: service.subtitle,
-    openGraph: { images: [service.image] },
+    alternates: { canonical: `/services/${slug}` },
+    openGraph: {
+      title: service.title,
+      description: service.subtitle,
+      url: `/services/${slug}`,
+      images: [service.image],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: service.title,
+      description: service.subtitle,
+      images: [service.image],
+    },
   }
 }
 
@@ -27,8 +41,22 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   const service = await servicesService.getBySlug(slug)
   if (!service) notFound()
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Services', item: `${SITE_URL}/#services` },
+      { '@type': 'ListItem', position: 3, name: service.title, item: `${SITE_URL}/services/${slug}` },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <main>
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 z-0">

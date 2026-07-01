@@ -8,7 +8,17 @@ export const metadata: Metadata = {
   title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
   description:
     'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK) yang menggabungkan video production, branding, digital marketing, audio, dan solusi kreatif AI.',
+  alternates: { canonical: '/about' },
   openGraph: {
+    title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
+    description:
+      'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK).',
+    url: '/about',
+    images: ['/images/company.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
     title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
     description:
       'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK).',

@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { newsService } from '@/lib/services'
+import { newsService, siteContentService } from '@/lib/services'
+import { SITE_URL, absoluteUrl } from '@/lib/seo'
 
 export const revalidate = 0
 
@@ -18,7 +19,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${article.title} | AMK News`,
     description: article.excerpt,
-    openGraph: { images: [article.coverImage] },
+    alternates: { canonical: `/news/${slug}` },
+    openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      url: `/news/${slug}`,
+      images: [article.coverImage],
+      type: 'article',
+      publishedTime: article.publishedAt,
+      authors: [article.author],
+      tags: article.tags.split(',').map((t) => t.trim()).filter(Boolean),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt,
+      images: [article.coverImage],
+    },
   }
 }
 
@@ -33,12 +50,53 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
   const article = await newsService.getBySlug(slug)
   if (!article || article.status !== 'published') notFound()
 
-  const all = await newsService.getAllPublished()
+  const [all, company] = await Promise.all([
+    newsService.getAllPublished(),
+    siteContentService.getCompany(),
+  ])
   const others = all.filter((a) => a.slug !== article.slug).slice(0, 3)
   const tags = article.tags.split(',').map((t) => t.trim()).filter(Boolean)
   const paragraphs = article.content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
 
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.title,
+    description: article.excerpt,
+    image: [absoluteUrl(article.coverImage)],
+    datePublished: article.publishedAt,
+    dateModified: article.publishedAt,
+    articleSection: article.category,
+    keywords: tags.join(', '),
+    author: { '@type': 'Person', name: article.author },
+    publisher: {
+      '@type': 'Organization',
+      name: company.shortName || 'AMK',
+      logo: { '@type': 'ImageObject', url: absoluteUrl(company.logoUrl || '/images/logo.png') },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(`/news/${slug}`) },
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Berita', item: `${SITE_URL}/news` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: `${SITE_URL}/news/${slug}` },
+    ],
+  }
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
     <main>
       <section className="relative pt-32 pb-16 overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.05),transparent_70%)] animate-fluid" />
@@ -115,5 +173,6 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
         </section>
       )}
     </main>
+    </>
   )
 }

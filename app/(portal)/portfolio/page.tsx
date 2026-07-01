@@ -8,6 +8,18 @@ export const revalidate = 0
 export const metadata: Metadata = {
   title: 'Portfolio | AMK Creative Agency',
   description: 'Jelajahi karya-karya terpilih PT. Adikara Mandala Kreasi — dari produksi video sinematik, hybrid event, hingga strategi digital.',
+  alternates: { canonical: '/portfolio' },
+  openGraph: {
+    title: 'Portfolio | AMK Creative Agency',
+    description: 'Jelajahi karya-karya terpilih PT. Adikara Mandala Kreasi — dari produksi video sinematik, hybrid event, hingga strategi digital.',
+    url: '/portfolio',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Portfolio | AMK Creative Agency',
+    description: 'Jelajahi karya-karya terpilih PT. Adikara Mandala Kreasi.',
+  },
 }
 
 export default async function PortfolioPage() {

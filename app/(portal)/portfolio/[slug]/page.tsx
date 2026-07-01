@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { portfolioService } from '@/lib/services'
+import { SITE_URL } from '@/lib/seo'
 
 export const revalidate = 0
 
@@ -18,7 +19,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${project.title} | AMK Portfolio`,
     description: project.description,
-    openGraph: { images: [project.image] },
+    alternates: { canonical: `/portfolio/${slug}` },
+    openGraph: {
+      title: project.title,
+      description: project.description,
+      url: `/portfolio/${slug}`,
+      images: [project.image],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: project.title,
+      description: project.description,
+      images: [project.image],
+    },
   }
 }
 
@@ -27,8 +41,22 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
   const project = await portfolioService.getBySlug(slug)
   if (!project) notFound()
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Portfolio', item: `${SITE_URL}/portfolio` },
+      { '@type': 'ListItem', position: 3, name: project.title, item: `${SITE_URL}/portfolio/${slug}` },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <main>
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.05),transparent_70%)] animate-fluid" />
