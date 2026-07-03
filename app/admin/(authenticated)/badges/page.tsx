@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { badgesService } from '@/lib/services'
@@ -99,8 +100,7 @@ function BadgeModal({
 }
 
 export default function BadgesPage() {
-  const [badges, setBadges] = useState<Badge[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: badges = [], isLoading: loading, mutate } = useSWR('badges', badgesService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; badge: Partial<Badge> } | null>(null)
@@ -113,23 +113,10 @@ export default function BadgesPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchBadges = useCallback(async () => {
-    setLoading(true)
-    try {
-      setBadges(await badgesService.getAll())
-    } catch {
-      showToast('error', 'Gagal memuat badges')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchBadges() }, [fetchBadges])
-
   const handleSave = async (data: Badge) => {
     try {
       await badgesService.save(data)
-      await fetchBadges()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Badge berhasil ditambahkan!' : 'Badge berhasil diperbarui!')
     } catch {
@@ -142,7 +129,7 @@ export default function BadgesPage() {
     setDeletingId(id)
     try {
       await badgesService.delete(id)
-      await fetchBadges()
+      await mutate()
       showToast('success', 'Badge berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus badge')

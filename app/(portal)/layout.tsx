@@ -5,7 +5,7 @@ import RevealProvider from '@/components/RevealProvider'
 import PageViewTracker from '@/components/PageViewTracker'
 import { siteContentService } from '@/lib/services'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const company = await siteContentService.getCompany()

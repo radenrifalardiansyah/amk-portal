@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import MediaUploadField from '@/components/admin/MediaUploadField'
@@ -140,7 +141,7 @@ function ServiceModal({
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
             <MediaUploadField
-              label="Foto Service" kind="image" folder="services"
+              label="Foto Service" folder="services"
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />
@@ -265,9 +266,8 @@ function ServiceModal({
 }
 
 export default function ServicesPage() {
-  const [servicesList, setServicesList] = useState<Service[]>([])
-  const [badges, setBadges] = useState<Badge[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: servicesList = [], isLoading: loading, mutate } = useSWR('services', servicesService.getAll)
+  const { data: badges = [] } = useSWR('badges', badgesService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; service: Partial<Service> } | null>(null)
@@ -281,25 +281,10 @@ export default function ServicesPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [svc, bdg] = await Promise.all([servicesService.getAll(), badgesService.getAll()])
-      setServicesList(svc)
-      setBadges(bdg)
-    } catch {
-      showToast('error', 'Gagal memuat services')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchAll() }, [fetchAll])
-
   const handleSave = async (data: Service) => {
     try {
       await servicesService.save(data)
-      await fetchAll()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Service berhasil ditambahkan!' : 'Service berhasil diperbarui!')
     } catch {
@@ -312,7 +297,7 @@ export default function ServicesPage() {
     setDeletingId(slug)
     try {
       await servicesService.delete(slug)
-      await fetchAll()
+      await mutate()
       showToast('success', 'Service berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus service')

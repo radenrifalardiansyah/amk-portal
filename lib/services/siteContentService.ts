@@ -1,4 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { cache } from 'react'
 import { db } from '@/lib/firebase'
 
 export interface HeroContent {
@@ -64,6 +65,7 @@ export interface CompanyProfile {
   address: string
   email: string
   phone: string
+  waNumber: string
   instagramUrl: string
   linkedinUrl: string
   copyrightText: string
@@ -88,7 +90,7 @@ const empty = {
     heading: '', description: '', waNumber: '', waResponseTitle: '', waResponseSubtitle: '', serviceOptions: [],
   } as ContactContent,
   company: {
-    legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '',
+    legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '', waNumber: '',
     instagramUrl: '', linkedinUrl: '', copyrightText: '',
   } as CompanyProfile,
 }
@@ -180,13 +182,14 @@ const seedData = {
     address: 'Jl. Ring Road Jl. Raya Bubulak No.A-4, Kota Bogor.',
     email: 'adikaramandalakreasi@gmail.com',
     phone: '6285155336838',
+    waNumber: '6285155336838',
     instagramUrl: '',
     linkedinUrl: '',
     copyrightText: 'PT. Adikara Mandala Kreasi - All rights reserved.',
   } as CompanyProfile,
 }
 
-async function getContent<T>(key: string, fallback: T): Promise<T> {
+const getContent = cache(async <T>(key: string, fallback: T): Promise<T> => {
   try {
     const snap = await getDoc(doc(db, COL, key))
     if (!snap.exists()) return fallback
@@ -194,7 +197,7 @@ async function getContent<T>(key: string, fallback: T): Promise<T> {
   } catch {
     return fallback
   }
-}
+})
 
 async function saveContent<T extends object>(key: string, data: T): Promise<void> {
   await setDoc(doc(db, COL, key), { ...data })

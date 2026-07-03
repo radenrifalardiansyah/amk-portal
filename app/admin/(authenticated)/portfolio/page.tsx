@@ -1,30 +1,33 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { portfolioService, servicesService } from '@/lib/services'
+import { portfolioService, servicesService, clientsService, Client } from '@/lib/services'
 import { PortfolioProject } from '@/data/portfolio'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import SearchSelect from '@/components/admin/SearchSelect'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const emptyProject: PortfolioProject = {
   slug: '', category: '', title: '', description: '', image: '/images/company.png',
-  client: '', services: '', year: new Date().getFullYear().toString(),
+  client: '', clientId: null, services: '', year: new Date().getFullYear().toString(),
   challenge: '', solution: '', result: '',
   prevSlug: null, nextSlug: null, nextLabel: null,
 }
 
 function PortfolioModal({
-  mode, project, categoryOptions, onClose, onSave, onError,
+  mode, project, categoryOptions, clients, onClose, onSave, onError,
 }: {
   mode: 'add' | 'edit'
   project: Partial<PortfolioProject>
   categoryOptions: string[]
+  clients: Client[]
   onClose: () => void
   onSave: (data: PortfolioProject) => void
   onError: (message: string) => void
@@ -35,8 +38,14 @@ function PortfolioModal({
 
   const set = (k: keyof PortfolioProject, v: string | null) => setForm((f) => ({ ...f, [k]: v }))
 
+  const handleClientLink = (id: string) => {
+    const picked = clients.find((c) => c.id === id)
+    setForm((f) => ({ ...f, clientId: id || null, client: picked ? picked.name : '' }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.clientId) { onError('Pilih client terlebih dahulu'); return }
     setSaving(true)
     await onSave(form)
     setSaving(false)
@@ -103,11 +112,13 @@ function PortfolioModal({
               </div>
               <div>
                 <label style={labelStyle}>Client *</label>
-                <input className={inputCls} style={inputStyle} required value={form.client}
-                  placeholder="Nama klien"
-                  onChange={(e) => set('client', e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                  onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                <SearchSelect
+                  value={form.clientId ?? ''}
+                  onChange={handleClientLink}
+                  placeholder="Cari & pilih client..."
+                  allowClear={false}
+                  options={clients.map((c) => ({ value: c.id, label: c.name, icon: c.src }))}
+                />
               </div>
             </div>
             <div>
@@ -127,7 +138,7 @@ function PortfolioModal({
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
             <MediaUploadField
-              label="Foto Proyek" kind="image" folder="portfolio"
+              label="Foto Proyek" folder="portfolio"
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />
@@ -170,9 +181,11 @@ function PortfolioModal({
 }
 
 export default function PortfolioPage() {
-  const [projects, setProjects] = useState<PortfolioProject[]>([])
-  const [categoryOptions, setCategoryOptions] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: projects = [], isLoading: loading, mutate } = useSWR('portfolio', portfolioService.getAll)
+  const { data: services = [] } = useSWR('services', servicesService.getAll)
+  const { data: clients = [] } = useSWR('clients', clientsService.getAll)
+  const categoryOptions = services.map((s) => s.navTitle).filter(Boolean)
+  const clientMap = new Map(clients.map((c) => [c.id, c]))
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; project: Partial<PortfolioProject> } | null>(null)
@@ -186,25 +199,10 @@ export default function PortfolioPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchProjects = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [portfolio, services] = await Promise.all([portfolioService.getAll(), servicesService.getAll()])
-      setProjects(portfolio)
-      setCategoryOptions(services.map((s) => s.navTitle).filter(Boolean))
-    } catch {
-      showToast('error', 'Gagal memuat portfolio')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchProjects() }, [fetchProjects])
-
   const handleSave = async (data: PortfolioProject) => {
     try {
       await portfolioService.save(data)
-      await fetchProjects()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Portfolio berhasil ditambahkan!' : 'Portfolio berhasil diperbarui!')
     } catch {
@@ -217,7 +215,7 @@ export default function PortfolioPage() {
     setDeletingId(slug)
     try {
       await portfolioService.delete(slug)
-      await fetchProjects()
+      await mutate()
       showToast('success', 'Portfolio berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus portfolio')
@@ -239,7 +237,7 @@ export default function PortfolioPage() {
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
       {modal && (
-        <PortfolioModal mode={modal.mode} project={modal.project} categoryOptions={categoryOptions}
+        <PortfolioModal mode={modal.mode} project={modal.project} categoryOptions={categoryOptions} clients={clients}
           onClose={() => setModal(null)} onSave={handleSave}
           onError={(msg) => showToast('error', msg)} />
       )}
@@ -318,7 +316,13 @@ export default function PortfolioPage() {
                   <h3 style={{ fontWeight: 700, color: theme.text, fontSize: 13.5, lineHeight: 1.35, flex: 1, fontFamily: theme.fontHeadline }}>{p.title}</h3>
                   <span style={{ fontSize: 11, color: theme.textMuted, flexShrink: 0 }}>{p.year}</span>
                 </div>
-                <p style={{ fontSize: 11.5, color: theme.textSecondary, marginBottom: 8 }}>{p.client}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  {p.clientId && clientMap.get(p.clientId) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={clientMap.get(p.clientId)!.src} alt="" style={{ width: 16, height: 16, objectFit: 'contain', borderRadius: 4 }} />
+                  )}
+                  <p style={{ fontSize: 11.5, color: theme.textSecondary }}>{p.client}</p>
+                </div>
                 <p style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.55 }} className="line-clamp-2">{p.description}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
                   <button onClick={() => setModal({ mode: 'edit', project: p })}
@@ -364,7 +368,15 @@ export default function PortfolioPage() {
                       <span style={{ fontWeight: 600, color: theme.text, fontSize: 13 }}>{p.title}</span>
                       <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>/{p.slug}</p>
                     </td>
-                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{p.client}</td>
+                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {p.clientId && clientMap.get(p.clientId) && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={clientMap.get(p.clientId)!.src} alt="" style={{ width: 16, height: 16, objectFit: 'contain', borderRadius: 4 }} />
+                        )}
+                        {p.client}
+                      </div>
+                    </td>
                     <td style={{ padding: '12px 20px' }}>
                       <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{p.category}</span>
                     </td>

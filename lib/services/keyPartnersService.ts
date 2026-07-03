@@ -1,5 +1,5 @@
 import {
-  collection, getDocs, doc, setDoc, deleteDoc, query, orderBy,
+  collection, getDocs, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -7,6 +7,7 @@ export interface KeyPartnerMember {
   name: string
   role?: string
   instagram?: string
+  photo?: string
 }
 
 export interface KeyPartner {
@@ -128,8 +129,8 @@ export const keyPartnersService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

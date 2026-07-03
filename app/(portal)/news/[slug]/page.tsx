@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { newsService, siteContentService } from '@/lib/services'
-import { SITE_URL, absoluteUrl } from '@/lib/seo'
+import { SITE_URL, absoluteUrl, ogImage } from '@/lib/seo'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export async function generateStaticParams() {
   const slugs = await newsService.getAllSlugs()
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: article.title,
       description: article.excerpt,
       url: `/news/${slug}`,
-      images: [article.coverImage],
+      images: [ogImage(article.coverImage)],
       type: 'article',
       publishedTime: article.publishedAt,
       authors: [article.author],
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title: article.title,
       description: article.excerpt,
-      images: [article.coverImage],
+      images: [ogImage(article.coverImage)],
     },
   }
 }
@@ -115,7 +115,14 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
 
       <section className="max-w-4xl mx-auto px-8 pb-20">
         <div className="relative w-full h-[40vh] md:h-[55vh] rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 mb-14">
-          <Image src={article.coverImage} alt={article.title} fill className="object-cover" priority unoptimized />
+          <Image
+            src={article.coverImage}
+            alt={article.title}
+            fill
+            sizes="(min-width: 896px) 896px, 100vw"
+            className="object-cover"
+            priority
+          />
         </div>
 
         <article className="prose-none space-y-6 max-w-3xl mx-auto">
@@ -158,8 +165,8 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                       src={item.coverImage}
                       alt={item.title}
                       fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      unoptimized
                     />
                   </div>
                   <div className="p-5">

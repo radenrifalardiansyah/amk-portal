@@ -1,6 +1,7 @@
 import {
-  collection, getDocs, getDoc, doc, setDoc, deleteDoc,
+  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc,
 } from 'firebase/firestore'
+import { cache } from 'react'
 import { db } from '@/lib/firebase'
 import { Service } from '@/data/services'
 
@@ -198,10 +199,10 @@ export const servicesService = {
     }
   },
 
-  async getBySlug(slug: string): Promise<Service | null> {
+  getBySlug: cache(async (slug: string): Promise<Service | null> => {
     const snap = await getDoc(doc(db, COL, slug))
     return snap.exists() ? (snap.data() as Service) : null
-  },
+  }),
 
   async getAllSlugs(): Promise<string[]> {
     try {
@@ -222,8 +223,8 @@ export const servicesService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

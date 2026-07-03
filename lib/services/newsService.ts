@@ -1,6 +1,7 @@
 import {
-  collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy,
+  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy,
 } from 'firebase/firestore'
+import { cache } from 'react'
 import { db } from '@/lib/firebase'
 
 export type NewsStatus = 'draft' | 'published'
@@ -74,10 +75,10 @@ export const newsService = {
     return all.filter((n) => n.status === 'published')
   },
 
-  async getBySlug(slug: string): Promise<NewsArticle | null> {
+  getBySlug: cache(async (slug: string): Promise<NewsArticle | null> => {
     const snap = await getDoc(doc(db, COL, slug))
     return snap.exists() ? (snap.data() as NewsArticle) : null
-  },
+  }),
 
   async getAllSlugs(): Promise<string[]> {
     try {
@@ -98,8 +99,8 @@ export const newsService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

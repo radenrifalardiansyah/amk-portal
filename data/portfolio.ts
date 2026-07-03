@@ -5,6 +5,7 @@ export interface PortfolioProject {
   description: string
   image: string
   client: string
+  clientId?: string | null
   services: string
   year: string
   challenge: string

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { clientsService } from '@/lib/services'
@@ -76,7 +77,7 @@ function ClientModal({
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
             <MediaUploadField
-              label="Logo Klien" kind="image" folder="clients" aspect="aspect-[4/3]"
+              label="Logo Klien" folder="clients" aspect="aspect-[4/3]"
               value={form.src} onChange={(url) => set('src', url)}
               onUploadingChange={setUploading} onError={onError}
             />
@@ -194,8 +195,7 @@ function ClientModal({
 }
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: clients = [], isLoading: loading, mutate } = useSWR('clients', clientsService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; client: Partial<Client> } | null>(null)
@@ -209,23 +209,10 @@ export default function ClientsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchClients = useCallback(async () => {
-    setLoading(true)
-    try {
-      setClients(await clientsService.getAll())
-    } catch {
-      showToast('error', 'Gagal memuat clients')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchClients() }, [fetchClients])
-
   const handleSave = async (data: Client) => {
     try {
       await clientsService.save(data)
-      await fetchClients()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Client berhasil ditambahkan!' : 'Client berhasil diperbarui!')
     } catch {
@@ -238,7 +225,7 @@ export default function ClientsPage() {
     setDeletingId(id)
     try {
       await clientsService.delete(id)
-      await fetchClients()
+      await mutate()
       showToast('success', 'Client berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus client')

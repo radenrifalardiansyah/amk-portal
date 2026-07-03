@@ -17,6 +17,7 @@ export interface AdminUser {
 export type SessionUser = Omit<AdminUser, 'password'>
 
 export const SESSION_KEY = 'amk_admin_session'
+export const SESSION_UPDATED_EVENT = 'amk-admin-session-updated'
 
 const COL = 'users'
 
@@ -85,6 +86,7 @@ export const usersService = {
       bio: user.bio ?? '',
       avatarUrl: user.avatarUrl ?? '',
     }))
+    window.dispatchEvent(new Event(SESSION_UPDATED_EVENT))
   },
 
   clearSession(): void {

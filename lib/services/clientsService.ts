@@ -1,6 +1,7 @@
 import {
-  collection, getDocs, doc, setDoc, deleteDoc, query, orderBy,
+  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy,
 } from 'firebase/firestore'
+import { cache } from 'react'
 import { db } from '@/lib/firebase'
 
 export interface Client {
@@ -47,6 +48,15 @@ export const clientsService = {
     }
   },
 
+  getById: cache(async (id: string): Promise<Client | null> => {
+    try {
+      const snap = await getDoc(doc(db, COL, id))
+      return snap.exists() ? ({ id: snap.id, ...snap.data() } as Client) : null
+    } catch {
+      return null
+    }
+  }),
+
   async save(item: Client): Promise<void> {
     await setDoc(doc(db, COL, item.id), { ...item })
   },
@@ -57,8 +67,8 @@ export const clientsService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

@@ -3,8 +3,9 @@
 import { useState, useEffect, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { usersService, siteContentService } from '@/lib/services'
-import type { SessionUser, CompanyProfile } from '@/lib/services'
+import useSWR, { SWRConfig } from 'swr'
+import { usersService, siteContentService, SESSION_UPDATED_EVENT } from '@/lib/services'
+import type { SessionUser } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
 
 interface NavItem {
@@ -42,9 +43,8 @@ const navGroups: NavGroup[] = [
       { href: '/admin/portfolio',  icon: 'photo_library',  label: 'Portfolio', subtitle: 'Kelola proyek portfolio' },
       { href: '/admin/news',      icon: 'newspaper',      label: 'News', subtitle: 'Kelola berita & artikel yang ditampilkan di portal' },
       { href: '/admin/advantages', icon: 'military_tech',  label: 'Advantages', subtitle: 'Kelola keunggulan yang ditampilkan di homepage' },
-      { href: '/admin/leadership', icon: 'groups',         label: 'Leadership', subtitle: 'Kelola tim kepemimpinan yang ditampilkan di homepage' },
+      { href: '/admin/teams',      icon: 'groups',         label: 'Teams', subtitle: 'Kelola tim kepemimpinan & key partners yang ditampilkan di homepage' },
       { href: '/admin/clients',    icon: 'handshake',      label: 'Clients', subtitle: 'Kelola logo klien yang ditampilkan di homepage' },
-      { href: '/admin/key-partners', icon: 'diversity_3',  label: 'Key Partners', subtitle: 'Kelola daftar mitra kunci yang ditampilkan di halaman About' },
     ],
   },
   {
@@ -79,8 +79,16 @@ navGroups.forEach((group) => {
 })
 
 export default function AdminAuthenticatedLayout({ children }: { children: ReactNode }) {
+  return (
+    <SWRConfig value={{ revalidateOnFocus: false, dedupingInterval: 30000 }}>
+      <AdminAuthenticatedLayoutInner>{children}</AdminAuthenticatedLayoutInner>
+    </SWRConfig>
+  )
+}
+
+function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionUser | null>(null)
-  const [company, setCompany] = useState<CompanyProfile | null>(null)
+  const { data: company } = useSWR('company', siteContentService.getCompany)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -101,11 +109,15 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
     setLoading(false)
   }, [router])
 
+  // Settings page updates the session (e.g. new avatar) in localStorage after
+  // saving; this keeps the sidebar/header avatar in sync without a full reload.
   useEffect(() => {
-    const refetchCompany = () => siteContentService.getCompany().then(setCompany).catch(() => {})
-    refetchCompany()
-    window.addEventListener('company-profile-updated', refetchCompany)
-    return () => window.removeEventListener('company-profile-updated', refetchCompany)
+    const handler = () => {
+      const s = usersService.getSession()
+      if (s) setSession(s)
+    }
+    window.addEventListener(SESSION_UPDATED_EVENT, handler)
+    return () => window.removeEventListener(SESSION_UPDATED_EVENT, handler)
   }, [])
 
   useEffect(() => { setSidebarOpen(false) }, [pathname])

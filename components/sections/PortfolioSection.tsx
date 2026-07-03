@@ -40,6 +40,7 @@ export default function PortfolioSection({ previews }: { previews: PortfolioProj
                 <div>
                   <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.category}</p>
                   <h4 className="text-lg font-headline font-bold text-white">{item.title}</h4>
+                  <p className="text-xs text-white/70 mt-1">{item.client}</p>
                 </div>
               </div>
             </Link>

@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { servicesService } from '@/lib/services'
-import { SITE_URL } from '@/lib/seo'
+import { SITE_URL, ogImage } from '@/lib/seo'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export async function generateStaticParams() {
   const slugs = await servicesService.getAllSlugs()
@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: service.title,
       description: service.subtitle,
       url: `/services/${slug}`,
-      images: [service.image],
+      images: [ogImage(service.image)],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: service.title,
       description: service.subtitle,
-      images: [service.image],
+      images: [ogImage(service.image)],
     },
   }
 }
@@ -75,7 +75,13 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
             <div className="reveal-left">
               <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border border-outline-variant/20">
-                <Image src={service.image} alt={service.imageAlt} fill className="object-cover" />
+                <Image
+                  src={service.image}
+                  alt={service.imageAlt}
+                  fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover"
+                />
               </div>
             </div>
             <div className="space-y-8 reveal-right">

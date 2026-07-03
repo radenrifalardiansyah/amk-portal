@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import { siteContentService } from '@/lib/services'
 import type { HeroContent, AboutHomeContent, ContactContent } from '@/lib/services'
@@ -80,15 +81,17 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 
 export default function HomepageContentPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('hero')
+  const { data: heroData, isLoading: heroLoading, mutate: mutateHero } = useSWR('hero', siteContentService.getHero)
+  const { data: aboutHomeData, isLoading: aboutHomeLoading, mutate: mutateAboutHome } = useSWR('aboutHome', siteContentService.getAboutHome)
+  const { data: contactData, isLoading: contactLoading, mutate: mutateContact } = useSWR('contact', siteContentService.getContact)
   const [hero, setHero] = useState<HeroContent | null>(null)
   const [aboutHome, setAboutHome] = useState<AboutHomeContent | null>(null)
   const [contact, setContact] = useState<ContactContent | null>(null)
-  const [loading, setLoading] = useState(true)
+  const loading = heroLoading || aboutHomeLoading || contactLoading
   const [savingHero, setSavingHero] = useState(false)
   const [savingAbout, setSavingAbout] = useState(false)
   const [savingContact, setSavingContact] = useState(false)
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
-  const [uploadingAboutVideo, setUploadingAboutVideo] = useState(false)
   const [uploadingAboutImage, setUploadingAboutImage] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
 
@@ -97,23 +100,17 @@ export default function HomepageContentPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [h, a, c] = await Promise.all([
-        siteContentService.getHero(),
-        siteContentService.getAboutHome(),
-        siteContentService.getContact(),
-      ])
-      setHero(h); setAboutHome(a); setContact(c)
-    } catch {
-      showToast('error', 'Gagal memuat konten homepage')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  useEffect(() => {
+    if (heroData && !hero) setHero(heroData)
+  }, [heroData, hero])
 
-  useEffect(() => { fetchAll() }, [fetchAll])
+  useEffect(() => {
+    if (aboutHomeData && !aboutHome) setAboutHome(aboutHomeData)
+  }, [aboutHomeData, aboutHome])
+
+  useEffect(() => {
+    if (contactData && !contact) setContact(contactData)
+  }, [contactData, contact])
 
   const saveHero = async () => {
     if (!hero) return
@@ -124,6 +121,7 @@ export default function HomepageContentPage() {
     setSavingHero(true)
     try {
       await siteContentService.saveHero(hero)
+      await mutateHero(hero, false)
       showToast('success', 'Hero berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan Hero')
@@ -137,6 +135,7 @@ export default function HomepageContentPage() {
     setSavingAbout(true)
     try {
       await siteContentService.saveAboutHome(aboutHome)
+      await mutateAboutHome(aboutHome, false)
       showToast('success', 'About berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan About')
@@ -150,6 +149,7 @@ export default function HomepageContentPage() {
     setSavingContact(true)
     try {
       await siteContentService.saveContact(contact)
+      await mutateContact(contact, false)
       showToast('success', 'Contact berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan Contact')
@@ -216,7 +216,7 @@ export default function HomepageContentPage() {
               <Field label="Judul Baris 3 (gradient) *"><TextInput value={hero.titleLine3} onChange={(v) => setHero({ ...hero, titleLine3: v })} /></Field>
             </div>
             <MediaUploadField
-              label="Gambar Hero" kind="image" folder="homepage/hero" aspect="aspect-[21/9]"
+              label="Gambar Hero" folder="homepage/hero" aspect="aspect-[21/9]"
               value={hero.image} onChange={(url) => setHero({ ...hero, image: url })}
               onUploadingChange={setUploadingHeroImage} onError={(msg) => showToast('error', msg)}
             />
@@ -231,7 +231,7 @@ export default function HomepageContentPage() {
           )}
 
           {activeTab === 'about' && (
-          <SectionCard title="About (Homepage)" subtitle="Section 'The Architects of Experience' di homepage" onSave={saveAbout} saving={savingAbout || uploadingAboutVideo || uploadingAboutImage}>
+          <SectionCard title="About (Homepage)" subtitle="Section 'The Architects of Experience' di homepage" onSave={saveAbout} saving={savingAbout || uploadingAboutImage}>
             <Field label="Heading"><TextInput value={aboutHome.heading} onChange={(v) => setAboutHome({ ...aboutHome, heading: v })} /></Field>
             <Field label="Paragraf"><TextArea value={aboutHome.paragraph} onChange={(v) => setAboutHome({ ...aboutHome, paragraph: v })} /></Field>
             <div className="grid grid-cols-2 gap-4">
@@ -245,13 +245,15 @@ export default function HomepageContentPage() {
               <Field label="Statistik 2 - Label"><TextInput value={aboutHome.stat2Label} onChange={(v) => setAboutHome({ ...aboutHome, stat2Label: v })} /></Field>
             </div>
             <div className="grid grid-cols-2 gap-4">
+              <Field label="URL Video (link .mp4)">
+                <TextInput
+                  value={aboutHome.videoSrc}
+                  onChange={(v) => setAboutHome({ ...aboutHome, videoSrc: v })}
+                  placeholder="https://.../video.mp4"
+                />
+              </Field>
               <MediaUploadField
-                label="Video" kind="video" folder="homepage/about"
-                value={aboutHome.videoSrc} onChange={(url) => setAboutHome({ ...aboutHome, videoSrc: url })}
-                onUploadingChange={setUploadingAboutVideo} onError={(msg) => showToast('error', msg)}
-              />
-              <MediaUploadField
-                label="Gambar Tim" kind="image" folder="homepage/about"
+                label="Gambar Tim" folder="homepage/about"
                 value={aboutHome.teamImage} onChange={(url) => setAboutHome({ ...aboutHome, teamImage: url })}
                 onUploadingChange={setUploadingAboutImage} onError={(msg) => showToast('error', msg)}
               />

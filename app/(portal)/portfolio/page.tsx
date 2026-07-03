@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { portfolioService } from '@/lib/services'
+import { portfolioService, clientsService } from '@/lib/services'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Portfolio | AMK Creative Agency',
@@ -23,7 +23,8 @@ export const metadata: Metadata = {
 }
 
 export default async function PortfolioPage() {
-  const projects = await portfolioService.getAll()
+  const [projects, clients] = await Promise.all([portfolioService.getAll(), clientsService.getAll()])
+  const clientMap = new Map(clients.map((c) => [c.id, c]))
 
   return (
     <>
@@ -67,6 +68,13 @@ export default async function PortfolioPage() {
                 </div>
                 <div className="p-6">
                   <h2 className="text-xl font-headline font-bold text-primary mb-2">{project.title}</h2>
+                  <div className="flex items-center gap-2 mb-3">
+                    {project.clientId && clientMap.get(project.clientId) && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={clientMap.get(project.clientId)!.src} alt="" className="h-4 w-auto object-contain" />
+                    )}
+                    <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{project.client}</span>
+                  </div>
                   <p className="text-on-surface-variant text-sm leading-relaxed">{project.description}</p>
                   <div className="mt-4 flex items-center space-x-2 text-primary font-bold text-sm">
                     <span>View Case Study</span>

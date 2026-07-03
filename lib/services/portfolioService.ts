@@ -1,6 +1,7 @@
 import {
-  collection, getDocs, getDoc, doc, setDoc, deleteDoc, query, orderBy,
+  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy,
 } from 'firebase/firestore'
+import { cache } from 'react'
 import { db } from '@/lib/firebase'
 import { PortfolioProject } from '@/data/portfolio'
 
@@ -79,10 +80,10 @@ export const portfolioService = {
     }
   },
 
-  async getBySlug(slug: string): Promise<PortfolioProject | null> {
+  getBySlug: cache(async (slug: string): Promise<PortfolioProject | null> => {
     const snap = await getDoc(doc(db, COL, slug))
     return snap.exists() ? (snap.data() as PortfolioProject) : null
-  },
+  }),
 
   async getAllSlugs(): Promise<string[]> {
     try {
@@ -103,8 +104,8 @@ export const portfolioService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

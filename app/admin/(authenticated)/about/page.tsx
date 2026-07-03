@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { siteContentService } from '@/lib/services'
@@ -73,8 +74,8 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 
 export default function AboutPageContentAdmin() {
   const [activeTab, setActiveTab] = useState<TabKey>('hero')
+  const { data: aboutPageData, isLoading: loading, mutate } = useSWR('aboutPage', siteContentService.getAboutPage)
   const [content, setContent] = useState<AboutPageContent | null>(null)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [missionPage, setMissionPage] = useState(1)
@@ -85,24 +86,16 @@ export default function AboutPageContentAdmin() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchContent = useCallback(async () => {
-    setLoading(true)
-    try {
-      setContent(await siteContentService.getAboutPage())
-    } catch {
-      showToast('error', 'Gagal memuat konten halaman About')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchContent() }, [fetchContent])
+  useEffect(() => {
+    if (aboutPageData && !content) setContent(aboutPageData)
+  }, [aboutPageData, content])
 
   const handleSave = async () => {
     if (!content) return
     setSaving(true)
     try {
       await siteContentService.saveAboutPage(content)
+      await mutate(content, false)
       showToast('success', 'Halaman About berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan halaman About')

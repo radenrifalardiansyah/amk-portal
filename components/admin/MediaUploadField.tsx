@@ -3,24 +3,22 @@
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { theme } from '@/lib/admin-theme'
-import { uploadMedia } from '@/lib/upload'
+import { uploadMedia, uploadErrorMessage } from '@/lib/upload'
 
-const MAX_IMAGE_MB = 8
-const MAX_VIDEO_MB = 100
+const MAX_IMAGE_MB = 15
 
 interface MediaUploadFieldProps {
   label: string
   value: string
   onChange: (url: string) => void
   folder: string
-  kind?: 'image' | 'video'
   aspect?: string
   onUploadingChange?: (uploading: boolean) => void
   onError?: (message: string) => void
 }
 
 export default function MediaUploadField({
-  label, value, onChange, folder, kind = 'image', aspect = 'aspect-video',
+  label, value, onChange, folder, aspect = 'aspect-video',
   onUploadingChange, onError,
 }: MediaUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -29,8 +27,6 @@ export default function MediaUploadField({
   const [dragOver, setDragOver] = useState(false)
   const [localPreview, setLocalPreview] = useState<string | null>(null)
 
-  const accept = kind === 'video' ? 'video/*' : 'image/*'
-  const maxMb = kind === 'video' ? MAX_VIDEO_MB : MAX_IMAGE_MB
   const previewSrc = localPreview || value
 
   useEffect(() => () => {
@@ -39,12 +35,12 @@ export default function MediaUploadField({
 
   const handleFile = async (file: File | undefined | null) => {
     if (!file) return
-    if (!file.type.startsWith(kind === 'video' ? 'video/' : 'image/')) {
-      onError?.(`File harus berupa ${kind === 'video' ? 'video' : 'gambar'}`)
+    if (!file.type.startsWith('image/')) {
+      onError?.('File harus berupa gambar')
       return
     }
-    if (file.size > maxMb * 1024 * 1024) {
-      onError?.(`Ukuran file maksimal ${maxMb}MB`)
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      onError?.(`Ukuran file maksimal ${MAX_IMAGE_MB}MB`)
       return
     }
     const objectUrl = URL.createObjectURL(file)
@@ -55,8 +51,9 @@ export default function MediaUploadField({
     try {
       const url = await uploadMedia(file, folder, setProgress)
       onChange(url)
-    } catch {
-      onError?.('Gagal mengunggah file. Coba lagi.')
+    } catch (err) {
+      console.error('Upload failed:', err)
+      onError?.(uploadErrorMessage(err))
     } finally {
       setUploading(false)
       onUploadingChange?.(false)
@@ -73,7 +70,7 @@ export default function MediaUploadField({
       <input
         ref={inputRef}
         type="file"
-        accept={accept}
+        accept="image/*"
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
@@ -92,11 +89,8 @@ export default function MediaUploadField({
           if (!uploading) handleFile(e.dataTransfer.files?.[0])
         }}
       >
-        {previewSrc && kind === 'image' && (
+        {previewSrc && (
           <Image src={previewSrc} alt={label} fill className="object-cover" unoptimized />
-        )}
-        {previewSrc && kind === 'video' && (
-          <video src={previewSrc} className="w-full h-full object-cover" controls={!uploading} muted={uploading} />
         )}
         {!previewSrc && (
           <div
@@ -105,9 +99,9 @@ export default function MediaUploadField({
             onClick={() => !uploading && inputRef.current?.click()}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 26 }}>
-              {kind === 'video' ? 'movie' : 'add_photo_alternate'}
+              add_photo_alternate
             </span>
-            <p style={{ fontSize: 11.5 }}>Klik atau seret {kind === 'video' ? 'video' : 'foto'} ke sini</p>
+            <p style={{ fontSize: 11.5 }}>Klik atau seret foto ke sini</p>
           </div>
         )}
 
@@ -125,7 +119,7 @@ export default function MediaUploadField({
           >
             <button
               type="button"
-              title={`Ganti ${kind === 'video' ? 'video' : 'foto'}`}
+              title="Ganti foto"
               onClick={() => inputRef.current?.click()}
               style={{ padding: 6, borderRadius: 8, background: 'rgba(16,24,40,0.55)', border: 'none', cursor: 'pointer', color: '#fff', display: 'flex' }}
             >

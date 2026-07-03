@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import { usersService } from '@/lib/services'
-import type { AdminUser } from '@/lib/services'
-import { uploadMedia } from '@/lib/upload'
+import type { AdminUser, SessionUser } from '@/lib/services'
+import { uploadMedia, uploadErrorMessage } from '@/lib/upload'
 import { seedInitialContent, type SeedResult } from '@/lib/seedContent'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 
@@ -83,8 +84,13 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [activeTab, setActiveTab] = useState<TabKey>('profile')
+  const [session, setSession] = useState<SessionUser | null>(null)
+  const { data: profileData, isLoading: profileLoading, mutate } = useSWR(
+    session ? ['admin-profile', session.email] : null,
+    () => usersService.getByEmail(session!.email)
+  )
   const [profile, setProfile] = useState<AdminUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const loading = !session || profileLoading
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -102,37 +108,41 @@ export default function SettingsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true)
-    try {
-      const session = usersService.getSession()
-      if (!session) {
-        router.replace('/admin/login')
-        return
-      }
-      const fresh = await usersService.getByEmail(session.email)
-      setProfile(fresh)
-    } catch {
-      showToast('error', 'Gagal memuat profil')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    const s = usersService.getSession()
+    if (!s) {
+      router.replace('/admin/login')
+    } else {
+      setSession(s)
     }
   }, [router])
 
-  useEffect(() => { fetchProfile() }, [fetchProfile])
+  useEffect(() => {
+    if (profileData && !profile) setProfile(profileData)
+  }, [profileData, profile])
 
   const handleAvatarPick = () => fileInputRef.current?.click()
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !profile) return
+    if (!file.type.startsWith('image/')) {
+      showToast('error', 'File harus berupa gambar (JPG/PNG)')
+      e.target.value = ''
+      return
+    }
     setUploadingAvatar(true)
     try {
       const url = await uploadMedia(file, 'avatars')
-      setProfile({ ...profile, avatarUrl: url })
-      showToast('success', 'Foto profil diunggah, jangan lupa simpan perubahan')
-    } catch {
-      showToast('error', 'Gagal mengunggah foto profil')
+      const updated = { ...profile, avatarUrl: url }
+      await usersService.updateProfile(profile.email, { avatarUrl: url })
+      setProfile(updated)
+      usersService.saveSession(updated)
+      await mutate(updated, false)
+      showToast('success', 'Foto profil berhasil disimpan!')
+    } catch (err) {
+      console.error('Upload failed:', err)
+      showToast('error', uploadErrorMessage(err))
     } finally {
       setUploadingAvatar(false)
       e.target.value = ''
@@ -155,6 +165,7 @@ export default function SettingsPage() {
         avatarUrl: profile.avatarUrl ?? '',
       })
       usersService.saveSession(profile)
+      await mutate(profile, false)
       showToast('success', 'Profil berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan profil')

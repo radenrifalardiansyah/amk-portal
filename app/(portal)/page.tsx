@@ -4,13 +4,12 @@ import AboutSection from '@/components/sections/AboutSection'
 import ServicesSection from '@/components/sections/ServicesSection'
 import AdvantageSection from '@/components/sections/AdvantageSection'
 import PortfolioSection from '@/components/sections/PortfolioSection'
-import LeadershipSection from '@/components/sections/LeadershipSection'
-import KeyPartnersSection from '@/components/sections/KeyPartnersSection'
+import TeamsSection from '@/components/sections/TeamsSection'
 import NewsSection from '@/components/sections/NewsSection'
 import ContactSection from '@/components/sections/ContactSection'
 import ClientsSection from '@/components/sections/ClientsSection'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function HomePage() {
   const [services, advantages, portfolioAll, leaders, partners, clients, hero, aboutHome, contact, newsAll] = await Promise.all([
@@ -36,8 +35,7 @@ export default async function HomePage() {
       <ServicesSection services={services} />
       <AdvantageSection advantages={advantages} />
       <PortfolioSection previews={previews} />
-      <LeadershipSection leaders={leaders} />
-      <KeyPartnersSection partners={partners} />
+      <TeamsSection leaders={leaders} partners={partners} />
       <NewsSection previews={newsPreviews} />
       <ContactSection content={contact} />
       <ClientsSection clients={clients} />

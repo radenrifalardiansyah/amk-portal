@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import IconPickerField from '@/components/admin/IconPickerField'
@@ -116,8 +117,7 @@ function AdvantageModal({
 }
 
 export default function AdvantagesPage() {
-  const [advantages, setAdvantages] = useState<Advantage[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: advantages = [], isLoading: loading, mutate } = useSWR('advantages', advantagesService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; advantage: Partial<Advantage> } | null>(null)
@@ -131,23 +131,10 @@ export default function AdvantagesPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchAdvantages = useCallback(async () => {
-    setLoading(true)
-    try {
-      setAdvantages(await advantagesService.getAll())
-    } catch {
-      showToast('error', 'Gagal memuat advantages')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchAdvantages() }, [fetchAdvantages])
-
   const handleSave = async (data: Advantage) => {
     try {
       await advantagesService.save(data)
-      await fetchAdvantages()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Advantage berhasil ditambahkan!' : 'Advantage berhasil diperbarui!')
     } catch {
@@ -160,7 +147,7 @@ export default function AdvantagesPage() {
     setDeletingId(id)
     try {
       await advantagesService.delete(id)
-      await fetchAdvantages()
+      await mutate()
       showToast('success', 'Advantage berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus advantage')

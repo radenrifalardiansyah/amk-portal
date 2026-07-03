@@ -8,10 +8,10 @@ export default function ClientsSection({ clients }: { clients: Client[] }) {
   const row2 = clients.slice(half)
 
   return (
-    <section className="py-24 bg-surface-container-lowest reveal" id="clients">
-      <div className="max-w-7xl mx-auto px-8 mb-12">
+    <section className="py-12 bg-surface-container-lowest reveal" id="clients">
+      <div className="max-w-7xl mx-auto px-8 mb-6">
         <h2 className="text-center text-3xl font-headline font-bold text-primary opacity-60">Our Clients</h2>
-        <div className="marquee py-12">
+        <div className="marquee py-6">
           <div className="marquee-content flex items-center">
             {row1.map((c) => (
               /* eslint-disable-next-line @next/next/no-img-element */

@@ -1,5 +1,5 @@
 import {
-  collection, addDoc, getDocs, serverTimestamp, query, orderBy, limit, Timestamp,
+  collection, addDoc, getDocs, getCountFromServer, serverTimestamp, query, orderBy, where, limit, Timestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -15,7 +15,7 @@ export interface PageView {
 export type CreatePageViewInput = Pick<PageView, 'path' | 'device'>
 
 const COL = 'pageViews'
-const MAX_DOCS = 5000
+const RECENT_SAFETY_LIMIT = 5000
 
 export const analyticsService = {
   async track(data: CreatePageViewInput): Promise<void> {
@@ -26,9 +26,13 @@ export const analyticsService = {
     })
   },
 
-  async getAll(): Promise<PageView[]> {
+  // Only pulls the window actually rendered (trend charts, today's count) instead of the whole collection.
+  async getRecent(days = 14): Promise<PageView[]> {
     try {
-      const snap = await getDocs(query(collection(db, COL), orderBy('createdAt', 'desc'), limit(MAX_DOCS)))
+      const cutoff = Timestamp.fromMillis(Date.now() - days * 24 * 60 * 60 * 1000)
+      const snap = await getDocs(
+        query(collection(db, COL), where('createdAt', '>=', cutoff), orderBy('createdAt', 'desc'), limit(RECENT_SAFETY_LIMIT)),
+      )
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as PageView))
     } catch {
       return []
@@ -37,8 +41,8 @@ export const analyticsService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 }

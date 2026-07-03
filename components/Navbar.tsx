@@ -10,8 +10,7 @@ const navLinks = [
   { label: 'About', href: '/#about' },
   { label: 'Services', href: '/#services' },
   { label: 'Portfolio', href: '/#portfolio' },
-  { label: 'Leadership', href: '/#leadership' },
-  { label: 'Key Partners', href: '/#key-partners' },
+  { label: 'Teams', href: '/#teams' },
   { label: 'News', href: '/#news' },
   { label: 'Contact', href: '/#contact' },
 ]
@@ -34,7 +33,6 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
               alt={`${shortName} Logo`}
               width={64}
               height={64}
-              unoptimized
               className="h-16 w-auto object-contain mix-blend-multiply"
             />
           </Link>

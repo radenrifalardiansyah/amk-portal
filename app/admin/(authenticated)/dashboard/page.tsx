@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import useSWR from 'swr'
 import { Timestamp } from 'firebase/firestore'
 import StatCard from '@/components/admin/StatCard'
 import AreaTrendChart from '@/components/admin/charts/AreaTrendChart'
@@ -73,45 +74,34 @@ function buildDeviceBreakdown(views: PageView[]) {
 
 export default function DashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([])
-  const [pageViews, setPageViews] = useState<PageView[]>([])
-  const [portfolioCount, setPortfolioCount] = useState(0)
-  const [servicesCount, setServicesCount] = useState(0)
-  const [advantagesCount, setAdvantagesCount] = useState(0)
-  const [leadersCount, setLeadersCount] = useState(0)
-  const [clientsCount, setClientsCount] = useState(0)
-  const [newsCount, setNewsCount] = useState(0)
 
   useEffect(() => {
     const unsub = leadsService.subscribe((data) => setLeads(data))
     return unsub
   }, [])
 
-  useEffect(() => {
-    analyticsService.getAll().then(setPageViews).catch(() => {})
-  }, [])
+  const { data: pageViews = [] } = useSWR('analytics-recent-14', () => analyticsService.getRecent(14))
 
-  const fetchCounts = useCallback(async () => {
-    try {
-      const [p, s, a, l, c, n] = await Promise.all([
-        portfolioService.getCount(),
-        servicesService.getCount(),
-        advantagesService.getCount(),
-        leadersService.getCount(),
-        clientsService.getCount(),
-        newsService.getCount(),
-      ])
-      setPortfolioCount(p)
-      setServicesCount(s)
-      setAdvantagesCount(a)
-      setLeadersCount(l)
-      setClientsCount(c)
-      setNewsCount(n)
-    } catch (e) {
-      console.error('fetchCounts error:', e)
-    }
-  }, [])
+  const { data: counts } = useSWR('admin-dashboard-counts', async () => {
+    const [v, p, s, a, l, c, n] = await Promise.all([
+      analyticsService.getCount(),
+      portfolioService.getCount(),
+      servicesService.getCount(),
+      advantagesService.getCount(),
+      leadersService.getCount(),
+      clientsService.getCount(),
+      newsService.getCount(),
+    ])
+    return { v, p, s, a, l, c, n }
+  })
 
-  useEffect(() => { fetchCounts() }, [fetchCounts])
+  const totalViews = counts?.v ?? 0
+  const portfolioCount = counts?.p ?? 0
+  const servicesCount = counts?.s ?? 0
+  const advantagesCount = counts?.a ?? 0
+  const leadersCount = counts?.l ?? 0
+  const clientsCount = counts?.c ?? 0
+  const newsCount = counts?.n ?? 0
 
   const leadsTrend = useMemo(() => buildDailyTrend(leads.map((l) => tsToDate(l.createdAt)), 14), [leads])
   const viewsTrend = useMemo(() => buildDailyTrend(pageViews.map((v) => tsToDate(v.createdAt)), 14), [pageViews])
@@ -138,7 +128,7 @@ export default function DashboardPage() {
     <>
       {/* Stat Cards — visits */}
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <StatCard title="Total Kunjungan"   value={pageViews.length}      icon="visibility" delay="0s" />
+        <StatCard title="Total Kunjungan"   value={totalViews}            icon="visibility" delay="0s" />
         <StatCard title="Kunjungan Hari Ini" value={todayCount(pageViews)} icon="today"      delay="0.05s" change="Pengunjung baru" changeType="up" />
       </div>
 

@@ -44,7 +44,6 @@ export default function NewsSection({ previews }: { previews: NewsArticle[] }) {
                   alt={item.title}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  unoptimized
                 />
                 <div className="absolute top-4 left-4">
                   <span className="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-widest">

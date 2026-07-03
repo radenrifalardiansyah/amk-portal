@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { siteContentService } from '@/lib/services'
@@ -62,8 +63,8 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
 }
 
 export default function CompanyProfilePage() {
+  const { data: companyData, isLoading: loading, mutate } = useSWR('company', siteContentService.getCompany)
   const [company, setCompany] = useState<CompanyProfile | null>(null)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -73,18 +74,9 @@ export default function CompanyProfilePage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchCompany = useCallback(async () => {
-    setLoading(true)
-    try {
-      setCompany(await siteContentService.getCompany())
-    } catch {
-      showToast('error', 'Gagal memuat profil perusahaan')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchCompany() }, [fetchCompany])
+  useEffect(() => {
+    if (companyData && !company) setCompany(companyData)
+  }, [companyData, company])
 
   const handleSave = async () => {
     if (!company) return
@@ -95,7 +87,14 @@ export default function CompanyProfilePage() {
     setSaving(true)
     try {
       await siteContentService.saveCompany(company)
-      window.dispatchEvent(new Event('company-profile-updated'))
+      await mutate(company, false)
+      let favicon = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+      if (!favicon) {
+        favicon = document.createElement('link')
+        favicon.rel = 'icon'
+        document.head.appendChild(favicon)
+      }
+      favicon.href = company.logoUrl || '/images/logo.png'
       showToast('success', 'Profil perusahaan berhasil disimpan!')
     } catch {
       showToast('error', 'Gagal menyimpan profil perusahaan')
@@ -151,8 +150,11 @@ export default function CompanyProfilePage() {
               <Field label="Email">
                 <TextInput value={company.email} onChange={(v) => setCompany({ ...company, email: v })} placeholder="email@perusahaan.com" />
               </Field>
-              <Field label="No. WhatsApp" hint="Format angka saja dengan kode negara, cth. 6281234567890">
+              <Field label="No. Telepon" hint="Format angka saja dengan kode negara, cth. 6281234567890">
                 <TextInput value={company.phone} onChange={(v) => setCompany({ ...company, phone: v })} placeholder="6281234567890" />
+              </Field>
+              <Field label="Nomor WhatsApp" hint="Digunakan untuk tombol WA di footer & navbar. Format angka saja dengan kode negara, cth. 6281234567890">
+                <TextInput value={company.waNumber ?? ''} onChange={(v) => setCompany({ ...company, waNumber: v })} placeholder="6281234567890" />
               </Field>
             </div>
           </SectionCard>

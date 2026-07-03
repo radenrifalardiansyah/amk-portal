@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { newsService } from '@/lib/services'
@@ -141,7 +142,7 @@ function NewsModal({
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
             <MediaUploadField
-              label="Cover Berita" kind="image" folder="news"
+              label="Cover Berita" folder="news"
               value={form.coverImage} onChange={(url) => set('coverImage', url)}
               onUploadingChange={setUploading} onError={onError}
             />
@@ -186,8 +187,7 @@ function NewsModal({
 }
 
 export default function NewsPage() {
-  const [articles, setArticles] = useState<NewsArticle[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: articles = [], isLoading: loading, mutate } = useSWR('news', newsService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; article: Partial<NewsArticle> } | null>(null)
@@ -202,24 +202,10 @@ export default function NewsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchArticles = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await newsService.getAll()
-      setArticles(data)
-    } catch {
-      showToast('error', 'Gagal memuat berita')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchArticles() }, [fetchArticles])
-
   const handleSave = async (data: NewsArticle) => {
     try {
       await newsService.save(data)
-      await fetchArticles()
+      await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Berita berhasil ditambahkan!' : 'Berita berhasil diperbarui!')
     } catch {
@@ -232,7 +218,7 @@ export default function NewsPage() {
     setDeletingId(slug)
     try {
       await newsService.delete(slug)
-      await fetchArticles()
+      await mutate()
       showToast('success', 'Berita berhasil dihapus')
     } catch {
       showToast('error', 'Gagal menghapus berita')
@@ -336,7 +322,7 @@ export default function NewsPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-video relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                <Image src={a.coverImage} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+                <Image src={a.coverImage} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(16,24,40,0.55)', backdropFilter: 'blur(6px)' }}>
                     {a.category}

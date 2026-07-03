@@ -1,5 +1,5 @@
 import {
-  collection, addDoc, deleteDoc, doc, getDocs,
+  collection, addDoc, deleteDoc, doc, getCountFromServer,
   onSnapshot, query, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -34,8 +34,8 @@ export const leadsService = {
 
   async getCount(): Promise<number> {
     try {
-      const snap = await getDocs(collection(db, COL))
-      return snap.size
+      const snap = await getCountFromServer(collection(db, COL))
+      return snap.data().count
     } catch { return 0 }
   },
 

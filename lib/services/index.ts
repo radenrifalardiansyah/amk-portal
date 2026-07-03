@@ -1,7 +1,7 @@
 export { portfolioService } from './portfolioService'
 export { servicesService } from './servicesService'
 export { leadsService } from './leadsService'
-export { usersService } from './usersService'
+export { usersService, SESSION_UPDATED_EVENT } from './usersService'
 export { advantagesService } from './advantagesService'
 export { leadersService } from './leadersService'
 export { clientsService } from './clientsService'

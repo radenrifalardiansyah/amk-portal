@@ -30,7 +30,7 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
   const logoUrl = company?.logoUrl || '/images/logo.png'
   const shortName = company?.shortName || 'AMK'
   const tagline = company?.tagline || 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.'
-  const phone = company?.phone || '6285155336838'
+  const waNumber = company?.waNumber || company?.phone || '6285155336838'
   const email = company?.email || 'adikaramandalakreasi@gmail.com'
   const copyrightText = company?.copyrightText || 'PT. Adikara Mandala Kreasi - All rights reserved.'
   const year = new Date().getFullYear()
@@ -45,7 +45,6 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
               alt={`${shortName} Logo`}
               width={64}
               height={64}
-              unoptimized
               className="h-16 w-auto object-contain mix-blend-multiply"
             />
           </div>
@@ -56,10 +55,13 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
             <p className="leading-relaxed">{company.address}</p>
           )}
           <div className="flex flex-wrap gap-4">
+            <Link href="/#home" className="hover:text-primary transition-opacity">Home</Link>
             <Link href="/#about" className="hover:text-primary transition-opacity">About Us</Link>
             <Link href="/#services" className="hover:text-primary transition-opacity">Services</Link>
             <Link href="/#portfolio" className="hover:text-primary transition-opacity">Portfolio</Link>
-            <Link href="/#leadership" className="hover:text-primary transition-opacity">Leadership</Link>
+            <Link href="/#teams" className="hover:text-primary transition-opacity">Teams</Link>
+            <Link href="/#news" className="hover:text-primary transition-opacity">News</Link>
+            <Link href="/#contact" className="hover:text-primary transition-opacity">Contact</Link>
             <br />
             {company?.instagramUrl && (
               <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-opacity flex items-center space-x-2">
@@ -79,8 +81,8 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
         <div className="space-y-6 reveal">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
           <div className="space-y-4">
-            <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
-              WhatsApp: {formatPhoneDisplay(phone)}
+            <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
+              WhatsApp: {formatPhoneDisplay(waNumber)}
             </a>
             <a href={`mailto:${email}`} className="block hover:text-primary transition-opacity">
               Email: {email}
@@ -91,7 +93,7 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
         <div className="space-y-6 reveal-right">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
           <a
-            href={`https://wa.me/${phone}`}
+            href={`https://wa.me/${waNumber}`}
             target="_blank"
             rel="noopener noreferrer"
             className="magnetic-btn inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"
