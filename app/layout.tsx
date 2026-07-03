@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { siteContentService } from '@/lib/services'
 import { SITE_URL } from '@/lib/seo'
+import { Analytics } from '@vercel/analytics/next'
 
 export async function generateMetadata(): Promise<Metadata> {
   const company = await siteContentService.getCompany()
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
         {children}
+        <Analytics />
       </body>
     </html>
   )
