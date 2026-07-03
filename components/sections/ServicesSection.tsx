@@ -14,25 +14,23 @@ export default function ServicesSection({ services }: { services: Service[] }) {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
-            <div
+            <Link
               key={service.slug}
-              className="reveal stagger-item group p-8 bg-surface-container-low rounded-3xl hover:bg-surface-container-highest transition-all duration-300 border border-outline-variant/5 hover-lift flex flex-col justify-between"
+              href={`/services/${service.slug}`}
+              className="reveal stagger-item group p-8 bg-surface-container-low rounded-3xl hover:bg-surface-container-highest border border-outline-variant/5 hover-lift flex flex-col justify-between"
             >
               <div>
-                <span className="material-symbols-outlined text-primary text-5xl mb-6 block group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-primary text-5xl mb-6 block group-hover:scale-110 transition-transform duration-300">
                   {service.navIcon}
                 </span>
                 <h3 className="text-2xl font-headline font-bold text-primary mb-4">{service.navTitle}</h3>
                 <p className="text-on-surface-variant leading-relaxed mb-6">{service.navDescription}</p>
               </div>
-              <Link
-                href={`/services/${service.slug}`}
-                className="text-primary font-headline font-bold flex items-center space-x-2 group-hover:text-primary-container transition-colors"
-              >
+              <span className="text-primary font-headline font-bold flex items-center space-x-2 group-hover:text-on-primary-container transition-colors duration-300">
                 <span>View Details</span>
                 <span className="material-symbols-outlined text-sm">open_in_new</span>
-              </Link>
-            </div>
+              </span>
+            </Link>
           ))}
         </div>
       </div>
