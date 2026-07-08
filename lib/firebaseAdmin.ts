@@ -7,10 +7,13 @@ function getAdminApp(): App {
 
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const privateKeyRaw = process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64
+    ? Buffer.from(process.env.FIREBASE_ADMIN_PRIVATE_KEY_BASE64, 'base64').toString('utf8')
+    : process.env.FIREBASE_ADMIN_PRIVATE_KEY
+  const privateKey = privateKeyRaw?.replace(/\\n/g, '\n')
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error('Firebase Admin env vars are missing (FIREBASE_ADMIN_PROJECT_ID / FIREBASE_ADMIN_CLIENT_EMAIL / FIREBASE_ADMIN_PRIVATE_KEY)')
+    throw new Error('Firebase Admin env vars are missing (FIREBASE_ADMIN_PROJECT_ID / FIREBASE_ADMIN_CLIENT_EMAIL / FIREBASE_ADMIN_PRIVATE_KEY_BASE64)')
   }
 
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) })
