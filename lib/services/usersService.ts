@@ -73,6 +73,34 @@ export const usersService = {
     return true
   },
 
+  async adminCreateUser(input: { email: string; password: string; name: string; role: 'admin' | 'editor' }): Promise<void> {
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Tidak ada sesi aktif')
+    const res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(input),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Gagal membuat pengguna')
+    }
+  },
+
+  async adminDeleteUser(email: string): Promise<void> {
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Tidak ada sesi aktif')
+    const res = await fetch('/api/admin/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Gagal menghapus pengguna')
+    }
+  },
+
   getSession(): SessionUser | null {
     if (typeof window === 'undefined') return null
     const raw = localStorage.getItem(SESSION_KEY)

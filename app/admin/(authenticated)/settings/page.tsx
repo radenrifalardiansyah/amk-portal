@@ -71,11 +71,12 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
   )
 }
 
-type TabKey = 'profile' | 'security' | 'system'
+type TabKey = 'profile' | 'security' | 'users' | 'system'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profil', icon: 'person' },
   { key: 'security', label: 'Keamanan', icon: 'lock' },
+  { key: 'users', label: 'Pengguna', icon: 'group' },
   { key: 'system', label: 'Sistem', icon: 'database' },
 ]
 
@@ -102,6 +103,17 @@ export default function SettingsPage() {
 
   const [seeding, setSeeding] = useState(false)
   const [seedResults, setSeedResults] = useState<SeedResult[] | null>(null)
+
+  const { data: allUsers, mutate: mutateUsers } = useSWR(
+    profile?.role === 'admin' ? 'admin-users-list' : null,
+    () => usersService.getAll()
+  )
+  const [newUserName, setNewUserName] = useState('')
+  const [newUserEmail, setNewUserEmail] = useState('')
+  const [newUserPassword, setNewUserPassword] = useState('')
+  const [newUserRole, setNewUserRole] = useState<'admin' | 'editor'>('editor')
+  const [creatingUser, setCreatingUser] = useState(false)
+  const [deletingEmail, setDeletingEmail] = useState<string | null>(null)
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -206,6 +218,50 @@ export default function SettingsPage() {
     }
   }
 
+  const handleCreateUser = async () => {
+    if (!newUserName.trim() || !newUserEmail.trim() || !newUserPassword) {
+      showToast('error', 'Lengkapi nama, email, dan password')
+      return
+    }
+    if (newUserPassword.length < 6) {
+      showToast('error', 'Password minimal 6 karakter')
+      return
+    }
+    setCreatingUser(true)
+    try {
+      await usersService.adminCreateUser({
+        name: newUserName.trim(),
+        email: newUserEmail.trim().toLowerCase(),
+        password: newUserPassword,
+        role: newUserRole,
+      })
+      setNewUserName('')
+      setNewUserEmail('')
+      setNewUserPassword('')
+      setNewUserRole('editor')
+      await mutateUsers()
+      showToast('success', 'Pengguna baru berhasil dibuat!')
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Gagal membuat pengguna')
+    } finally {
+      setCreatingUser(false)
+    }
+  }
+
+  const handleDeleteUser = async (email: string) => {
+    if (!window.confirm(`Hapus akun ${email}? Tindakan ini tidak bisa dibatalkan.`)) return
+    setDeletingEmail(email)
+    try {
+      await usersService.adminDeleteUser(email)
+      await mutateUsers()
+      showToast('success', 'Pengguna berhasil dihapus')
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Gagal menghapus pengguna')
+    } finally {
+      setDeletingEmail(null)
+    }
+  }
+
   const handleSeed = async () => {
     setSeeding(true)
     setSeedResults(null)
@@ -237,7 +293,7 @@ export default function SettingsPage() {
       ) : (
         <div className="flex flex-col gap-5">
           <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, width: 'fit-content' }}>
-            {TABS.map((t) => {
+            {TABS.filter((t) => t.key !== 'users' || profile.role === 'admin').map((t) => {
               const isActive = activeTab === t.key
               return (
                 <button key={t.key} onClick={() => setActiveTab(t.key)}
@@ -340,6 +396,74 @@ export default function SettingsPage() {
                     : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>lock_reset</span>Ubah Password</>}
                 </button>
               </div>
+            </>
+          )}
+
+          {activeTab === 'users' && profile.role === 'admin' && (
+            <>
+              <SectionCard title="Tambah Pengguna" subtitle="Buat akun admin/editor baru langsung dari sini, tanpa perlu Firebase Console">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Nama Lengkap">
+                    <TextInput value={newUserName} onChange={setNewUserName} placeholder="Nama pengguna baru" />
+                  </Field>
+                  <Field label="Email">
+                    <TextInput type="email" value={newUserEmail} onChange={setNewUserEmail} placeholder="nama@adikaramandalakreasi.com" />
+                  </Field>
+                  <Field label="Password">
+                    <TextInput type="password" value={newUserPassword} onChange={setNewUserPassword} placeholder="Minimal 6 karakter" />
+                  </Field>
+                  <Field label="Role">
+                    <select
+                      className={inputCls}
+                      style={inputStyle}
+                      value={newUserRole}
+                      onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'editor')}
+                    >
+                      <option value="editor">Editor</option>
+                      <option value="admin">Administrator</option>
+                    </select>
+                  </Field>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button onClick={handleCreateUser} disabled={creatingUser}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: creatingUser ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: creatingUser ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: creatingUser ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                    {creatingUser
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Membuat...</>
+                      : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>person_add</span>Buat Pengguna</>}
+                  </button>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Daftar Pengguna" subtitle="Semua akun yang bisa mengakses admin panel">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {(allUsers ?? []).map((u) => (
+                    <div key={u.email} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                      padding: '10px 14px', borderRadius: 12, border: `1px solid ${theme.border}`, background: theme.surfaceSoft,
+                    }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</p>
+                        <p style={{ fontSize: 11.5, color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email} · {u.role === 'admin' ? 'Administrator' : 'Editor'}</p>
+                      </div>
+                      {u.email !== profile.email && (
+                        <button
+                          onClick={() => handleDeleteUser(u.email)}
+                          disabled={deletingEmail === u.email}
+                          title="Hapus pengguna"
+                          style={{ color: theme.danger, background: theme.dangerSoft, border: 'none', borderRadius: 8, padding: 8, cursor: deletingEmail === u.email ? 'not-allowed' : 'pointer', display: 'flex', flexShrink: 0 }}
+                        >
+                          {deletingEmail === u.email
+                            ? <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full admin-spin" />
+                            : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {allUsers?.length === 0 && (
+                    <p style={{ fontSize: 12.5, color: theme.textMuted }}>Belum ada pengguna lain.</p>
+                  )}
+                </div>
+              </SectionCard>
             </>
           )}
 
