@@ -1,11 +1,15 @@
 import {
-  collection, getDocs, getDoc, doc, setDoc, updateDoc, query, where, serverTimestamp,
+  collection, getDocs, getDoc, doc, updateDoc, serverTimestamp,
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import {
+  signInWithEmailAndPassword, signOut, EmailAuthProvider,
+  reauthenticateWithCredential, updatePassword, onAuthStateChanged,
+  type User as FirebaseAuthUser,
+} from 'firebase/auth'
+import { db, auth } from '@/lib/firebase'
 
 export interface AdminUser {
   email: string
-  password: string
   name: string
   role: 'admin' | 'editor'
   phone?: string
@@ -14,7 +18,7 @@ export interface AdminUser {
   avatarUrl?: string
 }
 
-export type SessionUser = Omit<AdminUser, 'password'>
+export type SessionUser = AdminUser
 
 export const SESSION_KEY = 'amk_admin_session'
 export const SESSION_UPDATED_EVENT = 'amk-admin-session-updated'
@@ -22,19 +26,22 @@ export const SESSION_UPDATED_EVENT = 'amk-admin-session-updated'
 const COL = 'users'
 
 export const usersService = {
-  async login(email: string, password: string): Promise<AdminUser | null> {
-    const snap = await getDocs(query(collection(db, COL), where('email', '==', email)))
-    if (snap.empty) return null
-    const user = snap.docs[0].data() as AdminUser
-    if (user.password !== password) return null
-    return user
+  async login(email: string, password: string): Promise<AdminUser> {
+    await signInWithEmailAndPassword(auth, email, password)
+    const profile = await usersService.getByEmail(email)
+    if (!profile) {
+      await signOut(auth)
+      throw new Error('Profil admin tidak ditemukan di Firestore')
+    }
+    return profile
   },
 
-  async create(data: AdminUser): Promise<void> {
-    await setDoc(doc(db, COL, data.email), {
-      ...data,
-      createdAt: serverTimestamp(),
-    })
+  async logout(): Promise<void> {
+    await signOut(auth)
+  },
+
+  onAuthChange(callback: (user: FirebaseAuthUser | null) => void) {
+    return onAuthStateChanged(auth, callback)
   },
 
   async getAll(): Promise<AdminUser[]> {
@@ -47,12 +54,7 @@ export const usersService = {
     return snap.exists() ? (snap.data() as AdminUser) : null
   },
 
-  async hasUsers(): Promise<boolean> {
-    const snap = await getDocs(collection(db, COL))
-    return !snap.empty
-  },
-
-  async updateProfile(email: string, data: Partial<Omit<AdminUser, 'email' | 'password' | 'role'>>): Promise<void> {
+  async updateProfile(email: string, data: Partial<Omit<AdminUser, 'email' | 'role'>>): Promise<void> {
     await updateDoc(doc(db, COL, email), {
       ...data,
       updatedAt: serverTimestamp(),
@@ -60,12 +62,14 @@ export const usersService = {
   },
 
   async changePassword(email: string, currentPassword: string, newPassword: string): Promise<boolean> {
-    const user = await usersService.getByEmail(email)
-    if (!user || user.password !== currentPassword) return false
-    await updateDoc(doc(db, COL, email), {
-      password: newPassword,
-      updatedAt: serverTimestamp(),
-    })
+    const user = auth.currentUser
+    if (!user || user.email !== email) return false
+    try {
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(email, currentPassword))
+    } catch {
+      return false
+    }
+    await updatePassword(user, newPassword)
     return true
   },
 

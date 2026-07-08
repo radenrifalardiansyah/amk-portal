@@ -28,14 +28,17 @@ export default function AdminLoginPage() {
     setError('')
     try {
       const user = await usersService.login(email, password)
-      if (!user) {
-        setError('Email atau password salah. Silakan coba lagi.')
-        return
-      }
       usersService.saveSession(user)
       router.replace('/admin/dashboard')
-    } catch {
-      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } catch (err) {
+      const code = (err as { code?: string })?.code
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+        setError('Email atau password salah. Silakan coba lagi.')
+      } else if (code === 'auth/too-many-requests') {
+        setError('Terlalu banyak percobaan. Coba lagi beberapa saat lagi.')
+      } else {
+        setError('Terjadi kesalahan. Silakan coba lagi.')
+      }
     } finally {
       setLoading(false)
     }

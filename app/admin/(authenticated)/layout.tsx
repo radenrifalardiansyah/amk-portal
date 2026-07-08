@@ -100,13 +100,27 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    const s = usersService.getSession()
-    if (!s) {
-      router.replace('/admin/login')
-    } else {
-      setSession(s)
-    }
-    setLoading(false)
+    const unsubscribe = usersService.onAuthChange(async (firebaseUser) => {
+      if (!firebaseUser?.email) {
+        usersService.clearSession()
+        setSession(null)
+        setLoading(false)
+        router.replace('/admin/login')
+        return
+      }
+      const profile = await usersService.getByEmail(firebaseUser.email)
+      if (!profile) {
+        usersService.clearSession()
+        setSession(null)
+        setLoading(false)
+        router.replace('/admin/login')
+        return
+      }
+      usersService.saveSession(profile)
+      setSession(profile)
+      setLoading(false)
+    })
+    return unsubscribe
   }, [router])
 
   // Settings page updates the session (e.g. new avatar) in localStorage after
@@ -146,8 +160,9 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
 
   const handleLogout = () => setShowLogoutConfirm(true)
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setLoggingOut(true)
+    await usersService.logout()
     usersService.clearSession()
     router.replace('/admin/login')
   }
