@@ -26,23 +26,23 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
     <>
       <nav className="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-[30px] shadow-[0_4px_30px_rgba(37,99,235,0.08)]">
         <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#60a5fa] to-primary" />
-        <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center space-x-3 text-2xl font-bold tracking-tighter text-on-surface font-headline">
+        <div className="flex justify-between items-center w-full px-4 md:px-6 lg:px-8 py-3 lg:py-4 max-w-7xl mx-auto">
+          <Link href="/" className="flex items-center shrink-0 space-x-3 text-2xl font-bold tracking-tighter text-on-surface font-headline">
             <Image
               src={logoUrl}
               alt={`${shortName} Logo`}
               width={64}
               height={64}
-              className="h-16 w-auto object-contain mix-blend-multiply"
+              className="h-11 lg:h-14 xl:h-16 w-auto object-contain mix-blend-multiply"
             />
           </Link>
 
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden lg:flex items-center gap-5 xl:gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="nav-link font-headline tracking-[-0.04em] font-bold text-on-surface-variant hover:text-primary transition-all duration-500 ease-in-out"
+                className="nav-link font-headline tracking-[-0.04em] font-bold text-sm xl:text-base text-on-surface-variant hover:text-primary transition-all duration-500 ease-in-out"
               >
                 {link.label}
               </Link>
@@ -51,14 +51,14 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
 
           <Link
             href="/#contact"
-            className="hidden md:block font-headline tracking-[-0.04em] font-bold text-primary px-6 py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all duration-500 ease-in-out"
+            className="hidden lg:block shrink-0 font-headline tracking-[-0.04em] font-bold text-primary text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all duration-500 ease-in-out"
           >
             Mulai Kolaborasi
           </Link>
 
           <button
             id="mobile-menu-btn"
-            className="md:hidden text-primary p-2"
+            className="lg:hidden text-primary p-2"
             aria-label="Toggle mobile menu"
             aria-expanded={isOpen}
             onClick={() => setIsOpen(!isOpen)}
@@ -72,7 +72,7 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-surface/95 backdrop-blur-xl transition-transform duration-500 ease-in-out md:hidden flex flex-col justify-center items-center space-y-8 ${
+        className={`fixed inset-0 z-40 bg-surface/95 backdrop-blur-xl transition-transform duration-500 ease-in-out lg:hidden flex flex-col justify-center items-center space-y-8 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
