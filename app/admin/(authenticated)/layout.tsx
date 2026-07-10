@@ -41,6 +41,7 @@ const navGroups: NavGroup[] = [
         ],
       },
       { href: '/admin/portfolio',  icon: 'photo_library',  label: 'Portfolio', subtitle: 'Kelola proyek portfolio' },
+      { href: '/admin/gallery',   icon: 'collections',    label: 'Gallery', subtitle: 'Kelola foto yang ditampilkan di halaman Gallery' },
       { href: '/admin/news',      icon: 'newspaper',      label: 'News', subtitle: 'Kelola berita & artikel yang ditampilkan di portal' },
       { href: '/admin/advantages', icon: 'military_tech',  label: 'Advantages', subtitle: 'Kelola keunggulan yang ditampilkan di homepage' },
       { href: '/admin/teams',      icon: 'groups',         label: 'Teams', subtitle: 'Kelola tim kepemimpinan & key partners yang ditampilkan di homepage' },

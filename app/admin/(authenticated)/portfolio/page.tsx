@@ -6,20 +6,24 @@ import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { portfolioService, servicesService, clientsService, Client } from '@/lib/services'
-import { PortfolioProject } from '@/data/portfolio'
+import { PortfolioProject, PortfolioGalleryItem } from '@/data/portfolio'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
+import { getVideoEmbed } from '@/lib/videoEmbed'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const emptyProject: PortfolioProject = {
   slug: '', category: '', title: '', description: '', image: '/images/company.png',
   client: '', clientId: null, services: '', year: new Date().getFullYear().toString(),
-  challenge: '', solution: '', result: '',
+  challenge: '', solution: '', result: '', gallery: [],
   prevSlug: null, nextSlug: null, nextLabel: null,
 }
+
+const newGalleryId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `g${Math.random().toString(36).slice(2)}`)
 
 function PortfolioModal({
   mode, project, categoryOptions, clients, onClose, onSave, onError,
@@ -32,11 +36,27 @@ function PortfolioModal({
   onSave: (data: PortfolioProject) => void
   onError: (message: string) => void
 }) {
-  const [form, setForm] = useState<PortfolioProject>({ ...emptyProject, ...project })
+  const [form, setForm] = useState<PortfolioProject>({ ...emptyProject, ...project, gallery: project.gallery ?? [] })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState<Record<string, boolean>>({})
 
   const set = (k: keyof PortfolioProject, v: string | null) => setForm((f) => ({ ...f, [k]: v }))
+
+  const gallery = form.gallery ?? []
+  const setGallery = (next: PortfolioGalleryItem[]) => setForm((f) => ({ ...f, gallery: next }))
+
+  const addGalleryItem = (type: 'image' | 'video') => {
+    setGallery([...gallery, { id: newGalleryId(), type, url: '', caption: '' }])
+  }
+  const updateGalleryItem = (id: string, patch: Partial<PortfolioGalleryItem>) => {
+    setGallery(gallery.map((g) => (g.id === id ? { ...g, ...patch } : g)))
+  }
+  const removeGalleryItem = (id: string) => {
+    setGallery(gallery.filter((g) => g.id !== id))
+    setGalleryUploading((u) => { const next = { ...u }; delete next[id]; return next })
+  }
+  const anyGalleryUploading = Object.values(galleryUploading).some(Boolean)
 
   const handleClientLink = (id: string) => {
     const picked = clients.find((c) => c.id === id)
@@ -46,6 +66,7 @@ function PortfolioModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.clientId) { onError('Pilih client terlebih dahulu'); return }
+    if (gallery.some((g) => !g.url)) { onError('Lengkapi atau hapus item galeri yang masih kosong'); return }
     setSaving(true)
     await onSave(form)
     setSaving(false)
@@ -142,6 +163,71 @@ function PortfolioModal({
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />
+
+            <div style={{ paddingTop: 6, marginTop: 4, borderTop: `1px solid ${theme.divider}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '14px 0 12px' }}>
+                <p style={{ fontSize: 11.5, fontWeight: 700, color: theme.textSecondary }}>Project Gallery (Foto & Video)</p>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button type="button" onClick={() => addGalleryItem('image')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 13 }}>add_photo_alternate</span>Foto
+                  </button>
+                  <button type="button" onClick={() => addGalleryItem('video')}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 13 }}>videocam</span>Video
+                  </button>
+                </div>
+              </div>
+
+              {gallery.length === 0 ? (
+                <p style={{ fontSize: 11.5, color: theme.textMuted, padding: '8px 0' }}>Belum ada item galeri. Tambahkan foto atau link video (YouTube/Vimeo/Instagram/mp4).</p>
+              ) : (
+                <div className="space-y-3">
+                  {gallery.map((g) => (
+                    <div key={g.id} style={{ padding: 12, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: theme.textMuted }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{g.type === 'image' ? 'image' : 'movie'}</span>
+                          {g.type === 'image' ? 'Foto' : 'Video'}
+                        </span>
+                        <button type="button" onClick={() => removeGalleryItem(g.id)}
+                          style={{ padding: 5, borderRadius: 7, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex' }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = theme.danger }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = theme.textMuted }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                        </button>
+                      </div>
+
+                      {g.type === 'image' ? (
+                        <MediaUploadField
+                          label="" folder="portfolio-gallery" aspect="aspect-video"
+                          value={g.url} onChange={(url) => updateGalleryItem(g.id, { url })}
+                          onUploadingChange={(v) => setGalleryUploading((u) => ({ ...u, [g.id]: v }))}
+                          onError={onError}
+                        />
+                      ) : (
+                        <input className={inputCls} style={inputStyle} value={g.url}
+                          placeholder="https://www.youtube.com/watch?v=... atau link mp4"
+                          onChange={(e) => updateGalleryItem(g.id, { url: e.target.value })}
+                          onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                          onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                      )}
+                      {g.type === 'video' && g.url && (
+                        <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
+                          Terdeteksi sebagai: {getVideoEmbed(g.url).kind}
+                        </p>
+                      )}
+                      <input className={inputCls} style={{ ...inputStyle, marginTop: 8 }} value={g.caption ?? ''}
+                        placeholder="Keterangan (opsional)"
+                        onChange={(e) => updateGalleryItem(g.id, { caption: e.target.value })}
+                        onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                        onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {([
               { key: 'challenge' as const, label: 'Tantangan' },
               { key: 'solution' as const, label: 'Solusi' },
@@ -165,8 +251,8 @@ function PortfolioModal({
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = theme.textSecondary }}>
               Batal
             </button>
-            <button type="submit" disabled={saving || uploading}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploading) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploading) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+            <button type="submit" disabled={saving || uploading || anyGalleryUploading}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploading || anyGalleryUploading) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploading || anyGalleryUploading) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
@@ -205,6 +291,7 @@ export default function PortfolioPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Portfolio berhasil ditambahkan!' : 'Portfolio berhasil diperbarui!')
+      revalidatePaths(['/', '/portfolio', `/portfolio/${data.slug}`])
     } catch {
       showToast('error', 'Gagal menyimpan portfolio')
     }
@@ -217,6 +304,7 @@ export default function PortfolioPage() {
       await portfolioService.delete(slug)
       await mutate()
       showToast('success', 'Portfolio berhasil dihapus')
+      revalidatePaths(['/', '/portfolio', `/portfolio/${slug}`])
     } catch {
       showToast('error', 'Gagal menghapus portfolio')
     } finally {

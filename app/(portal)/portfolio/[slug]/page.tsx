@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { portfolioService, clientsService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
+import ProjectGallery from './ProjectGallery'
 
 export const revalidate = 300
 
@@ -124,6 +125,8 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
                 <p className="text-lg text-on-surface-variant leading-relaxed">{project.result}</p>
               </div>
             </div>
+
+            <ProjectGallery items={project.gallery ?? []} />
 
             <div className="mt-20 flex justify-between items-center border-t border-outline-variant/20 pt-10">
               <Link href="/portfolio" className="text-primary font-bold hover:underline">

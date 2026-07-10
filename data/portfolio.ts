@@ -1,3 +1,10 @@
+export interface PortfolioGalleryItem {
+  id: string
+  type: 'image' | 'video'
+  url: string
+  caption?: string
+}
+
 export interface PortfolioProject {
   slug: string
   category: string
@@ -11,6 +18,7 @@ export interface PortfolioProject {
   challenge: string
   solution: string
   result: string
+  gallery?: PortfolioGalleryItem[]
   prevSlug: string | null
   nextSlug: string | null
   nextLabel: string | null

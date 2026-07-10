@@ -16,6 +16,7 @@ service cloud.firestore {
     match /services/{docId}   { allow read: if true; allow write: if isAdmin(); }
     match /keyPartners/{docId}{ allow read: if true; allow write: if isAdmin(); }
     match /portfolio/{docId}  { allow read: if true; allow write: if isAdmin(); }
+    match /gallery/{docId}    { allow read: if true; allow write: if isAdmin(); }
     match /site_content/{docId} { allow read: if true; allow write: if isAdmin(); }
 
     // Contact form: anyone can submit a lead, only a signed-in admin can read/manage them.
