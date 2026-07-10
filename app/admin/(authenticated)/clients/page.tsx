@@ -10,6 +10,7 @@ import type { Client } from '@/lib/services'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -215,6 +216,7 @@ export default function ClientsPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Client berhasil ditambahkan!' : 'Client berhasil diperbarui!')
+      revalidatePaths(['/', '/portfolio'])
     } catch {
       showToast('error', 'Gagal menyimpan client')
     }
@@ -227,6 +229,7 @@ export default function ClientsPage() {
       await clientsService.delete(id)
       await mutate()
       showToast('success', 'Client berhasil dihapus')
+      revalidatePaths(['/', '/portfolio'])
     } catch {
       showToast('error', 'Gagal menghapus client')
     } finally {

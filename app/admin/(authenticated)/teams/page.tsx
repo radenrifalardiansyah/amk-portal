@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import AvatarPicker from '@/components/admin/AvatarPicker'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -194,6 +195,7 @@ function LeadershipTab() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Leader berhasil ditambahkan!' : 'Leader berhasil diperbarui!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan leader')
     }
@@ -206,6 +208,7 @@ function LeadershipTab() {
       await leadersService.delete(id)
       await mutate()
       showToast('success', 'Leader berhasil dihapus')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menghapus leader')
     } finally {
@@ -594,6 +597,7 @@ function KeyPartnersTab() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Key partner berhasil ditambahkan!' : 'Key partner berhasil diperbarui!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan key partner')
     }
@@ -606,6 +610,7 @@ function KeyPartnersTab() {
       await keyPartnersService.delete(id)
       await mutate()
       showToast('success', 'Key partner berhasil dihapus')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menghapus key partner')
     } finally {

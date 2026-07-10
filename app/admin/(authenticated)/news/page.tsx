@@ -10,6 +10,7 @@ import type { NewsArticle, NewsStatus } from '@/lib/services'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -208,6 +209,7 @@ export default function NewsPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Berita berhasil ditambahkan!' : 'Berita berhasil diperbarui!')
+      revalidatePaths(['/', '/news', `/news/${data.slug}`])
     } catch {
       showToast('error', 'Gagal menyimpan berita')
     }
@@ -220,6 +222,7 @@ export default function NewsPage() {
       await newsService.delete(slug)
       await mutate()
       showToast('success', 'Berita berhasil dihapus')
+      revalidatePaths(['/', '/news', `/news/${slug}`])
     } catch {
       showToast('error', 'Gagal menghapus berita')
     } finally {

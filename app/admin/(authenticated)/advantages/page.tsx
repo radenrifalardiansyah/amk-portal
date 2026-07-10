@@ -9,6 +9,7 @@ import IconPickerField from '@/components/admin/IconPickerField'
 import { advantagesService } from '@/lib/services'
 import type { Advantage } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -137,6 +138,7 @@ export default function AdvantagesPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Advantage berhasil ditambahkan!' : 'Advantage berhasil diperbarui!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan advantage')
     }
@@ -149,6 +151,7 @@ export default function AdvantagesPage() {
       await advantagesService.delete(id)
       await mutate()
       showToast('success', 'Advantage berhasil dihapus')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menghapus advantage')
     } finally {

@@ -8,6 +8,7 @@ import Pagination from '@/components/admin/Pagination'
 import { badgesService } from '@/lib/services'
 import type { Badge } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -119,6 +120,7 @@ export default function BadgesPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Badge berhasil ditambahkan!' : 'Badge berhasil diperbarui!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan badge')
     }
@@ -131,6 +133,7 @@ export default function BadgesPage() {
       await badgesService.delete(id)
       await mutate()
       showToast('success', 'Badge berhasil dihapus')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menghapus badge')
     } finally {

@@ -7,6 +7,7 @@ import Pagination from '@/components/admin/Pagination'
 import { siteContentService } from '@/lib/services'
 import type { AboutPageContent } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -97,6 +98,7 @@ export default function AboutPageContentAdmin() {
       await siteContentService.saveAboutPage(content)
       await mutate(content, false)
       showToast('success', 'Halaman About berhasil disimpan!')
+      revalidatePaths(['/about'])
     } catch {
       showToast('error', 'Gagal menyimpan halaman About')
     } finally {

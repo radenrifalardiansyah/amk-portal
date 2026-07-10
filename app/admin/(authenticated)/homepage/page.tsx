@@ -7,6 +7,7 @@ import { siteContentService } from '@/lib/services'
 import type { HeroContent, AboutHomeContent, ContactContent } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -123,6 +124,7 @@ export default function HomepageContentPage() {
       await siteContentService.saveHero(hero)
       await mutateHero(hero, false)
       showToast('success', 'Hero berhasil disimpan!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan Hero')
     } finally {
@@ -137,6 +139,7 @@ export default function HomepageContentPage() {
       await siteContentService.saveAboutHome(aboutHome)
       await mutateAboutHome(aboutHome, false)
       showToast('success', 'About berhasil disimpan!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan About')
     } finally {
@@ -151,6 +154,7 @@ export default function HomepageContentPage() {
       await siteContentService.saveContact(contact)
       await mutateContact(contact, false)
       showToast('success', 'Contact berhasil disimpan!')
+      revalidatePaths(['/'])
     } catch {
       showToast('error', 'Gagal menyimpan Contact')
     } finally {

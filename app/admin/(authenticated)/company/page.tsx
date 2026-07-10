@@ -7,6 +7,7 @@ import MediaUploadField from '@/components/admin/MediaUploadField'
 import { siteContentService } from '@/lib/services'
 import type { CompanyProfile } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -96,6 +97,7 @@ export default function CompanyProfilePage() {
       }
       favicon.href = company.logoUrl || '/images/logo.png'
       showToast('success', 'Profil perusahaan berhasil disimpan!')
+      revalidatePaths([{ path: '/', type: 'layout' }])
     } catch {
       showToast('error', 'Gagal menyimpan profil perusahaan')
     } finally {

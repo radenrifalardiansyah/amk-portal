@@ -11,6 +11,7 @@ import { servicesService, badgesService } from '@/lib/services'
 import type { Badge } from '@/lib/services'
 import { Service, ServiceFeature } from '@/data/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { revalidatePaths } from '@/lib/revalidate'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -287,6 +288,7 @@ export default function ServicesPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Service berhasil ditambahkan!' : 'Service berhasil diperbarui!')
+      revalidatePaths(['/', '/portfolio', `/services/${data.slug}`])
     } catch {
       showToast('error', 'Gagal menyimpan service')
     }
@@ -299,6 +301,7 @@ export default function ServicesPage() {
       await servicesService.delete(slug)
       await mutate()
       showToast('success', 'Service berhasil dihapus')
+      revalidatePaths(['/', '/portfolio', `/services/${slug}`])
     } catch {
       showToast('error', 'Gagal menghapus service')
     } finally {
