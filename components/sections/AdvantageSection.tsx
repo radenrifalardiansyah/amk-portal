@@ -3,7 +3,7 @@ import type { Advantage } from '@/lib/services'
 
 export default function AdvantageSection({ advantages }: { advantages: Advantage[] }) {
   return (
-    <section className="py-32 bg-surface overflow-hidden relative" id="advantage">
+    <section className="py-32 bg-surface overflow-hidden relative scroll-mt-8" id="advantage">
       <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-20 items-center">
         <div className="relative reveal-left">
           <div className="absolute -inset-4 bg-primary/20 blur-3xl opacity-20 animate-pulse" />

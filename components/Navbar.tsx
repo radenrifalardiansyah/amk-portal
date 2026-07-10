@@ -10,9 +10,9 @@ const navLinks = [
   { label: 'About', href: '/#about' },
   { label: 'Services', href: '/#services' },
   { label: 'Portfolio', href: '/#portfolio' },
+  { label: 'Gallery', href: '/#gallery' },
   { label: 'Teams', href: '/#teams' },
   { label: 'News', href: '/#news' },
-  { label: 'Contact', href: '/#contact' },
 ]
 
 export default function Navbar({ company }: { company?: CompanyProfile }) {
@@ -53,7 +53,7 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
             href="/#contact"
             className="hidden lg:block shrink-0 font-headline tracking-[-0.04em] font-bold text-primary text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all duration-500 ease-in-out"
           >
-            Mulai Kolaborasi
+            Contact Us
           </Link>
 
           <button
@@ -72,7 +72,7 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-surface/95 backdrop-blur-xl transition-transform duration-500 ease-in-out lg:hidden flex flex-col justify-center items-center space-y-8 ${
+        className={`fixed inset-0 z-40 bg-surface/95 backdrop-blur-xl transition-transform duration-500 ease-in-out lg:hidden flex flex-col justify-center items-center space-y-6 overflow-y-auto py-24 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -89,9 +89,9 @@ export default function Navbar({ company }: { company?: CompanyProfile }) {
         <Link
           href="/#contact"
           onClick={closeMenu}
-          className="mt-8 px-8 py-4 bg-primary text-white font-headline font-bold rounded-full shadow-lg"
+          className="mt-4 px-8 py-4 bg-primary text-white font-headline font-bold rounded-full shadow-lg"
         >
-          Mulai Kolaborasi
+          Contact Us
         </Link>
       </div>
     </>

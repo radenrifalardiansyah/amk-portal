@@ -3,7 +3,7 @@ import type { Service } from '@/data/services'
 
 export default function ServicesSection({ services }: { services: Service[] }) {
   return (
-    <section className="py-24" id="services">
+    <section className="py-24 scroll-mt-8" id="services">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16 space-y-4 reveal">
           <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">Core Pillars</h2>

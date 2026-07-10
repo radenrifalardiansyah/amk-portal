@@ -4,7 +4,7 @@ import type { AboutHomeContent } from '@/lib/services'
 
 export default function AboutSection({ content }: { content: AboutHomeContent }) {
   return (
-    <section className="py-24 bg-surface-container-lowest relative reveal" id="about">
+    <section className="py-24 bg-surface-container-lowest relative reveal scroll-mt-8" id="about">
       <div className="max-w-7xl mx-auto px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div className="space-y-8 reveal-left">

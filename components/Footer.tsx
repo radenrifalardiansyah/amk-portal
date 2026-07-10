@@ -59,6 +59,7 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
             <Link href="/#about" className="hover:text-primary transition-opacity">About Us</Link>
             <Link href="/#services" className="hover:text-primary transition-opacity">Services</Link>
             <Link href="/#portfolio" className="hover:text-primary transition-opacity">Portfolio</Link>
+            <Link href="/#gallery" className="hover:text-primary transition-opacity">Gallery</Link>
             <Link href="/#teams" className="hover:text-primary transition-opacity">Teams</Link>
             <Link href="/#news" className="hover:text-primary transition-opacity">News</Link>
             <Link href="/#contact" className="hover:text-primary transition-opacity">Contact</Link>

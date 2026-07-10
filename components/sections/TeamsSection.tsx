@@ -15,7 +15,7 @@ function instagramUrl(value: string) {
 
 export default function TeamsSection({ leaders, partners }: { leaders: Leader[]; partners: KeyPartner[] }) {
   return (
-    <section className="py-24" id="teams">
+    <section className="py-24 scroll-mt-8" id="teams">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16 reveal">
           <h2 className="text-5xl font-headline font-bold text-primary mb-4">Teams</h2>

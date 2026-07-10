@@ -29,7 +29,7 @@ export default function HeroSection({ content }: { content: HeroContent }) {
   }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden" id="home">
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden scroll-mt-8" id="home">
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.08),transparent_70%)] animate-fluid" />
         <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-surface to-transparent" />

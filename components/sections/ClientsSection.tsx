@@ -8,7 +8,7 @@ export default function ClientsSection({ clients }: { clients: Client[] }) {
   const row2 = clients.slice(half)
 
   return (
-    <section className="py-12 bg-surface-container-lowest reveal" id="clients">
+    <section className="py-12 bg-surface-container-lowest reveal scroll-mt-8" id="clients">
       <div className="max-w-7xl mx-auto px-8 mb-6">
         <h2 className="text-center text-3xl font-headline font-bold text-primary opacity-60">Our Clients</h2>
         <div className="marquee py-6">

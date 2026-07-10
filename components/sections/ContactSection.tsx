@@ -40,7 +40,7 @@ export default function ContactSection({ content }: { content: ContactContent })
     'w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-on-surface'
 
   return (
-    <section className="py-24 relative overflow-hidden" id="contact">
+    <section className="py-24 relative overflow-hidden scroll-mt-8" id="contact">
       <div className="absolute inset-0 bg-primary/5" />
       <div className="max-w-7xl mx-auto px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
