@@ -3,21 +3,32 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { usersService, siteContentService } from '@/lib/services'
-import type { CompanyProfile } from '@/lib/services'
+import { usersService, siteContentService, ActiveSessionConflictError } from '@/lib/services'
+import type { CompanyProfile, DeviceType } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
+import InstallPwaCard from '@/components/admin/InstallPwaCard'
+
+interface SessionConflict { device: DeviceType; lastActiveAt: string }
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [company, setCompany] = useState<CompanyProfile | null>(null)
+  const [conflict, setConflict] = useState<SessionConflict | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     siteContentService.getCompany().then(setCompany).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (usersService.takeKickedElsewhereFlag()) {
+      setInfo('Anda otomatis keluar karena akun ini login di perangkat/browser lain.')
+    }
   }, [])
 
   const brandName = company?.shortName || 'AMK'
@@ -26,11 +37,16 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setInfo('')
     try {
       const user = await usersService.login(email, password)
       usersService.saveSession(user)
       router.replace('/admin/dashboard')
     } catch (err) {
+      if (err instanceof ActiveSessionConflictError) {
+        setConflict({ device: err.device, lastActiveAt: err.lastActiveAt })
+        return
+      }
       const code = (err as { code?: string })?.code
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
         setError('Email atau password salah. Silakan coba lagi.')
@@ -39,6 +55,21 @@ export default function AdminLoginPage() {
       } else {
         setError('Terjadi kesalahan. Silakan coba lagi.')
       }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForceLogin = async () => {
+    setConflict(null)
+    setLoading(true)
+    setError('')
+    try {
+      const user = await usersService.login(email, password, { force: true })
+      usersService.saveSession(user)
+      router.replace('/admin/dashboard')
+    } catch {
+      setError('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setLoading(false)
     }
@@ -120,6 +151,17 @@ export default function AdminLoginPage() {
             <p style={{ fontSize: 13, color: theme.textMuted }}>{company?.legalName || 'PT. Adikara Mandala Kreasi'}</p>
           </div>
 
+          {/* Info (e.g. kicked out elsewhere) */}
+          {info && !error && (
+            <div
+              className="toast-enter"
+              style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, padding: '12px 14px', borderRadius: 14, fontSize: 13, background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}`, color: theme.accentText }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18, flexShrink: 0 }}>info</span>
+              <span>{info}</span>
+            </div>
+          )}
+
           {/* Error */}
           {error && (
             <div
@@ -191,6 +233,8 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
+          <InstallPwaCard />
+
           <div style={{ marginTop: 24, textAlign: 'center' }}>
             <Link href="/"
               style={{ fontSize: 12, color: theme.textMuted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'color 0.15s' }}
@@ -203,6 +247,79 @@ export default function AdminLoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Active Session Conflict Modal */}
+      {conflict && (
+        <div
+          onClick={() => setConflict(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(16,24,40,0.45)', backdropFilter: 'blur(4px)', padding: 16,
+          }}
+          className="admin-modal-backdrop"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 380, padding: 24, borderRadius: 16,
+              background: theme.surface, border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowElevated,
+            }}
+            className="admin-modal-card"
+          >
+            <div style={{
+              width: 48, height: 48, borderRadius: 14, marginBottom: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: theme.dangerSoft,
+            }}>
+              <span className="material-symbols-outlined" style={{ color: theme.danger, fontSize: 24 }}>
+                {conflict.device === 'mobile' ? 'smartphone' : 'computer'}
+              </span>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, marginBottom: 6 }}>
+              Akun Sedang Aktif di Tempat Lain
+            </h2>
+            <p style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5, marginBottom: 22 }}>
+              Akun ini sedang login di perangkat <strong>{conflict.device === 'mobile' ? 'Mobile' : 'Desktop'}</strong> lain
+              (terakhir aktif {new Date(conflict.lastActiveAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}).
+              Tetap masuk di sini akan otomatis mengeluarkan sesi tersebut.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConflict(null)}
+                style={{
+                  padding: '9px 16px', borderRadius: 10, cursor: 'pointer',
+                  border: `1px solid ${theme.border}`, background: theme.surface,
+                  color: theme.textSecondary, fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleForceLogin}
+                style={{
+                  padding: '9px 16px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                  background: theme.danger, color: '#fff', fontSize: 13, fontWeight: 600,
+                  boxShadow: '0 6px 16px rgba(220,38,38,0.28)', transition: 'all 0.15s',
+                }}
+              >
+                Tetap Masuk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .admin-modal-backdrop { animation: admin-modal-fade 0.15s ease; }
+        .admin-modal-card { animation: admin-modal-pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @keyframes admin-modal-fade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes admin-modal-pop {
+          from { opacity: 0; transform: translateY(8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </div>
   )
 }
