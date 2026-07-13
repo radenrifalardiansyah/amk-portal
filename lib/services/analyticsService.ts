@@ -45,4 +45,12 @@ export const analyticsService = {
       return snap.data().count
     } catch { return 0 }
   },
+
+  // Date of the very first tracked page view, so the dashboard can show since-when the total accumulates.
+  async getFirstRecordedAt(): Promise<Timestamp | null> {
+    try {
+      const snap = await getDocs(query(collection(db, COL), orderBy('createdAt', 'asc'), limit(1)))
+      return (snap.docs[0]?.data() as PageView | undefined)?.createdAt ?? null
+    } catch { return null }
+  },
 }

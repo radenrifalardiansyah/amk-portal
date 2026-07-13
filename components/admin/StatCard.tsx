@@ -4,12 +4,13 @@ interface StatCardProps {
   title: string
   value: number | string
   icon: string
+  hint?: string
   change?: string
   changeType?: 'up' | 'down' | 'neutral'
   delay?: string
 }
 
-export default function StatCard({ title, value, icon, change, changeType = 'neutral', delay }: StatCardProps) {
+export default function StatCard({ title, value, icon, hint, change, changeType = 'neutral', delay }: StatCardProps) {
   return (
     <div
       className="rounded-2xl admin-fade-up"
@@ -35,6 +36,9 @@ export default function StatCard({ title, value, icon, change, changeType = 'neu
           <p style={{ fontSize: 30, fontWeight: 700, color: theme.text, marginTop: 6, lineHeight: 1, fontFamily: theme.fontHeadline }}>
             {value}
           </p>
+          {hint && (
+            <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 6, lineHeight: 1.4 }}>{hint}</p>
+          )}
           {change && (
             <p style={{
               fontSize: 11, marginTop: 8, fontWeight: 500,
