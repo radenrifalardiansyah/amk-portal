@@ -16,7 +16,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const project = await portfolioService.getBySlug(slug)
-  if (!project) return {}
+  if (!project || project.status !== 'published') return {}
   return {
     title: `${project.title} | AMK Portfolio`,
     description: project.description,
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function PortfolioDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const project = await portfolioService.getBySlug(slug)
-  if (!project) notFound()
+  if (!project || project.status !== 'published') notFound()
 
   const client = project.clientId ? await clientsService.getById(project.clientId) : null
 

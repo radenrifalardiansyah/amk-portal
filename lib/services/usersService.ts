@@ -1,5 +1,5 @@
 import {
-  collection, getDocs, getDoc, doc, updateDoc, serverTimestamp,
+  collection, getDocs, getDoc, doc, updateDoc, serverTimestamp, onSnapshot,
 } from 'firebase/firestore'
 import {
   signInWithEmailAndPassword, signOut, EmailAuthProvider,
@@ -7,6 +7,13 @@ import {
   type User as FirebaseAuthUser,
 } from 'firebase/auth'
 import { db, auth } from '@/lib/firebase'
+import type { DeviceType } from './analyticsService'
+
+export interface ActiveSession {
+  sessionId: string
+  device: DeviceType
+  lastActiveAt: string
+}
 
 export interface AdminUser {
   email: string
@@ -16,28 +23,119 @@ export interface AdminUser {
   position?: string
   bio?: string
   avatarUrl?: string
+  lastLoginAt?: string
+  lastLoginDevice?: DeviceType
+  activeSession?: ActiveSession | null
 }
 
 export type SessionUser = AdminUser
 
+// Thrown by login() when another device/browser holds a still-fresh session lock;
+// the login page catches this to offer a "take over & sign the other one out" prompt.
+export class ActiveSessionConflictError extends Error {
+  device: DeviceType
+  lastActiveAt: string
+  constructor(device: DeviceType, lastActiveAt: string) {
+    super('Akun ini sedang aktif di perangkat lain')
+    this.name = 'ActiveSessionConflictError'
+    this.device = device
+    this.lastActiveAt = lastActiveAt
+  }
+}
+
 export const SESSION_KEY = 'amk_admin_session'
 export const SESSION_UPDATED_EVENT = 'amk-admin-session-updated'
+export const HEARTBEAT_INTERVAL_MS = 60_000
+
+const SESSION_ID_KEY = 'amk_admin_session_id'
+const KICKED_ELSEWHERE_KEY = 'amk_admin_kicked_elsewhere'
+const SESSION_STALE_MS = 15 * 60_000
 
 const COL = 'users'
+const MOBILE_UA = /android|iphone|ipad|ipod|mobile|iemobile|opera mini/i
+
+function detectDevice(): DeviceType {
+  if (typeof navigator === 'undefined') return 'desktop'
+  return MOBILE_UA.test(navigator.userAgent) ? 'mobile' : 'desktop'
+}
+
+function isSessionActive(session?: ActiveSession | null): session is ActiveSession {
+  if (!session?.sessionId) return false
+  return Date.now() - new Date(session.lastActiveAt).getTime() < SESSION_STALE_MS
+}
+
+function generateSessionId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
 
 export const usersService = {
-  async login(email: string, password: string): Promise<AdminUser> {
+  async login(email: string, password: string, options?: { force?: boolean }): Promise<AdminUser> {
     await signInWithEmailAndPassword(auth, email, password)
     const profile = await usersService.getByEmail(email)
     if (!profile) {
       await signOut(auth)
       throw new Error('Profil admin tidak ditemukan di Firestore')
     }
-    return profile
+    if (!options?.force && isSessionActive(profile.activeSession)) {
+      const { device, lastActiveAt } = profile.activeSession
+      await signOut(auth)
+      throw new ActiveSessionConflictError(device, lastActiveAt)
+    }
+
+    const device = detectDevice()
+    const now = new Date().toISOString()
+    const sessionId = generateSessionId()
+    const activeSession: ActiveSession = { sessionId, device, lastActiveAt: now }
+
+    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession })
+    if (typeof window !== 'undefined') localStorage.setItem(SESSION_ID_KEY, sessionId)
+
+    return { ...profile, lastLoginAt: now, lastLoginDevice: device, activeSession }
   },
 
   async logout(): Promise<void> {
+    const email = auth.currentUser?.email
+    if (email) {
+      await updateDoc(doc(db, COL, email), { activeSession: null }).catch(() => {})
+    }
     await signOut(auth)
+    if (typeof window !== 'undefined') localStorage.removeItem(SESSION_ID_KEY)
+  },
+
+  // Signs out this browser only, without releasing the session lock in Firestore —
+  // used when THIS browser is the one being kicked out by a takeover elsewhere.
+  async signOutLocally(): Promise<void> {
+    await signOut(auth)
+    if (typeof window !== 'undefined') localStorage.removeItem(SESSION_ID_KEY)
+  },
+
+  getLocalSessionId(): string | null {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(SESSION_ID_KEY)
+  },
+
+  watchActiveSession(email: string, callback: (session: ActiveSession | null | undefined) => void) {
+    return onSnapshot(
+      doc(db, COL, email),
+      (snap) => callback((snap.data() as AdminUser | undefined)?.activeSession),
+      () => { /* ignore transient errors, e.g. right after sign-out during navigation */ },
+    )
+  },
+
+  async sendHeartbeat(email: string): Promise<void> {
+    await updateDoc(doc(db, COL, email), { 'activeSession.lastActiveAt': new Date().toISOString() }).catch(() => {})
+  },
+
+  markKickedElsewhere(): void {
+    if (typeof window !== 'undefined') localStorage.setItem(KICKED_ELSEWHERE_KEY, '1')
+  },
+
+  takeKickedElsewhereFlag(): boolean {
+    if (typeof window === 'undefined') return false
+    if (!localStorage.getItem(KICKED_ELSEWHERE_KEY)) return false
+    localStorage.removeItem(KICKED_ELSEWHERE_KEY)
+    return true
   },
 
   onAuthChange(callback: (user: FirebaseAuthUser | null) => void) {
@@ -87,6 +185,20 @@ export const usersService = {
     }
   },
 
+  async adminUpdateUser(email: string, input: { role: 'admin' | 'editor' }): Promise<void> {
+    const token = await auth.currentUser?.getIdToken()
+    if (!token) throw new Error('Tidak ada sesi aktif')
+    const res = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email, ...input }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.error || 'Gagal memperbarui pengguna')
+    }
+  },
+
   async adminDeleteUser(email: string): Promise<void> {
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Tidak ada sesi aktif')
@@ -117,6 +229,8 @@ export const usersService = {
       position: user.position ?? '',
       bio: user.bio ?? '',
       avatarUrl: user.avatarUrl ?? '',
+      lastLoginAt: user.lastLoginAt ?? '',
+      lastLoginDevice: user.lastLoginDevice ?? '',
     }))
     window.dispatchEvent(new Event(SESSION_UPDATED_EVENT))
   },

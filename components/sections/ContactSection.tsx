@@ -1,7 +1,3 @@
-'use client'
-
-import { useState, FormEvent } from 'react'
-import { leadsService } from '@/lib/services'
 import type { ContactContent } from '@/lib/services'
 
 const WhatsAppIcon = () => (
@@ -11,34 +7,6 @@ const WhatsAppIcon = () => (
 )
 
 export default function ContactSection({ content }: { content: ContactContent }) {
-  const [form, setForm] = useState({ name: '', company: '', service: '', message: '' })
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    const { name, company, service, message } = form
-
-    try {
-      await leadsService.create({ name, company, service, message })
-    } catch {
-      // WA tetap terbuka meski Firestore gagal
-    }
-
-    const text =
-      'Halo Tim AMK,%0A%0A' +
-      'Saya ingin berkonsultasi mengenai proyek digital.%0A' +
-      `*Nama:* ${name}%0A` +
-      `*Perusahaan:* ${company || '-'}%0A` +
-      `*Layanan Diminati:* ${service}%0A%0A` +
-      `*Pesan:*%0A${message}`
-    window.open(`https://wa.me/${content.waNumber}?text=${text}`, '_blank')
-    setLoading(false)
-  }
-
-  const inputClass =
-    'w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-on-surface'
-
   return (
     <section className="py-24 relative overflow-hidden scroll-mt-8" id="contact">
       <div className="absolute inset-0 bg-primary/5" />
@@ -49,7 +17,12 @@ export default function ContactSection({ content }: { content: ContactContent })
             <p className="text-xl text-on-surface-variant leading-relaxed">
               {content.description}
             </p>
-            <div className="flex items-center space-x-4 p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm hover-lift">
+            <a
+              href={`https://wa.me/${content.waNumber}?text=${encodeURIComponent(content.waMessageTemplate)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-4 p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm hover-lift cursor-pointer"
+            >
               <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center">
                 <WhatsAppIcon />
               </div>
@@ -57,56 +30,21 @@ export default function ContactSection({ content }: { content: ContactContent })
                 <p className="font-bold text-lg text-on-surface">{content.waResponseTitle}</p>
                 <p className="text-sm text-on-surface-variant">{content.waResponseSubtitle}</p>
               </div>
-            </div>
+            </a>
           </div>
 
-          <div className="bg-surface p-8 md:p-12 rounded-3xl shadow-2xl border border-outline-variant/20 reveal-right">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="wa-name" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
-                    Nama Lengkap
-                  </label>
-                  <input type="text" id="wa-name" required className={inputClass}
-                    value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="wa-company" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
-                    Perusahaan / Instansi
-                  </label>
-                  <input type="text" id="wa-company" className={inputClass}
-                    value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="wa-service" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
-                  Layanan yang Diminati
-                </label>
-                <select id="wa-service" required className={`${inputClass} appearance-none`}
-                  value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
-                  <option value="" disabled>Pilih Layanan Utama</option>
-                  {content.serviceOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="wa-message" className="block text-sm font-bold text-on-surface-variant uppercase tracking-widest">
-                  Pesan Singkat
-                </label>
-                <textarea id="wa-message" rows={4} required className={`${inputClass} resize-none`}
-                  placeholder="Ceritakan sedikit tentang kebutuhan Anda..."
-                  value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
-              </div>
-
-              <button type="submit" disabled={loading}
-                className="w-full magnetic-btn py-4 bg-primary text-white font-headline font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all flex justify-center items-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                <span>{loading ? 'Mengirim...' : 'Kirim ke WhatsApp Kami'}</span>
-                <span className="material-symbols-outlined">{loading ? 'hourglass_empty' : 'send'}</span>
-              </button>
-            </form>
+          <div className="bg-surface p-2 rounded-3xl shadow-2xl border border-outline-variant/20 reveal-right overflow-hidden">
+            <iframe
+              src={content.googleFormUrl}
+              title="Formulir Kontak"
+              className="w-full rounded-2xl"
+              height={840}
+              frameBorder={0}
+              marginHeight={0}
+              marginWidth={0}
+            >
+              Memuat…
+            </iframe>
           </div>
         </div>
       </div>

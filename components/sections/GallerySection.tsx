@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { GalleryItem } from '@/lib/services'
+import type { GalleryItem, GallerySectionContent } from '@/lib/services'
 import { getVideoEmbed } from '@/lib/videoEmbed'
 
 function Thumbnail({ item }: { item: GalleryItem }) {
@@ -55,7 +55,7 @@ function LightboxMedia({ item }: { item: GalleryItem }) {
   )
 }
 
-export default function GallerySection({ previews }: { previews: GalleryItem[] }) {
+export default function GallerySection({ previews, content }: { previews: GalleryItem[]; content: GallerySectionContent }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   if (!previews.length) return null
@@ -70,9 +70,9 @@ export default function GallerySection({ previews }: { previews: GalleryItem[] }
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 reveal">
           <div className="space-y-4">
-            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">Gallery</h2>
+            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">{content.heading}</h2>
             <p className="text-on-surface-variant max-w-xl">
-              Momen di balik layar dan hasil visual dari perjalanan kreatif kami.
+              {content.description}
             </p>
           </div>
           <Link

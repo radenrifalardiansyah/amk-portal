@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PortfolioPage() {
-  const [projects, clients] = await Promise.all([portfolioService.getAll(), clientsService.getAll()])
+  const [projects, clients] = await Promise.all([portfolioService.getAllPublished(), clientsService.getAll()])
   const clientMap = new Map(clients.map((c) => [c.id, c]))
 
   return (

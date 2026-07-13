@@ -8,12 +8,11 @@ export interface Lead {
   id: string
   name: string
   company?: string | null
-  service: string
   message: string
   createdAt: Timestamp | null
 }
 
-export type CreateLeadInput = Pick<Lead, 'name' | 'company' | 'service' | 'message'>
+export type CreateLeadInput = Pick<Lead, 'name' | 'company' | 'message'>
 
 const COL = 'leads'
 
@@ -22,7 +21,6 @@ export const leadsService = {
     await addDoc(collection(db, COL), {
       name: data.name,
       company: data.company || null,
-      service: data.service,
       message: data.message,
       createdAt: serverTimestamp(),
     })

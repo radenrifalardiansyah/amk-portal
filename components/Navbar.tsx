@@ -5,9 +5,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { CompanyProfile } from '@/lib/services'
 
-const navLinks = [
+export interface NavLink {
+  label: string
+  href: string
+}
+
+export const DEFAULT_NAV_LINKS: NavLink[] = [
   { label: 'Home', href: '/#home' },
-  { label: 'About', href: '/#about' },
+  { label: 'About', href: '/about' },
   { label: 'Services', href: '/#services' },
   { label: 'Portfolio', href: '/#portfolio' },
   { label: 'Gallery', href: '/#gallery' },
@@ -15,7 +20,7 @@ const navLinks = [
   { label: 'News', href: '/#news' },
 ]
 
-export default function Navbar({ company }: { company?: CompanyProfile }) {
+export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { company?: CompanyProfile; navLinks?: NavLink[] }) {
   const [isOpen, setIsOpen] = useState(false)
   const logoUrl = company?.logoUrl || '/images/logo.png'
   const shortName = company?.shortName || 'AMK'

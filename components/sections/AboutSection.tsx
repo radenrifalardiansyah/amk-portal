@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import Image from 'next/image'
 import type { AboutHomeContent } from '@/lib/services'
 
@@ -12,16 +11,6 @@ export default function AboutSection({ content }: { content: AboutHomeContent })
             <p className="text-on-surface-variant text-lg leading-relaxed">
               {content.paragraph}
             </p>
-            <Link
-              href="/about"
-              className="inline-flex items-center space-x-2 text-primary font-headline font-bold hover:underline group"
-            >
-              <span>Learn More About Us</span>
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                arrow_right_alt
-              </span>
-            </Link>
-
             <div className="p-8 bg-surface rounded-2xl border border-outline-variant/10 space-y-4">
               <div className="flex items-center space-x-4">
                 <span className="material-symbols-outlined text-primary text-3xl">verified</span>

@@ -8,6 +8,7 @@ import { siteContentService } from '@/lib/services'
 import type { CompanyProfile } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import { revalidatePaths } from '@/lib/revalidate'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -64,6 +65,7 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
 }
 
 export default function CompanyProfilePage() {
+  const { edit } = usePermission('company')
   const { data: companyData, isLoading: loading, mutate } = useSWR('company', siteContentService.getCompany)
   const [company, setCompany] = useState<CompanyProfile | null>(null)
   const [saving, setSaving] = useState(false)
@@ -80,6 +82,7 @@ export default function CompanyProfilePage() {
   }, [companyData, company])
 
   const handleSave = async () => {
+    if (!edit) return
     if (!company) return
     if (!company.legalName.trim()) {
       showToast('error', 'Nama resmi perusahaan tidak boleh kosong')
@@ -169,6 +172,12 @@ export default function CompanyProfilePage() {
               <Field label="LinkedIn">
                 <TextInput value={company.linkedinUrl} onChange={(v) => setCompany({ ...company, linkedinUrl: v })} placeholder="https://linkedin.com/company/namaperusahaan" />
               </Field>
+              <Field label="TikTok">
+                <TextInput value={company.tiktokUrl} onChange={(v) => setCompany({ ...company, tiktokUrl: v })} placeholder="https://tiktok.com/@namaakun" />
+              </Field>
+              <Field label="YouTube">
+                <TextInput value={company.youtubeUrl} onChange={(v) => setCompany({ ...company, youtubeUrl: v })} placeholder="https://youtube.com/@namachannel" />
+              </Field>
             </div>
           </SectionCard>
 
@@ -179,8 +188,8 @@ export default function CompanyProfilePage() {
           </SectionCard>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={handleSave} disabled={saving || uploadingLogo}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+            <button onClick={handleSave} disabled={saving || uploadingLogo || !edit}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}

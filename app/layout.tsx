@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     } : undefined,
     email: company.email || undefined,
     telephone: company.phone ? `+${company.phone}` : undefined,
-    sameAs: [company.instagramUrl, company.linkedinUrl].filter(Boolean),
+    sameAs: [company.instagramUrl, company.linkedinUrl, company.tiktokUrl, company.youtubeUrl].filter(Boolean),
   }
 
   return (

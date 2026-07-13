@@ -4,80 +4,14 @@ import { useState, useEffect, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import useSWR, { SWRConfig } from 'swr'
-import { usersService, siteContentService, SESSION_UPDATED_EVENT } from '@/lib/services'
+import { usersService, siteContentService, SESSION_UPDATED_EVENT, HEARTBEAT_INTERVAL_MS } from '@/lib/services'
 import type { SessionUser } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
+import { useAdminNav } from '@/lib/useAdminNav'
+import type { NavItem } from '@/lib/useAdminNav'
+import { PermissionContext, usePermissionValue } from '@/lib/permissions'
 
-interface NavItem {
-  href: string
-  icon: string
-  label: string
-  subtitle: string
-  children?: NavItem[]
-}
-
-interface NavGroup {
-  label: string
-  items: NavItem[]
-}
-
-const navGroups: NavGroup[] = [
-  {
-    label: 'Utama',
-    items: [
-      { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard', subtitle: 'Statistik & ringkasan aktivitas portal' },
-      { href: '/admin/company',   icon: 'domain',    label: 'Profil Perusahaan', subtitle: 'Kelola identitas perusahaan yang tampil di admin & website' },
-    ],
-  },
-  {
-    label: 'Konten Website',
-    items: [
-      { href: '/admin/homepage',   icon: 'home',           label: 'Home', subtitle: 'Kelola konten Hero, About & Contact di halaman utama' },
-      { href: '/admin/about',      icon: 'info',           label: 'About', subtitle: 'Kelola konten halaman /about (visi, misi, unit bisnis)' },
-      {
-        href: '/admin/services', icon: 'design_services', label: 'Services', subtitle: 'Kelola layanan yang ditampilkan di portal',
-        children: [
-          { href: '/admin/badges', icon: 'local_offer', label: 'Badges', subtitle: 'Kelola master badge untuk kategori services' },
-        ],
-      },
-      { href: '/admin/portfolio',  icon: 'photo_library',  label: 'Portfolio', subtitle: 'Kelola proyek portfolio' },
-      { href: '/admin/gallery',   icon: 'collections',    label: 'Gallery', subtitle: 'Kelola foto yang ditampilkan di halaman Gallery' },
-      { href: '/admin/news',      icon: 'newspaper',      label: 'News', subtitle: 'Kelola berita & artikel yang ditampilkan di portal' },
-      { href: '/admin/advantages', icon: 'military_tech',  label: 'Advantages', subtitle: 'Kelola keunggulan yang ditampilkan di homepage' },
-      { href: '/admin/teams',      icon: 'groups',         label: 'Teams', subtitle: 'Kelola tim kepemimpinan & key partners yang ditampilkan di homepage' },
-      { href: '/admin/clients',    icon: 'handshake',      label: 'Clients', subtitle: 'Kelola logo klien yang ditampilkan di homepage' },
-    ],
-  },
-  {
-    label: 'Akun',
-    items: [
-      { href: '/admin/settings', icon: 'manage_accounts', label: 'Pengaturan Profil', subtitle: 'Kelola informasi akun dan keamanan login Anda' },
-    ],
-  },
-]
-
-const bottomNavItems: NavItem[] = [
-  { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard', subtitle: '' },
-  { href: '/admin/homepage', icon: 'home', label: 'Home', subtitle: '' },
-  { href: '/admin/services', icon: 'design_services', label: 'Services', subtitle: '' },
-  { href: '/admin/portfolio', icon: 'photo_library', label: 'Portfolio', subtitle: '' },
-]
-
-const bottomNavHrefs = new Set(bottomNavItems.map((item) => item.href))
-
-const allMenuItems: NavItem[] = navGroups
-  .flatMap((group) => group.items.flatMap((item) => (item.children?.length ? [item, ...item.children] : [item])))
-  .filter((item) => !bottomNavHrefs.has(item.href))
-
-const pageMeta: Record<string, { title: string; subtitle: string }> = {}
-navGroups.forEach((group) => {
-  group.items.forEach((item) => {
-    pageMeta[item.href] = { title: item.label === 'About' ? 'Halaman About' : item.label, subtitle: item.subtitle }
-    item.children?.forEach((child) => {
-      pageMeta[child.href] = { title: child.label, subtitle: child.subtitle }
-    })
-  })
-})
+const APP_VERSION = '0.1.0'
 
 export default function AdminAuthenticatedLayout({ children }: { children: ReactNode }) {
   return (
@@ -94,11 +28,44 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   const [isDesktop, setIsDesktop] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [showAboutModal, setShowAboutModal] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+
+  const { navGroups, bottomNavItems, menuItems } = useAdminNav()
+  const permission = usePermissionValue(session)
+
+  const canView = (item: NavItem) => (item.adminOnly ? permission.isAdminRole : (item.alwaysVisible || permission.get(item.id).view))
+
+  const visibleNavGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter(canView)
+        .map((item) => ({ ...item, children: item.children?.filter(canView) })),
+    }))
+    .filter((group) => group.items.length > 0)
+
+  const visibleBottomNavItems = bottomNavItems.filter(canView)
+  const bottomNavHrefs = new Set(bottomNavItems.map((item) => item.href))
+
+  const pageMeta: Record<string, { title: string; subtitle: string }> = {}
+  navGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      pageMeta[item.href] = { title: item.label === 'About' ? 'Halaman About' : item.label, subtitle: item.subtitle }
+      item.children?.forEach((child) => {
+        pageMeta[child.href] = { title: child.label, subtitle: child.subtitle }
+      })
+    })
+  })
+
+  const currentMenuItem = menuItems.find((m) => m.href === pathname)
+  const canViewCurrentPage = !currentMenuItem
+    || (currentMenuItem.adminOnly ? permission.isAdminRole : (currentMenuItem.alwaysVisible || permission.get(currentMenuItem.id).view))
 
   useEffect(() => {
     const unsubscribe = usersService.onAuthChange(async (firebaseUser) => {
@@ -135,6 +102,38 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SESSION_UPDATED_EVENT, handler)
   }, [])
 
+  // Enforces a single active session per account: refreshes this session's
+  // "alive" heartbeat, and if another device/browser takes over the lock
+  // (login page force-login), signs this browser out immediately.
+  useEffect(() => {
+    const email = session?.email
+    if (!email) return
+    const localSessionId = usersService.getLocalSessionId()
+    if (!localSessionId) return
+
+    let stillOwner = true
+    const heartbeatId = setInterval(() => {
+      if (stillOwner) usersService.sendHeartbeat(email)
+    }, HEARTBEAT_INTERVAL_MS)
+
+    const unsubscribe = usersService.watchActiveSession(email, (active) => {
+      if (!stillOwner) return
+      if (active && active.sessionId !== localSessionId) {
+        stillOwner = false
+        clearInterval(heartbeatId)
+        usersService.markKickedElsewhere()
+        usersService.clearSession()
+        usersService.signOutLocally()
+        router.replace('/admin/login')
+      }
+    })
+
+    return () => {
+      unsubscribe()
+      clearInterval(heartbeatId)
+    }
+  }, [session?.email, router])
+
   useEffect(() => { setSidebarOpen(false) }, [pathname])
 
   useEffect(() => {
@@ -147,12 +146,24 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setSidebarCollapsed(localStorage.getItem('admin-sidebar-collapsed') === '1')
+    try {
+      const stored = localStorage.getItem('admin-nav-collapsed-groups')
+      if (stored) setCollapsedGroups(JSON.parse(stored))
+    } catch { /* ignore malformed storage */ }
   }, [])
 
   const toggleSidebarCollapsed = () => {
     setSidebarCollapsed((prev) => {
       const next = !prev
       localStorage.setItem('admin-sidebar-collapsed', next ? '1' : '0')
+      return next
+    })
+  }
+
+  const toggleGroupCollapsed = (label: string) => {
+    setCollapsedGroups((prev) => {
+      const next = { ...prev, [label]: !prev[label] }
+      localStorage.setItem('admin-nav-collapsed-groups', JSON.stringify(next))
       return next
     })
   }
@@ -198,7 +209,13 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const initials = (session.name || session.email || 'A')[0].toUpperCase()
   const displayName = session.name || session.email?.split('@')[0] || 'Admin'
 
+  const visibleMenuItems = visibleNavGroups
+    .flatMap((group) => group.items.flatMap((item) => (item.children?.length ? [item, ...item.children] : [item])))
+    .filter((item) => !bottomNavHrefs.has(item.href))
+  const isMoreSectionActive = visibleMenuItems.some((item) => item.href === pathname)
+
   return (
+    <PermissionContext.Provider value={permission}>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: theme.bg, fontFamily: 'Inter, sans-serif' }}>
 
       {/* Mobile Backdrop */}
@@ -256,12 +273,29 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
 
         {/* Navigation */}
         <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 10px 8px' }}>
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => {
+            const isGroupOpen = collapsed || !collapsedGroups[group.label]
+            return (
             <div key={group.label} style={{ marginBottom: 8 }}>
               {!collapsed && (
-                <p style={{ padding: '4px 10px 10px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: theme.textMuted }}>{group.label}</p>
+                <button
+                  onClick={() => toggleGroupCollapsed(group.label)}
+                  aria-expanded={isGroupOpen}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', padding: '4px 10px 10px', border: 'none', background: 'transparent',
+                    cursor: 'pointer', fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+                    letterSpacing: '0.12em', color: theme.textMuted,
+                  }}
+                >
+                  <span>{group.label}</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 16, transform: isGroupOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}
+                  >expand_more</span>
+                </button>
               )}
-              {group.items.map((item) => {
+              {isGroupOpen && group.items.map((item) => {
                 const isActive = pathname === item.href
                 const hasChildren = !!item.children?.length
                 const isChildActive = !!item.children?.some((c) => pathname === c.href)
@@ -368,7 +402,8 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                 )
               })}
             </div>
-          ))}
+            )
+          })}
         </nav>
 
         {/* User Profile */}
@@ -481,7 +516,17 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
         {/* Page Content */}
         <main style={{ flex: 1, overflowY: 'auto', paddingBottom: isDesktop ? 0 : 72 }}>
           <div key={pathname} className="p-5 sm:p-6 admin-fade-up">
-            {children}
+            {canViewCurrentPage ? children : (
+              <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 20, padding: '64px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center' }}>
+                <div style={{ width: 64, height: 64, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.dangerSoft }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 30, color: theme.danger }}>block</span>
+                </div>
+                <div>
+                  <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>Akses Ditolak</p>
+                  <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>Anda tidak memiliki hak akses untuk membuka halaman ini. Hubungi admin jika ini keliru.</p>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -500,7 +545,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
           >
             <div style={{ width: 36, height: 4, borderRadius: 2, background: theme.border, margin: '0 auto 16px' }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px 8px' }}>
-              {allMenuItems.map((item) => {
+              {visibleMenuItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
                   <Link
@@ -526,6 +571,24 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                   </Link>
                 )
               })}
+              <button
+                onClick={() => { setSidebarOpen(false); setShowAboutModal(true) }}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
+                }}
+              >
+                <div style={{
+                  width: 52, height: 52, borderRadius: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: theme.surfaceSoft, color: theme.textSecondary,
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 24 }}>info</span>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 500, color: theme.textSecondary, textAlign: 'center', lineHeight: 1.2 }}>
+                  Tentang
+                </span>
+              </button>
               <button
                 onClick={() => { setSidebarOpen(false); handleLogout() }}
                 style={{
@@ -557,7 +620,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
           }}
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', alignItems: 'stretch' }}>
-            {bottomNavItems.map((item) => {
+            {visibleBottomNavItems.map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link
@@ -583,11 +646,14 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: 2, padding: '9px 0', border: 'none', background: 'transparent', cursor: 'pointer',
-                color: sidebarOpen ? theme.accent : theme.textMuted,
+                color: (sidebarOpen || isMoreSectionActive) ? theme.accent : theme.textMuted,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 21 }}>{sidebarOpen ? 'close' : 'apps'}</span>
-              <span style={{ fontSize: 10.5, fontWeight: sidebarOpen ? 700 : 500 }}>Semua</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 21, fontVariationSettings: `'FILL' ${(!sidebarOpen && isMoreSectionActive) ? 1 : 0}, 'wght' 300, 'GRAD' 0, 'opsz' 24` }}
+              >{sidebarOpen ? 'close' : 'apps'}</span>
+              <span style={{ fontSize: 10.5, fontWeight: (sidebarOpen || isMoreSectionActive) ? 700 : 500 }}>Semua</span>
             </button>
           </div>
         </div>
@@ -656,6 +722,71 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
         </div>
       )}
 
+      {/* About / Credit Modal (mobile only) */}
+      {showAboutModal && (
+        <div
+          onClick={() => setShowAboutModal(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(16,24,40,0.45)', backdropFilter: 'blur(4px)', padding: 16,
+          }}
+          className="admin-modal-backdrop lg:hidden"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 360, padding: 24, borderRadius: 16,
+              background: theme.surface, border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowElevated, textAlign: 'center',
+            }}
+            className="admin-modal-card"
+          >
+            <div style={{
+              width: 48, height: 48, borderRadius: 14, margin: '0 auto 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: theme.accentSoft,
+            }}>
+              <span className="material-symbols-outlined" style={{ color: theme.accent, fontSize: 24 }}>info</span>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, marginBottom: 4 }}>
+              {brandName} Admin Panel
+            </h2>
+            <p style={{ fontSize: 12.5, color: theme.textMuted, marginBottom: 18 }}>
+              Versi {APP_VERSION}
+            </p>
+            <div style={{ borderTop: `1px solid ${theme.divider}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <p style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>
+                Dikembangkan oleh{' '}
+                <a
+                  href="https://eleven-digital.id/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: theme.accent, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  PT. Eleven Digital Indonesia
+                </a>
+              </p>
+              <p style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.5 }}>
+                Didukung oleh <span style={{ fontWeight: 600, color: theme.textSecondary }}>PT. RMedia Solutions</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAboutModal(false)}
+              style={{
+                marginTop: 20, width: '100%', padding: '10px 16px', borderRadius: 10, cursor: 'pointer',
+                border: `1px solid ${theme.border}`, background: theme.surface,
+                color: theme.textSecondary, fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = theme.surfaceSoft; e.currentTarget.style.color = theme.text }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = theme.surface; e.currentTarget.style.color = theme.textSecondary }}
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .admin-sidebar { position: fixed; top: 0; left: 0; }
         .sidebar-closed { transform: translateX(-100%); }
@@ -678,5 +809,6 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
         }
       `}</style>
     </div>
+    </PermissionContext.Provider>
   )
 }

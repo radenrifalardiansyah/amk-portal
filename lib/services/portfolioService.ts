@@ -24,6 +24,7 @@ const seedData: PortfolioProject[] = [
       'Tim kami menggunakan pendekatan hyper-cinematic. Kami menerbangkan drone beresolusi tinggi di area pergudangan dan pelabuhan, dikombinasikan dengan teknik slow-motion darat untuk menangkap detail humanis dari para pekerja. Dipadukan dengan color grading bergaya teal-and-orange khas film Hollywood dan dentuman sonic branding yang solid.',
     result:
       'Video profil ini sukses meningkatkan konversi interaksi B2B dalam berbagai pameran internasional. Desain visual yang premium secara instan meningkatkan persepsi brand value Nippon Express di pasar Asia Tenggara.',
+    status: 'published',
     prevSlug: null,
     nextSlug: 'aston',
     nextLabel: 'Aston Bogor',
@@ -44,6 +45,7 @@ const seedData: PortfolioProject[] = [
       'AMK merancang sistem multi-kamera dengan live streaming berkualitas broadcast, dikombinasikan dengan grafis interaktif real-time dan manajemen konten digital yang sinkron dengan agenda acara.',
     result:
       'Hybrid event berjalan tanpa hambatan teknis. Tingkat partisipasi virtual meningkat signifikan, dan klien mendapatkan rekaman berkualitas tinggi yang kemudian digunakan sebagai aset pemasaran jangka panjang.',
+    status: 'published',
     prevSlug: 'nippon',
     nextSlug: 'jica',
     nextLabel: 'JICA Innovation Hub',
@@ -64,31 +66,43 @@ const seedData: PortfolioProject[] = [
       'Kami merancang konten bilingual (Indonesia-Inggris) dengan tone yang segar dan menggunakan storytelling berbasis dampak sosial. Pendekatan ini dikombinasikan dengan distribusi lintas platform yang terukur.',
     result:
       'Jangkauan organik meningkat drastis dalam tiga bulan pertama kampanye. Program-program JICA berhasil menarik lebih banyak pendaftar muda berkualitas dari berbagai universitas terkemuka di Indonesia.',
+    status: 'published',
     prevSlug: 'aston',
     nextSlug: null,
     nextLabel: null,
   },
 ]
 
+// Docs saved before the `status` field existed have none — treat those as published
+// so nothing already live disappears from the public site.
+function normalizeStatus(data: PortfolioProject): PortfolioProject {
+  return { ...data, status: data.status ?? 'published' }
+}
+
 export const portfolioService = {
   async getAll(): Promise<PortfolioProject[]> {
     try {
       const snap = await getDocs(query(collection(db, COL), orderBy('year', 'desc')))
-      return snap.docs.map((d) => d.data() as PortfolioProject)
+      return snap.docs.map((d) => normalizeStatus(d.data() as PortfolioProject))
     } catch {
       return []
     }
   },
 
+  async getAllPublished(): Promise<PortfolioProject[]> {
+    const all = await this.getAll()
+    return all.filter((p) => p.status === 'published')
+  },
+
   getBySlug: cache(async (slug: string): Promise<PortfolioProject | null> => {
     const snap = await getDoc(doc(db, COL, slug))
-    return snap.exists() ? (snap.data() as PortfolioProject) : null
+    return snap.exists() ? normalizeStatus(snap.data() as PortfolioProject) : null
   }),
 
   async getAllSlugs(): Promise<string[]> {
     try {
       const snap = await getDocs(collection(db, COL))
-      return snap.docs.map((d) => d.id)
+      return snap.docs.filter((d) => normalizeStatus(d.data() as PortfolioProject).status === 'published').map((d) => d.id)
     } catch {
       return []
     }

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import type { NewsArticle } from '@/lib/services'
+import type { NewsArticle, NewsSectionContent } from '@/lib/services'
 
 function formatDate(iso: string) {
   const d = new Date(`${iso}T00:00:00`)
@@ -8,7 +8,7 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function NewsSection({ previews }: { previews: NewsArticle[] }) {
+export default function NewsSection({ previews, content }: { previews: NewsArticle[]; content: NewsSectionContent }) {
   if (previews.length === 0) return null
 
   return (
@@ -16,9 +16,9 @@ export default function NewsSection({ previews }: { previews: NewsArticle[] }) {
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 reveal">
           <div className="space-y-4">
-            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">Berita</h2>
+            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">{content.heading}</h2>
             <p className="text-on-surface-variant max-w-xl">
-              Kabar terbaru, pencapaian, dan wawasan industri kreatif dari tim AMK.
+              {content.description}
             </p>
           </div>
           <Link

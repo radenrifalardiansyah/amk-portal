@@ -1,7 +1,7 @@
 export { portfolioService } from './portfolioService'
 export { servicesService } from './servicesService'
 export { leadsService } from './leadsService'
-export { usersService, SESSION_UPDATED_EVENT } from './usersService'
+export { usersService, SESSION_UPDATED_EVENT, HEARTBEAT_INTERVAL_MS, ActiveSessionConflictError } from './usersService'
 export { advantagesService } from './advantagesService'
 export { leadersService } from './leadersService'
 export { clientsService } from './clientsService'
@@ -11,10 +11,13 @@ export { analyticsService } from './analyticsService'
 export { keyPartnersService } from './keyPartnersService'
 export { newsService } from './newsService'
 export { galleryService } from './galleryService'
+export { modulesService } from './modulesService'
+export { menuItemsService } from './menuItemsService'
+export { rolePermissionService } from './rolePermissionService'
 
 export type { Lead, CreateLeadInput } from './leadsService'
 export type { PageView, CreatePageViewInput, DeviceType } from './analyticsService'
-export type { AdminUser, SessionUser } from './usersService'
+export type { AdminUser, SessionUser, ActiveSession } from './usersService'
 export type { Advantage } from './advantagesService'
 export type { Badge } from './badgesService'
 export type { Leader } from './leadersService'
@@ -22,6 +25,11 @@ export type { Client } from './clientsService'
 export type { KeyPartner, KeyPartnerMember } from './keyPartnersService'
 export type { NewsArticle, NewsStatus } from './newsService'
 export type { GalleryItem } from './galleryService'
+export type { AdminModule } from './modulesService'
+export type { AdminMenuItem } from './menuItemsService'
+export type { Role, ModulePermission, PermissionMap, RolePermission } from './rolePermissionService'
 export type {
-  HeroContent, AboutHomeContent, AboutPageContent, ContactContent, BusinessUnit, CompanyProfile,
+  HeroContent, AboutHomeContent, AboutPageContent, ContactContent, ServicesSectionContent, AdvantageSectionContent,
+  PortfolioSectionContent, TeamsSectionContent, ClientsSectionContent, GallerySectionContent, NewsSectionContent,
+  BusinessUnit, CompanyProfile,
 } from './siteContentService'

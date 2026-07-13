@@ -1,34 +1,37 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { siteContentService } from '@/lib/services'
+import AboutSection from '@/components/sections/AboutSection'
 
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
+  title: 'Tentang AMK',
   description:
-    'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK) yang menggabungkan video production, branding, digital marketing, audio, dan solusi kreatif AI.',
+    'Kenali lebih jauh PT. Adikara Mandala Kreasi (AMK), agensi kreatif digital yang menggabungkan video production, branding, digital marketing, audio, dan solusi kreatif AI.',
   alternates: { canonical: '/about' },
   openGraph: {
-    title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
+    title: 'Tentang AMK',
     description:
-      'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK).',
+      'Kenali lebih jauh PT. Adikara Mandala Kreasi (AMK).',
     url: '/about',
     images: ['/images/company.png'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tentang AMK | Visi, Misi & Unit Bisnis',
+    title: 'Tentang AMK',
     description:
-      'Pelajari visi, misi, dan unit bisnis PT. Adikara Mandala Kreasi (AMK).',
+      'Kenali lebih jauh PT. Adikara Mandala Kreasi (AMK).',
     images: ['/images/company.png'],
   },
 }
 
 export default async function AboutPage() {
-  const content = await siteContentService.getAboutPage()
-  const { missions, businessUnits } = content
+  const [content, aboutHome] = await Promise.all([
+    siteContentService.getAboutPage(),
+    siteContentService.getAboutHome(),
+  ])
 
   return (
     <>
@@ -49,61 +52,11 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-8 py-20 space-y-16">
-          {/* Visi */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">{content.visionTitle}</h2>
-              <p className="text-lg text-on-surface-variant leading-relaxed">
-                {content.visionText}
-              </p>
-            </div>
-          </div>
+        <AboutSection content={aboutHome} />
 
-          {/* Misi */}
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">{content.missionTitle}</h2>
-              <p className="text-lg text-on-surface-variant leading-relaxed">
-                {content.missionIntro}
-              </p>
-            </div>
-            <div className="grid gap-6">
-              {missions.map((mission, i) => (
-                <div key={i} className="p-8 bg-surface rounded-[2rem] border border-outline-variant/10 shadow-sm">
-                  <p className="text-sm uppercase tracking-[0.25em] font-bold text-on-surface-variant">
-                    Misi {i + 1}
-                  </p>
-                  <p className="mt-4 text-on-surface-variant leading-relaxed">{mission}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Unit Bisnis */}
-          <section className="space-y-10">
-            <div className="space-y-6">
-              <h2 className="text-4xl font-headline font-bold text-primary">{content.businessUnitsTitle}</h2>
-              <p className="text-lg text-on-surface-variant leading-relaxed">
-                {content.businessUnitsIntro}
-              </p>
-            </div>
-            <div className="grid gap-6 lg:grid-cols-3">
-              {businessUnits.map((unit) => (
-                <article
-                  key={unit.code}
-                  className="p-8 bg-surface rounded-[2rem] border border-outline-variant/10 shadow-sm"
-                >
-                  <p className="text-2xl text-primary">{unit.code}</p>
-                  <h3 className="mt-4 text-xl font-bold text-on-surface">{unit.title}</h3>
-                  <p className="mt-3 text-on-surface-variant leading-relaxed">{unit.desc}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
+        <section className="max-w-6xl mx-auto px-8 py-20">
           {/* CTA */}
-          <section className="mt-16 rounded-[2rem] border border-outline-variant/10 bg-primary-container/10 p-10 text-center">
+          <section className="rounded-[2rem] border border-outline-variant/10 bg-primary-container/10 p-10 text-center">
             <h2 className="text-3xl font-headline font-bold text-primary">Siap kenali AMK lebih jauh?</h2>
             <p className="mt-4 text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
               Kembali ke halaman utama atau langsung jelajahi layanan kami untuk melihat bagaimana AMK dapat membantu

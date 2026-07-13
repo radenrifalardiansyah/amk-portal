@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { CompanyProfile } from '@/lib/services'
+import { DEFAULT_NAV_LINKS, type NavLink } from '@/components/Navbar'
 
 const InstagramIcon = () => (
   <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -11,6 +12,18 @@ const InstagramIcon = () => (
 const LinkedInIcon = () => (
   <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+  </svg>
+)
+
+const TikTokIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.321 5.562a5.122 5.122 0 01-.443-.258 6.228 6.228 0 01-1.137-.966c-.849-.849-1.184-1.71-1.253-2.338h-3.514v14.032c0 .742-.303 1.412-.792 1.9a2.685 2.685 0 01-1.9.79 2.694 2.694 0 01-2.694-2.69 2.694 2.694 0 012.694-2.69c.276 0 .541.045.79.128V9.786a6.36 6.36 0 00-.79-.05A6.253 6.253 0 003.531 15.99a6.253 6.253 0 006.253 6.254 6.253 6.253 0 006.253-6.254V9.007a9.6 9.6 0 005.462 1.694V6.902a5.85 5.85 0 01-1.678-.34 5.7 5.7 0 01-.5-1z" />
+  </svg>
+)
+
+const YouTubeIcon = () => (
+  <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
   </svg>
 )
 
@@ -26,11 +39,12 @@ function formatPhoneDisplay(phone: string) {
   return local.replace(/(\d{4})(?=\d)/g, '$1 ')
 }
 
-export default function Footer({ company }: { company?: CompanyProfile }) {
+export default function Footer({ company, waMessageTemplate, navLinks = DEFAULT_NAV_LINKS }: { company?: CompanyProfile; waMessageTemplate?: string; navLinks?: NavLink[] }) {
   const logoUrl = company?.logoUrl || '/images/logo.png'
   const shortName = company?.shortName || 'AMK'
   const tagline = company?.tagline || 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.'
   const waNumber = company?.waNumber || company?.phone || '6285155336838'
+  const waHref = `https://wa.me/${waNumber}${waMessageTemplate ? `?text=${encodeURIComponent(waMessageTemplate)}` : ''}`
   const email = company?.email || 'adikaramandalakreasi@gmail.com'
   const copyrightText = company?.copyrightText || 'PT. Adikara Mandala Kreasi - All rights reserved.'
   const year = new Date().getFullYear()
@@ -55,13 +69,9 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
             <p className="leading-relaxed">{company.address}</p>
           )}
           <div className="flex flex-wrap gap-4">
-            <Link href="/#home" className="hover:text-primary transition-opacity">Home</Link>
-            <Link href="/#about" className="hover:text-primary transition-opacity">About Us</Link>
-            <Link href="/#services" className="hover:text-primary transition-opacity">Services</Link>
-            <Link href="/#portfolio" className="hover:text-primary transition-opacity">Portfolio</Link>
-            <Link href="/#gallery" className="hover:text-primary transition-opacity">Gallery</Link>
-            <Link href="/#teams" className="hover:text-primary transition-opacity">Teams</Link>
-            <Link href="/#news" className="hover:text-primary transition-opacity">News</Link>
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-primary transition-opacity">{link.label}</Link>
+            ))}
             <Link href="/#contact" className="hover:text-primary transition-opacity">Contact</Link>
             <br />
             {company?.instagramUrl && (
@@ -76,13 +86,25 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
                 <span>LinkedIn</span>
               </a>
             )}
+            {company?.tiktokUrl && (
+              <a href={company.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi TikTok ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+                <TikTokIcon />
+                <span>TikTok</span>
+              </a>
+            )}
+            {company?.youtubeUrl && (
+              <a href={company.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi YouTube ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+                <YouTubeIcon />
+                <span>YouTube</span>
+              </a>
+            )}
           </div>
         </div>
 
         <div className="space-y-6 reveal">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
           <div className="space-y-4">
-            <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
+            <a href={waHref} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
               WhatsApp: {formatPhoneDisplay(waNumber)}
             </a>
             <a href={`mailto:${email}`} className="block hover:text-primary transition-opacity">
@@ -94,7 +116,7 @@ export default function Footer({ company }: { company?: CompanyProfile }) {
         <div className="space-y-6 reveal-right">
           <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
           <a
-            href={`https://wa.me/${waNumber}`}
+            href={waHref}
             target="_blank"
             rel="noopener noreferrer"
             className="magnetic-btn inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"

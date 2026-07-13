@@ -13,6 +13,7 @@ export interface Service {
   imageAlt: string
   heading: string
   body: string
+  kbli?: string
   features: ServiceFeature[]
   ctaTitle: string
   ctaLabel: string

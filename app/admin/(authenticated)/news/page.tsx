@@ -1,16 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { newsService } from '@/lib/services'
-import type { NewsArticle, NewsStatus } from '@/lib/services'
+import { newsService, siteContentService } from '@/lib/services'
+import type { NewsArticle, NewsStatus, NewsSectionContent } from '@/lib/services'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -33,10 +34,11 @@ function formatDate(iso: string) {
 }
 
 function NewsModal({
-  mode, article, onClose, onSave, onError,
+  mode, article, canApprove, onClose, onSave, onError,
 }: {
   mode: 'add' | 'edit'
   article: Partial<NewsArticle>
+  canApprove: boolean
   onClose: () => void
   onSave: (data: NewsArticle) => void
   onError: (message: string) => void
@@ -130,7 +132,8 @@ function NewsModal({
                 <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.status}
                   onChange={(e) => set('status', e.target.value as NewsStatus)}>
                   <option value="draft">Draft</option>
-                  <option value="published">Published</option>
+                  <option value="pending">Menunggu Persetujuan</option>
+                  <option value="published" disabled={!canApprove}>Published</option>
                 </select>
               </div>
             </div>
@@ -187,7 +190,86 @@ function NewsModal({
   )
 }
 
+function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast: (type: ToastState['type'], message: string) => void }) {
+  const { data, mutate } = useSWR('newsSection', siteContentService.getNewsSection)
+  const [form, setForm] = useState<NewsSectionContent | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (data && !form) setForm(data)
+  }, [data, form])
+
+  const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl outline-none transition-all'
+  const labelStyle = { display: 'block' as const, fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: theme.textMuted, marginBottom: 6 }
+
+  const handleSave = async () => {
+    if (!form) return
+    setSaving(true)
+    try {
+      await siteContentService.saveNewsSection(form)
+      await mutate(form, false)
+      showToast('success', 'Judul & deskripsi section berhasil disimpan!')
+      revalidatePaths(['/'])
+    } catch {
+      showToast('error', 'Gagal menyimpan judul & deskripsi section')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!form) return null
+
+  return (
+    <div className="rounded-2xl overflow-hidden mb-5" style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Berita" yang tampil di homepage sebelum daftar berita</p>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
+      </button>
+      {open && (
+        <>
+          <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${theme.divider}`, paddingTop: 16 }}>
+            <div>
+              <label style={labelStyle}>Judul</label>
+              <input className={inputCls} style={inputStyle} value={form.heading}
+                onChange={(e) => setForm({ ...form, heading: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi</label>
+              <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+            <button onClick={handleSave} disabled={saving || !canEdit}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              {saving
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+const NEWS_STATUS_STYLES: Record<NewsStatus, { label: string; color: string; background: string }> = {
+  draft: { label: 'Draft', color: theme.textSecondary, background: theme.surfaceSoft },
+  pending: { label: 'Pending', color: '#b45309', background: '#fffbeb' },
+  published: { label: 'Published', color: '#15803d', background: '#f0fdf4' },
+}
+
 export default function NewsPage() {
+  const { edit, delete: canDelete, approve } = usePermission('news')
   const { data: articles = [], isLoading: loading, mutate } = useSWR('news', newsService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -230,6 +312,20 @@ export default function NewsPage() {
     }
   }
 
+  const setStatus = async (article: NewsArticle, status: NewsStatus, message: string) => {
+    try {
+      await newsService.save({ ...article, status })
+      await mutate()
+      showToast('success', message)
+      revalidatePaths(['/', '/news', `/news/${article.slug}`])
+    } catch {
+      showToast('error', 'Gagal memperbarui status berita')
+    }
+  }
+
+  const handleApprove = (article: NewsArticle) => setStatus(article, 'published', 'Berita berhasil disetujui & dipublikasikan')
+  const handleReject = (article: NewsArticle) => setStatus(article, 'draft', 'Berita dikembalikan ke draft')
+
   const filtered = articles.filter((a) => {
     if (statusFilter !== 'all' && a.status !== statusFilter) return false
     if (!search) return true
@@ -244,14 +340,16 @@ export default function NewsPage() {
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
       {modal && (
-        <NewsModal mode={modal.mode} article={modal.article}
+        <NewsModal mode={modal.mode} article={modal.article} canApprove={approve}
           onClose={() => setModal(null)} onSave={handleSave}
           onError={(msg) => showToast('error', msg)} />
       )}
 
+      <SectionHeaderCard canEdit={edit} showToast={showToast} />
+
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <div className="flex items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari berita..." value={search}
@@ -263,34 +361,39 @@ export default function NewsPage() {
           />
         </div>
 
-        {/* Status filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {([
-            { key: 'all' as const, label: 'Semua' },
-            { key: 'published' as const, label: 'Published' },
-            { key: 'draft' as const, label: 'Draft' },
-          ]).map((s) => (
-            <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
-              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted }}>
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          {/* Status filter — scrolls internally if it doesn't fit */}
+          <div className="overflow-x-auto min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {([
+              { key: 'all' as const, label: 'Semua' },
+              { key: 'published' as const, label: 'Published' },
+              { key: 'pending' as const, label: 'Pending' },
+              { key: 'draft' as const, label: 'Draft' },
+            ]).map((s) => (
+              <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-        {/* View toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {(['grid', 'table'] as const).map((v) => (
-            <button key={v} onClick={() => { setView(v); setPage(1) }}
-              style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
-            </button>
-          ))}
-        </div>
+          {/* View toggle */}
+          <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {(['grid', 'table'] as const).map((v) => (
+              <button key={v} onClick={() => { setView(v); setPage(1) }}
+                style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => setModal({ mode: 'add', article: {} })}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Berita
-        </button>
+          {edit && (
+          <button onClick={() => setModal({ mode: 'add', article: {} })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Berita
+          </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -307,7 +410,7 @@ export default function NewsPage() {
             <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada berita'}</p>
             <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan berita baru untuk mulai mengelola konten'}</p>
           </div>
-          {!search && (
+          {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', article: {} })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Berita
@@ -332,8 +435,8 @@ export default function NewsPage() {
                   </span>
                 </div>
                 <div style={{ position: 'absolute', top: 10, right: 10 }}>
-                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: a.status === 'published' ? '#15803d' : theme.textSecondary, background: a.status === 'published' ? '#f0fdf4' : theme.surfaceSoft }}>
-                    {a.status === 'published' ? 'Published' : 'Draft'}
+                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: NEWS_STATUS_STYLES[a.status].color, background: NEWS_STATUS_STYLES[a.status].background }}>
+                    {NEWS_STATUS_STYLES[a.status].label}
                   </span>
                 </div>
               </div>
@@ -344,12 +447,27 @@ export default function NewsPage() {
                 <p style={{ fontSize: 11.5, color: theme.textSecondary, marginBottom: 8 }}>{a.author} &middot; {formatDate(a.publishedAt)}</p>
                 <p style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.55 }} className="line-clamp-2">{a.excerpt}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
+                  {approve && a.status === 'pending' && (
+                  <>
+                  <button onClick={() => handleApprove(a)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: '#15803d', background: '#f0fdf4', border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>Setujui
+                  </button>
+                  <button onClick={() => handleReject(a)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.textSecondary, background: theme.surfaceSoft, border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>cancel</span>Tolak
+                  </button>
+                  </>
+                  )}
+                  {edit && (
                   <button onClick={() => setModal({ mode: 'edit', article: a })}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 14 }}>edit</span>Edit
                   </button>
+                  )}
+                  {canDelete && (
                   <button onClick={() => handleDelete(a.slug)} disabled={deletingId === a.slug}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
@@ -359,6 +477,7 @@ export default function NewsPage() {
                       : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>}
                     Hapus
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -393,18 +512,37 @@ export default function NewsPage() {
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{a.author}</td>
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{formatDate(a.publishedAt)}</td>
                     <td style={{ padding: '12px 20px' }}>
-                      <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: a.status === 'published' ? '#15803d' : theme.textSecondary, background: a.status === 'published' ? '#f0fdf4' : theme.surfaceSoft }}>
-                        {a.status === 'published' ? 'Published' : 'Draft'}
+                      <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: NEWS_STATUS_STYLES[a.status].color, background: NEWS_STATUS_STYLES[a.status].background }}>
+                        {NEWS_STATUS_STYLES[a.status].label}
                       </span>
                     </td>
                     <td style={{ padding: '12px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {approve && a.status === 'pending' && (
+                        <>
+                        <button onClick={() => handleApprove(a)} title="Setujui"
+                          style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
+                          onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = '#15803d'; b.style.background = '#f0fdf4' }}
+                          onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                        </button>
+                        <button onClick={() => handleReject(a)} title="Tolak"
+                          style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
+                          onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
+                          onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>cancel</span>
+                        </button>
+                        </>
+                        )}
+                        {edit && (
                         <button onClick={() => setModal({ mode: 'edit', article: a })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.accent; b.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
                         </button>
+                        )}
+                        {canDelete && (
                         <button onClick={() => handleDelete(a.slug)} disabled={deletingId === a.slug}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
@@ -413,6 +551,7 @@ export default function NewsPage() {
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

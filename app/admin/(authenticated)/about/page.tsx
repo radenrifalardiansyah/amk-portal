@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
-import Pagination from '@/components/admin/Pagination'
 import { siteContentService } from '@/lib/services'
-import type { AboutPageContent } from '@/lib/services'
+import type { AboutPageContent, AboutHomeContent } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -23,10 +24,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function TextInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function TextInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <input
-      className={inputCls} style={inputStyle} value={value}
+      className={inputCls} style={inputStyle} value={value} placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
       onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
@@ -34,10 +35,10 @@ function TextInput({ value, onChange }: { value: string; onChange: (v: string) =
   )
 }
 
-function TextArea({ value, onChange, rows = 3 }: { value: string; onChange: (v: string) => void; rows?: number }) {
+function TextArea({ value, onChange, rows = 3, placeholder }: { value: string; onChange: (v: string) => void; rows?: number; placeholder?: string }) {
   return (
     <textarea
-      rows={rows} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={value}
+      rows={rows} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={value} placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
       onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
@@ -62,25 +63,24 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
   )
 }
 
-const LIST_PAGE_SIZE = 5
-
-type TabKey = 'hero' | 'vision' | 'mission' | 'units'
+type TabKey = 'hero' | 'about'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'hero', label: 'Hero', icon: 'view_carousel' },
-  { key: 'vision', label: 'Visi', icon: 'visibility' },
-  { key: 'mission', label: 'Misi', icon: 'flag' },
-  { key: 'units', label: 'Unit Bisnis', icon: 'apartment' },
+  { key: 'about', label: 'About', icon: 'info' },
 ]
 
 export default function AboutPageContentAdmin() {
+  const { edit } = usePermission('about')
   const [activeTab, setActiveTab] = useState<TabKey>('hero')
-  const { data: aboutPageData, isLoading: loading, mutate } = useSWR('aboutPage', siteContentService.getAboutPage)
+  const { data: aboutPageData, isLoading: aboutPageLoading, mutate } = useSWR('aboutPage', siteContentService.getAboutPage)
+  const { data: aboutHomeData, isLoading: aboutHomeLoading, mutate: mutateAboutHome } = useSWR('aboutHome', siteContentService.getAboutHome)
   const [content, setContent] = useState<AboutPageContent | null>(null)
+  const [aboutHome, setAboutHome] = useState<AboutHomeContent | null>(null)
+  const loading = aboutPageLoading || aboutHomeLoading
   const [saving, setSaving] = useState(false)
+  const [uploadingAboutImage, setUploadingAboutImage] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
-  const [missionPage, setMissionPage] = useState(1)
-  const [unitPage, setUnitPage] = useState(1)
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -91,12 +91,21 @@ export default function AboutPageContentAdmin() {
     if (aboutPageData && !content) setContent(aboutPageData)
   }, [aboutPageData, content])
 
+  useEffect(() => {
+    if (aboutHomeData && !aboutHome) setAboutHome(aboutHomeData)
+  }, [aboutHomeData, aboutHome])
+
   const handleSave = async () => {
-    if (!content) return
+    if (!edit) return
+    if (!content || !aboutHome) return
     setSaving(true)
     try {
-      await siteContentService.saveAboutPage(content)
+      await Promise.all([
+        siteContentService.saveAboutPage(content),
+        siteContentService.saveAboutHome(aboutHome),
+      ])
       await mutate(content, false)
+      await mutateAboutHome(aboutHome, false)
       showToast('success', 'Halaman About berhasil disimpan!')
       revalidatePaths(['/about'])
     } catch {
@@ -106,55 +115,13 @@ export default function AboutPageContentAdmin() {
     }
   }
 
-  const updateMission = (i: number, v: string) => {
-    if (!content) return
-    const missions = [...content.missions]
-    missions[i] = v
-    setContent({ ...content, missions })
-  }
-
-  const addMission = () => {
-    if (!content) return
-    const missions = [...content.missions, '']
-    setContent({ ...content, missions })
-    setMissionPage(Math.ceil(missions.length / LIST_PAGE_SIZE))
-  }
-
-  const removeMission = (i: number) => {
-    if (!content) return
-    const missions = content.missions.filter((_, idx) => idx !== i)
-    setContent({ ...content, missions })
-    setMissionPage((p) => Math.min(p, Math.max(1, Math.ceil(missions.length / LIST_PAGE_SIZE))))
-  }
-
-  const updateUnit = (i: number, key: 'code' | 'title' | 'desc', v: string) => {
-    if (!content) return
-    const businessUnits = [...content.businessUnits]
-    businessUnits[i] = { ...businessUnits[i], [key]: v }
-    setContent({ ...content, businessUnits })
-  }
-
-  const addUnit = () => {
-    if (!content) return
-    const businessUnits = [...content.businessUnits, { code: '', title: '', desc: '' }]
-    setContent({ ...content, businessUnits })
-    setUnitPage(Math.ceil(businessUnits.length / LIST_PAGE_SIZE))
-  }
-
-  const removeUnit = (i: number) => {
-    if (!content) return
-    const businessUnits = content.businessUnits.filter((_, idx) => idx !== i)
-    setContent({ ...content, businessUnits })
-    setUnitPage((p) => Math.min(p, Math.max(1, Math.ceil(businessUnits.length / LIST_PAGE_SIZE))))
-  }
-
   return (
     <>
       {toast && (
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
 
-      {loading || !content ? (
+      {loading || !content || !aboutHome ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 0' }}>
           <div className="w-7 h-7 border-4 rounded-full admin-spin" style={{ borderColor: theme.divider, borderTopColor: theme.accent }} />
           <p style={{ fontSize: 13, color: theme.textMuted }}>Memuat konten halaman About...</p>
@@ -188,108 +155,40 @@ export default function AboutPageContentAdmin() {
           </SectionCard>
           )}
 
-          {activeTab === 'vision' && (
-          <SectionCard title="Visi" subtitle="Bagian visi perusahaan">
-            <Field label="Judul"><TextInput value={content.visionTitle} onChange={(v) => setContent({ ...content, visionTitle: v })} /></Field>
-            <Field label="Teks Visi"><TextArea rows={4} value={content.visionText} onChange={(v) => setContent({ ...content, visionText: v })} /></Field>
-          </SectionCard>
-          )}
-
-          {activeTab === 'mission' && (
-          <SectionCard title="Misi" subtitle="Bagian misi perusahaan">
-            <Field label="Judul"><TextInput value={content.missionTitle} onChange={(v) => setContent({ ...content, missionTitle: v })} /></Field>
-            <Field label="Pengantar Misi"><TextArea value={content.missionIntro} onChange={(v) => setContent({ ...content, missionIntro: v })} /></Field>
-            <div>
-              <label style={{ ...labelStyle, marginBottom: 8 }}>Daftar Misi</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {content.missions
-                  .map((m, idx) => ({ m, idx }))
-                  .slice((missionPage - 1) * LIST_PAGE_SIZE, missionPage * LIST_PAGE_SIZE)
-                  .map(({ m, idx }) => (
-                  <div key={idx} style={{ padding: 12, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Misi {idx + 1}</span>
-                      <button type="button" onClick={() => removeMission(idx)}
-                        style={{ padding: 6, borderRadius: 8, background: theme.dangerSoft, border: 'none', cursor: 'pointer', color: theme.danger, display: 'flex' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
-                      </button>
-                    </div>
-                    <textarea rows={2}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: 13, borderRadius: 8, outline: 'none', resize: 'none', boxSizing: 'border-box', ...inputStyle }}
-                      value={m}
-                      onChange={(e) => updateMission(idx, e.target.value)}
-                      onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                      onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
-                    />
-                  </div>
-                ))}
-                <button type="button" onClick={addMission}
-                  style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}`, cursor: 'pointer' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>Tambah Misi
-                </button>
-                <Pagination page={missionPage} pageSize={LIST_PAGE_SIZE} totalItems={content.missions.length} onPageChange={setMissionPage} />
-              </div>
+          {activeTab === 'about' && (
+          <SectionCard title="About" subtitle="Section 'The Architects of Experience' di halaman /about">
+            <Field label="Heading"><TextInput value={aboutHome.heading} onChange={(v) => setAboutHome({ ...aboutHome, heading: v })} /></Field>
+            <Field label="Paragraf"><TextArea value={aboutHome.paragraph} onChange={(v) => setAboutHome({ ...aboutHome, paragraph: v })} /></Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Nomor Induk Berusaha"><TextInput value={aboutHome.nib} onChange={(v) => setAboutHome({ ...aboutHome, nib: v })} /></Field>
+              <Field label="Alamat"><TextInput value={aboutHome.address} onChange={(v) => setAboutHome({ ...aboutHome, address: v })} /></Field>
             </div>
-          </SectionCard>
-          )}
-
-          {activeTab === 'units' && (
-          <SectionCard title="Unit Bisnis" subtitle="Daftar unit bisnis / klasifikasi KLBI">
-            <Field label="Judul"><TextInput value={content.businessUnitsTitle} onChange={(v) => setContent({ ...content, businessUnitsTitle: v })} /></Field>
-            <Field label="Pengantar"><TextArea value={content.businessUnitsIntro} onChange={(v) => setContent({ ...content, businessUnitsIntro: v })} /></Field>
-            <div>
-              <label style={{ ...labelStyle, marginBottom: 8 }}>Daftar Unit Bisnis</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {content.businessUnits
-                  .map((unit, idx) => ({ unit, idx }))
-                  .slice((unitPage - 1) * LIST_PAGE_SIZE, unitPage * LIST_PAGE_SIZE)
-                  .map(({ unit, idx }) => (
-                  <div key={idx} style={{ padding: 12, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Unit {idx + 1}</span>
-                      <button type="button" onClick={() => removeUnit(idx)}
-                        style={{ padding: 6, borderRadius: 8, background: theme.dangerSoft, border: 'none', cursor: 'pointer', color: theme.danger, display: 'flex' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3" style={{ marginBottom: 8 }}>
-                      <input
-                        style={{ padding: '8px 10px', fontSize: 13, borderRadius: 8, outline: 'none', ...inputStyle }}
-                        value={unit.code} placeholder="Kode KLBI"
-                        onChange={(e) => updateUnit(idx, 'code', e.target.value)}
-                        onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                        onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
-                      />
-                      <input
-                        style={{ gridColumn: 'span 2', padding: '8px 10px', fontSize: 13, borderRadius: 8, outline: 'none', ...inputStyle }}
-                        value={unit.title} placeholder="Judul unit bisnis"
-                        onChange={(e) => updateUnit(idx, 'title', e.target.value)}
-                        onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                        onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
-                      />
-                    </div>
-                    <textarea rows={2}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: 13, borderRadius: 8, outline: 'none', resize: 'none', boxSizing: 'border-box', ...inputStyle }}
-                      value={unit.desc} placeholder="Deskripsi singkat"
-                      onChange={(e) => updateUnit(idx, 'desc', e.target.value)}
-                      onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                      onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
-                    />
-                  </div>
-                ))}
-                <button type="button" onClick={addUnit}
-                  style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}`, cursor: 'pointer' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>Tambah Unit Bisnis
-                </button>
-                <Pagination page={unitPage} pageSize={LIST_PAGE_SIZE} totalItems={content.businessUnits.length} onPageChange={setUnitPage} />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Statistik 1 - Nilai"><TextInput value={aboutHome.stat1Value} onChange={(v) => setAboutHome({ ...aboutHome, stat1Value: v })} /></Field>
+              <Field label="Statistik 1 - Label"><TextInput value={aboutHome.stat1Label} onChange={(v) => setAboutHome({ ...aboutHome, stat1Label: v })} /></Field>
+              <Field label="Statistik 2 - Nilai"><TextInput value={aboutHome.stat2Value} onChange={(v) => setAboutHome({ ...aboutHome, stat2Value: v })} /></Field>
+              <Field label="Statistik 2 - Label"><TextInput value={aboutHome.stat2Label} onChange={(v) => setAboutHome({ ...aboutHome, stat2Label: v })} /></Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="URL Video (link .mp4)">
+                <TextInput
+                  value={aboutHome.videoSrc}
+                  onChange={(v) => setAboutHome({ ...aboutHome, videoSrc: v })}
+                  placeholder="https://.../video.mp4"
+                />
+              </Field>
+              <MediaUploadField
+                label="Gambar Tim" folder="homepage/about"
+                value={aboutHome.teamImage} onChange={(url) => setAboutHome({ ...aboutHome, teamImage: url })}
+                onUploadingChange={setUploadingAboutImage} onError={(msg) => showToast('error', msg)}
+              />
             </div>
           </SectionCard>
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={handleSave} disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: saving ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+            <button onClick={handleSave} disabled={saving || !edit || uploadingAboutImage}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !edit || uploadingAboutImage) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !edit || uploadingAboutImage) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Semua</>}

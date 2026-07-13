@@ -44,10 +44,10 @@ export default function HeroSection({ content }: { content: HeroContent }) {
             </span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-headline font-bold tracking-[-0.04em] text-primary leading-[0.9] flex flex-col">
-            <span>{content.titleLine1}</span>
-            <span>{content.titleLine2}</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-container">
+          <h1 className="font-headline font-bold tracking-[-0.04em] text-primary leading-[0.9] flex flex-col">
+            <span className={content.titleLine1Size}>{content.titleLine1}</span>
+            <span className={content.titleLine2Size}>{content.titleLine2}</span>
+            <span className={`text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-container ${content.titleLine3Size}`}>
               {content.titleLine3}
             </span>
           </h1>

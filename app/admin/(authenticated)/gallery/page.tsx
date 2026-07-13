@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { galleryService } from '@/lib/services'
-import type { GalleryItem } from '@/lib/services'
+import { galleryService, siteContentService } from '@/lib/services'
+import type { GalleryItem, GallerySectionContent } from '@/lib/services'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
 import { getVideoEmbed } from '@/lib/videoEmbed'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -210,7 +211,80 @@ function GalleryModal({
   )
 }
 
+function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast: (type: ToastState['type'], message: string) => void }) {
+  const { data, mutate } = useSWR('gallerySection', siteContentService.getGallerySection)
+  const [form, setForm] = useState<GallerySectionContent | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (data && !form) setForm(data)
+  }, [data, form])
+
+  const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl outline-none transition-all'
+  const labelStyle = { display: 'block' as const, fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: theme.textMuted, marginBottom: 6 }
+
+  const handleSave = async () => {
+    if (!form) return
+    setSaving(true)
+    try {
+      await siteContentService.saveGallerySection(form)
+      await mutate(form, false)
+      showToast('success', 'Judul & deskripsi section berhasil disimpan!')
+      revalidatePaths(['/'])
+    } catch {
+      showToast('error', 'Gagal menyimpan judul & deskripsi section')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!form) return null
+
+  return (
+    <div className="rounded-2xl overflow-hidden mb-5" style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Gallery" yang tampil di homepage sebelum daftar galeri</p>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
+      </button>
+      {open && (
+        <>
+          <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${theme.divider}`, paddingTop: 16 }}>
+            <div>
+              <label style={labelStyle}>Judul</label>
+              <input className={inputCls} style={inputStyle} value={form.heading}
+                onChange={(e) => setForm({ ...form, heading: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi</label>
+              <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+            <button onClick={handleSave} disabled={saving || !canEdit}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              {saving
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function GalleryPage() {
+  const { edit, delete: canDelete } = usePermission('gallery')
   const { data: items = [], isLoading: loading, mutate } = useSWR('gallery', galleryService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -274,9 +348,11 @@ export default function GalleryPage() {
         <PreviewModal item={preview} onClose={() => setPreview(null)} />
       )}
 
+      <SectionHeaderCard canEdit={edit} showToast={showToast} />
+
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <div className="flex items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari item galeri..." value={search}
@@ -288,20 +364,24 @@ export default function GalleryPage() {
           />
         </div>
 
-        {/* View toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {(['grid', 'table'] as const).map((v) => (
-            <button key={v} onClick={() => { setView(v); setPage(1) }}
-              style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* View toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {(['grid', 'table'] as const).map((v) => (
+              <button key={v} onClick={() => { setView(v); setPage(1) }}
+                style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => setModal({ mode: 'add', item: { order: nextOrder, type: 'image' } })}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Item
-        </button>
+          {edit && (
+          <button onClick={() => setModal({ mode: 'add', item: { order: nextOrder, type: 'image' } })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Item
+          </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -318,7 +398,7 @@ export default function GalleryPage() {
             <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada item galeri'}</p>
             <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan foto atau video baru untuk mulai mengisi galeri'}</p>
           </div>
-          {!search && (
+          {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', item: { order: nextOrder, type: 'image' } })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Item
@@ -362,12 +442,15 @@ export default function GalleryPage() {
               <div style={{ padding: '10px 12px' }}>
                 <p style={{ fontWeight: 600, color: theme.text, fontSize: 12, lineHeight: 1.35, marginBottom: 10 }} className="line-clamp-1">{i.title}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  {edit && (
                   <button onClick={() => setModal({ mode: 'edit', item: i })}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px', borderRadius: 8, fontSize: 11, fontWeight: 500, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 13 }}>edit</span>Edit
                   </button>
+                  )}
+                  {canDelete && (
                   <button onClick={() => handleDelete(i.id, i.title)} disabled={deletingId === i.id}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '6px', borderRadius: 8, fontSize: 11, fontWeight: 500, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
@@ -377,6 +460,7 @@ export default function GalleryPage() {
                       : <span className="material-symbols-outlined" style={{ fontSize: 13 }}>delete</span>}
                     Hapus
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -421,12 +505,15 @@ export default function GalleryPage() {
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
                         </button>
+                        {edit && (
                         <button onClick={() => setModal({ mode: 'edit', item: i })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.accent; b.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
                         </button>
+                        )}
+                        {canDelete && (
                         <button onClick={() => handleDelete(i.id, i.title)} disabled={deletingId === i.id}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
@@ -435,6 +522,7 @@ export default function GalleryPage() {
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

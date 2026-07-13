@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import type { Leader, KeyPartner } from '@/lib/services'
+import type { Leader, KeyPartner, TeamsSectionContent } from '@/lib/services'
 
 const InstagramIcon = () => (
   <svg className="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -13,13 +13,13 @@ function instagramUrl(value: string) {
   return `https://instagram.com/${handle}`
 }
 
-export default function TeamsSection({ leaders, partners }: { leaders: Leader[]; partners: KeyPartner[] }) {
+export default function TeamsSection({ leaders, partners, content }: { leaders: Leader[]; partners: KeyPartner[]; content: TeamsSectionContent }) {
   return (
     <section className="py-24 scroll-mt-8" id="teams">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-16 reveal">
-          <h2 className="text-5xl font-headline font-bold text-primary mb-4">Teams</h2>
-          <p className="text-on-surface-variant">Pemimpin, talenta, dan mitra di balik inovasi PT. Adikara Mandala Kreasi.</p>
+          <h2 className="text-5xl font-headline font-bold text-primary mb-4">{content.heading}</h2>
+          <p className="text-on-surface-variant">{content.description}</p>
         </div>
 
         {leaders.length > 0 && (
@@ -49,8 +49,8 @@ export default function TeamsSection({ leaders, partners }: { leaders: Leader[];
         {partners.length > 0 && (
           <div className="pt-16 border-t border-outline-variant/10">
             <div className="text-center mb-12 reveal">
-              <h3 className="text-3xl md:text-4xl font-headline font-bold text-primary mb-3">Key Partners</h3>
-              <p className="text-on-surface-variant">Kolaborasi dengan talenta dan mitra terbaik di setiap lini produksi.</p>
+              <h3 className="text-3xl md:text-4xl font-headline font-bold text-primary mb-3">{content.partnersHeading}</h3>
+              <p className="text-on-surface-variant">{content.partnersDescription}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">

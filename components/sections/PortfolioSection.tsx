@@ -1,16 +1,17 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { PortfolioProject } from '@/data/portfolio'
+import type { PortfolioSectionContent } from '@/lib/services'
 
-export default function PortfolioSection({ previews }: { previews: PortfolioProject[] }) {
+export default function PortfolioSection({ previews, content }: { previews: PortfolioProject[]; content: PortfolioSectionContent }) {
   return (
     <section className="py-24 bg-surface-container-low reveal scroll-mt-8" id="portfolio">
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 reveal">
           <div className="space-y-4">
-            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">Recent Manifestations</h2>
+            <h2 className="text-5xl font-headline font-bold text-primary tracking-tight">{content.heading}</h2>
             <p className="text-on-surface-variant max-w-xl">
-              Intip beberapa karya terpilih yang mendefinisikan standar keunggulan kami.
+              {content.description}
             </p>
           </div>
           <Link

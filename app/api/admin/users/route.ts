@@ -55,6 +55,35 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true })
 }
 
+export async function PATCH(req: NextRequest) {
+  const caller = await requireAdmin(req)
+  if (!caller) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await req.json().catch(() => null)
+  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (!email) {
+    return NextResponse.json({ error: 'Email wajib diisi' }, { status: 400 })
+  }
+
+  const existing = await adminDb().collection('users').doc(email).get()
+  if (!existing.exists) {
+    return NextResponse.json({ error: 'Pengguna tidak ditemukan' }, { status: 404 })
+  }
+
+  const update: Record<string, unknown> = {}
+  if (body?.role === 'admin' || body?.role === 'editor') update.role = body.role
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'Tidak ada perubahan' }, { status: 400 })
+  }
+
+  await adminDb().collection('users').doc(email).update(update)
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function DELETE(req: NextRequest) {
   const caller = await requireAdmin(req)
   if (!caller) {

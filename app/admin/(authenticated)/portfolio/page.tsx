@@ -1,37 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { portfolioService, servicesService, clientsService, Client } from '@/lib/services'
-import { PortfolioProject, PortfolioGalleryItem } from '@/data/portfolio'
+import { portfolioService, servicesService, clientsService, siteContentService, Client } from '@/lib/services'
+import type { PortfolioSectionContent } from '@/lib/services'
+import { PortfolioProject, PortfolioGalleryItem, PortfolioStatus } from '@/data/portfolio'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
 import { getVideoEmbed } from '@/lib/videoEmbed'
 import { revalidatePaths } from '@/lib/revalidate'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const emptyProject: PortfolioProject = {
   slug: '', category: '', title: '', description: '', image: '/images/company.png',
   client: '', clientId: null, services: '', year: new Date().getFullYear().toString(),
-  challenge: '', solution: '', result: '', gallery: [],
+  challenge: '', solution: '', result: '', gallery: [], status: 'draft',
   prevSlug: null, nextSlug: null, nextLabel: null,
 }
 
 const newGalleryId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `g${Math.random().toString(36).slice(2)}`)
 
 function PortfolioModal({
-  mode, project, categoryOptions, clients, onClose, onSave, onError,
+  mode, project, categoryOptions, clients, canApprove, onClose, onSave, onError,
 }: {
   mode: 'add' | 'edit'
   project: Partial<PortfolioProject>
   categoryOptions: string[]
   clients: Client[]
+  canApprove: boolean
   onClose: () => void
   onSave: (data: PortfolioProject) => void
   onError: (message: string) => void
@@ -141,6 +144,15 @@ function PortfolioModal({
                   options={clients.map((c) => ({ value: c.id, label: c.name, icon: c.src }))}
                 />
               </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Status *</label>
+              <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.status}
+                onChange={(e) => set('status', e.target.value as PortfolioStatus)}>
+                <option value="draft">Draft</option>
+                <option value="pending">Menunggu Persetujuan</option>
+                <option value="published" disabled={!canApprove}>Published</option>
+              </select>
             </div>
             <div>
               <label style={labelStyle}>Deskripsi Singkat *</label>
@@ -266,7 +278,86 @@ function PortfolioModal({
   )
 }
 
+function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast: (type: ToastState['type'], message: string) => void }) {
+  const { data, mutate } = useSWR('portfolioSection', siteContentService.getPortfolioSection)
+  const [form, setForm] = useState<PortfolioSectionContent | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (data && !form) setForm(data)
+  }, [data, form])
+
+  const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl outline-none transition-all'
+  const labelStyle = { display: 'block' as const, fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: theme.textMuted, marginBottom: 6 }
+
+  const handleSave = async () => {
+    if (!form) return
+    setSaving(true)
+    try {
+      await siteContentService.savePortfolioSection(form)
+      await mutate(form, false)
+      showToast('success', 'Judul & deskripsi section berhasil disimpan!')
+      revalidatePaths(['/'])
+    } catch {
+      showToast('error', 'Gagal menyimpan judul & deskripsi section')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!form) return null
+
+  return (
+    <div className="rounded-2xl overflow-hidden mb-5" style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Recent Manifestations" yang tampil di homepage sebelum daftar portfolio</p>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
+      </button>
+      {open && (
+        <>
+          <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${theme.divider}`, paddingTop: 16 }}>
+            <div>
+              <label style={labelStyle}>Judul</label>
+              <input className={inputCls} style={inputStyle} value={form.heading}
+                onChange={(e) => setForm({ ...form, heading: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi</label>
+              <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+            <button onClick={handleSave} disabled={saving || !canEdit}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              {saving
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+const PORTFOLIO_STATUS_STYLES: Record<PortfolioStatus, { label: string; color: string; background: string }> = {
+  draft: { label: 'Draft', color: theme.textSecondary, background: theme.surfaceSoft },
+  pending: { label: 'Pending', color: '#b45309', background: '#fffbeb' },
+  published: { label: 'Published', color: '#15803d', background: '#f0fdf4' },
+}
+
 export default function PortfolioPage() {
+  const { edit, delete: canDelete, approve } = usePermission('portfolio')
   const { data: projects = [], isLoading: loading, mutate } = useSWR('portfolio', portfolioService.getAll)
   const { data: services = [] } = useSWR('services', servicesService.getAll)
   const { data: clients = [] } = useSWR('clients', clientsService.getAll)
@@ -276,6 +367,7 @@ export default function PortfolioPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; project: Partial<PortfolioProject> } | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | PortfolioStatus>('all')
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [page, setPage] = useState(1)
   const pageSize = 9
@@ -312,7 +404,22 @@ export default function PortfolioPage() {
     }
   }
 
+  const setStatus = async (project: PortfolioProject, status: PortfolioStatus, message: string) => {
+    try {
+      await portfolioService.save({ ...project, status })
+      await mutate()
+      showToast('success', message)
+      revalidatePaths(['/', '/portfolio', `/portfolio/${project.slug}`])
+    } catch {
+      showToast('error', 'Gagal memperbarui status portfolio')
+    }
+  }
+
+  const handleApprove = (project: PortfolioProject) => setStatus(project, 'published', 'Portfolio berhasil disetujui & dipublikasikan')
+  const handleReject = (project: PortfolioProject) => setStatus(project, 'draft', 'Portfolio dikembalikan ke draft')
+
   const filtered = projects.filter((p) => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false
     if (!search) return true
     const q = search.toLowerCase()
     return p.title.toLowerCase().includes(q) || p.client.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
@@ -325,14 +432,16 @@ export default function PortfolioPage() {
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
       {modal && (
-        <PortfolioModal mode={modal.mode} project={modal.project} categoryOptions={categoryOptions} clients={clients}
+        <PortfolioModal mode={modal.mode} project={modal.project} categoryOptions={categoryOptions} clients={clients} canApprove={approve}
           onClose={() => setModal(null)} onSave={handleSave}
           onError={(msg) => showToast('error', msg)} />
       )}
 
+      <SectionHeaderCard canEdit={edit} showToast={showToast} />
+
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <div className="flex items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari portfolio..." value={search}
@@ -344,20 +453,39 @@ export default function PortfolioPage() {
           />
         </div>
 
-        {/* View toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {(['grid', 'table'] as const).map((v) => (
-            <button key={v} onClick={() => { setView(v); setPage(1) }}
-              style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          {/* Status filter — scrolls internally if it doesn't fit */}
+          <div className="overflow-x-auto min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {([
+              { key: 'all' as const, label: 'Semua' },
+              { key: 'published' as const, label: 'Published' },
+              { key: 'pending' as const, label: 'Pending' },
+              { key: 'draft' as const, label: 'Draft' },
+            ]).map((s) => (
+              <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => setModal({ mode: 'add', project: {} })}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Proyek
-        </button>
+          {/* View toggle */}
+          <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {(['grid', 'table'] as const).map((v) => (
+              <button key={v} onClick={() => { setView(v); setPage(1) }}
+                style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
+              </button>
+            ))}
+          </div>
+
+          {edit && (
+            <button onClick={() => setModal({ mode: 'add', project: {} })}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Proyek
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -374,7 +502,7 @@ export default function PortfolioPage() {
             <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada portfolio'}</p>
             <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan proyek baru untuk mulai mengelola konten'}</p>
           </div>
-          {!search && (
+          {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', project: {} })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Proyek
@@ -398,6 +526,11 @@ export default function PortfolioPage() {
                     {p.category}
                   </span>
                 </div>
+                <div style={{ position: 'absolute', top: 10, right: 10 }}>
+                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: PORTFOLIO_STATUS_STYLES[p.status].color, background: PORTFOLIO_STATUS_STYLES[p.status].background }}>
+                    {PORTFOLIO_STATUS_STYLES[p.status].label}
+                  </span>
+                </div>
               </div>
               <div style={{ padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
@@ -413,12 +546,27 @@ export default function PortfolioPage() {
                 </div>
                 <p style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.55 }} className="line-clamp-2">{p.description}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
+                  {approve && p.status === 'pending' && (
+                  <>
+                  <button onClick={() => handleApprove(p)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: '#15803d', background: '#f0fdf4', border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check_circle</span>Setujui
+                  </button>
+                  <button onClick={() => handleReject(p)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.textSecondary, background: theme.surfaceSoft, border: 'none', cursor: 'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>cancel</span>Tolak
+                  </button>
+                  </>
+                  )}
+                  {edit && (
                   <button onClick={() => setModal({ mode: 'edit', project: p })}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 14 }}>edit</span>Edit
                   </button>
+                  )}
+                  {canDelete && (
                   <button onClick={() => handleDelete(p.slug)} disabled={deletingId === p.slug}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
@@ -428,6 +576,7 @@ export default function PortfolioPage() {
                       : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>}
                     Hapus
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -442,7 +591,7 @@ export default function PortfolioPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${theme.divider}` }}>
-                  {['#', 'Proyek', 'Client', 'Kategori', 'Tahun', 'Services', ''].map((h) => (
+                  {['#', 'Proyek', 'Client', 'Kategori', 'Tahun', 'Services', 'Status', ''].map((h) => (
                     <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.textMuted, background: theme.surfaceSoft }}>{h}</th>
                   ))}
                 </tr>
@@ -473,13 +622,37 @@ export default function PortfolioPage() {
                       <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{p.services}</span>
                     </td>
                     <td style={{ padding: '12px 20px' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: PORTFOLIO_STATUS_STYLES[p.status].color, background: PORTFOLIO_STATUS_STYLES[p.status].background }}>
+                        {PORTFOLIO_STATUS_STYLES[p.status].label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {approve && p.status === 'pending' && (
+                        <>
+                        <button onClick={() => handleApprove(p)} title="Setujui"
+                          style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
+                          onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = '#15803d'; b.style.background = '#f0fdf4' }}
+                          onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check_circle</span>
+                        </button>
+                        <button onClick={() => handleReject(p)} title="Tolak"
+                          style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
+                          onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
+                          onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>cancel</span>
+                        </button>
+                        </>
+                        )}
+                        {edit && (
                         <button onClick={() => setModal({ mode: 'edit', project: p })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.accent; b.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
                         </button>
+                        )}
+                        {canDelete && (
                         <button onClick={() => handleDelete(p.slug)} disabled={deletingId === p.slug}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
@@ -488,6 +661,7 @@ export default function PortfolioPage() {
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,22 +1,106 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import IconPickerField from '@/components/admin/IconPickerField'
-import { leadersService, keyPartnersService } from '@/lib/services'
-import type { Leader, KeyPartner, KeyPartnerMember } from '@/lib/services'
+import { leadersService, keyPartnersService, siteContentService } from '@/lib/services'
+import type { Leader, KeyPartner, KeyPartnerMember, TeamsSectionContent } from '@/lib/services'
 import Image from 'next/image'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import AvatarPicker from '@/components/admin/AvatarPicker'
 import { revalidatePaths } from '@/lib/revalidate'
+import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+
+function TeamsSectionHeaderCard({ variant, canEdit, showToast }: {
+  variant: 'leadership' | 'partners'
+  canEdit: boolean
+  showToast: (type: ToastState['type'], message: string) => void
+}) {
+  const { data, mutate } = useSWR('teamsSection', siteContentService.getTeamsSection)
+  const [form, setForm] = useState<TeamsSectionContent | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (data && !form) setForm(data)
+  }, [data, form])
+
+  const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl outline-none transition-all'
+  const labelStyle = { display: 'block' as const, fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: theme.textMuted, marginBottom: 6 }
+
+  const headingKey = variant === 'leadership' ? 'heading' : 'partnersHeading'
+  const descriptionKey = variant === 'leadership' ? 'description' : 'partnersDescription'
+  const title = variant === 'leadership' ? 'Judul & Deskripsi Section' : 'Judul & Deskripsi Key Partners'
+  const subtitle = variant === 'leadership'
+    ? 'Teks "Teams" yang tampil di homepage sebelum daftar leadership'
+    : 'Teks "Key Partners" yang tampil di homepage sebelum daftar key partner'
+
+  const handleSave = async () => {
+    if (!form) return
+    setSaving(true)
+    try {
+      await siteContentService.saveTeamsSection(form)
+      await mutate(form, false)
+      showToast('success', 'Judul & deskripsi section berhasil disimpan!')
+      revalidatePaths(['/'])
+    } catch {
+      showToast('error', 'Gagal menyimpan judul & deskripsi section')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!form) return null
+
+  return (
+    <div className="rounded-2xl overflow-hidden mb-5" style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard }}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
+        <div style={{ textAlign: 'left' }}>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>{title}</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{subtitle}</p>
+        </div>
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
+      </button>
+      {open && (
+        <>
+          <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: `1px solid ${theme.divider}`, paddingTop: 16 }}>
+            <div>
+              <label style={labelStyle}>Judul</label>
+              <input className={inputCls} style={inputStyle} value={form[headingKey]}
+                onChange={(e) => setForm({ ...form, [headingKey]: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi</label>
+              <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={form[descriptionKey]}
+                onChange={(e) => setForm({ ...form, [descriptionKey]: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+            <button onClick={handleSave} disabled={saving || !canEdit}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              {saving
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 const emptyLeader: Leader = {
   id: '', name: '', role: '', image: '/images/company.png', order: 1,
@@ -174,7 +258,7 @@ function LeaderModal({
   )
 }
 
-function LeadershipTab() {
+function LeadershipTab({ edit, canDelete }: { edit: boolean; canDelete: boolean }) {
   const { data: leaders = [], isLoading: loading, mutate } = useSWR('leaders', leadersService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -235,8 +319,10 @@ function LeadershipTab() {
           onError={(msg) => showToast('error', msg)} />
       )}
 
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <TeamsSectionHeaderCard variant="leadership" canEdit={edit} showToast={showToast} />
+
+      <div className="flex items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari leader..." value={search}
@@ -248,19 +334,23 @@ function LeadershipTab() {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {(['grid', 'table'] as const).map((v) => (
-            <button key={v} onClick={() => { setView(v); setPage(1) }}
-              style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {(['grid', 'table'] as const).map((v) => (
+              <button key={v} onClick={() => { setView(v); setPage(1) }}
+                style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => setModal({ mode: 'add', leader: { order: nextOrder } })}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Leader
-        </button>
+          {edit && (
+          <button onClick={() => setModal({ mode: 'add', leader: { order: nextOrder } })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Leader
+          </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -277,7 +367,7 @@ function LeadershipTab() {
             <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada leader'}</p>
             <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan leader baru untuk mulai mengelola konten'}</p>
           </div>
-          {!search && (
+          {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', leader: { order: nextOrder } })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Leader
@@ -306,12 +396,15 @@ function LeadershipTab() {
                 <h3 style={{ fontWeight: 700, color: theme.text, fontSize: 13.5, lineHeight: 1.35, marginBottom: 4, fontFamily: theme.fontHeadline }}>{l.name}</h3>
                 <p style={{ fontSize: 11.5, color: theme.textSecondary }}>{l.role}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
+                  {edit && (
                   <button onClick={() => setModal({ mode: 'edit', leader: l })}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 14 }}>edit</span>Edit
                   </button>
+                  )}
+                  {canDelete && (
                   <button onClick={() => handleDelete(l.id, l.name)} disabled={deletingId === l.id}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 9, fontSize: 12, fontWeight: 500, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
@@ -321,6 +414,7 @@ function LeadershipTab() {
                       : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>}
                     Hapus
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -355,12 +449,15 @@ function LeadershipTab() {
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>#{l.order}</td>
                     <td style={{ padding: '12px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {edit && (
                         <button onClick={() => setModal({ mode: 'edit', leader: l })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.accent; b.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
                         </button>
+                        )}
+                        {canDelete && (
                         <button onClick={() => handleDelete(l.id, l.name)} disabled={deletingId === l.id}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
@@ -369,6 +466,7 @@ function LeadershipTab() {
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -576,7 +674,7 @@ function KeyPartnerModal({
   )
 }
 
-function KeyPartnersTab() {
+function KeyPartnersTab({ edit, canDelete }: { edit: boolean; canDelete: boolean }) {
   const { data: partners = [], isLoading: loading, mutate } = useSWR('keyPartners', keyPartnersService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -638,8 +736,10 @@ function KeyPartnersTab() {
           onError={(msg) => showToast('error', msg)} />
       )}
 
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <TeamsSectionHeaderCard variant="partners" canEdit={edit} showToast={showToast} />
+
+      <div className="flex items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari key partner..." value={search}
@@ -651,19 +751,23 @@ function KeyPartnersTab() {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-          {(['grid', 'table'] as const).map((v) => (
-            <button key={v} onClick={() => { setView(v); setPage(1) }}
-              style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
-            </button>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+            {(['grid', 'table'] as const).map((v) => (
+              <button key={v} onClick={() => { setView(v); setPage(1) }}
+                style={{ padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: view === v ? theme.accentSoftHover : 'transparent', color: view === v ? theme.accentText : theme.textMuted, display: 'flex' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{v === 'grid' ? 'grid_view' : 'table_rows'}</span>
+              </button>
+            ))}
+          </div>
 
-        <button onClick={() => setModal({ mode: 'add', partner: { order: nextOrder } })}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Key Partner
-        </button>
+          {edit && (
+          <button onClick={() => setModal({ mode: 'add', partner: { order: nextOrder } })}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Key Partner
+          </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -680,7 +784,7 @@ function KeyPartnersTab() {
             <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada key partner'}</p>
             <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan key partner baru untuk mulai mengelola konten'}</p>
           </div>
-          {!search && (
+          {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', partner: { order: nextOrder } })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Key Partner
@@ -712,12 +816,15 @@ function KeyPartnersTab() {
                   {p.members.map((m) => (m.role ? `${m.name} (${m.role})` : m.name)).join(', ') || 'Belum ada anggota'}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
+                  {edit && (
                   <button onClick={() => setModal({ mode: 'edit', partner: p })}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 14 }}>edit</span>Edit
                   </button>
+                  )}
+                  {canDelete && (
                   <button onClick={() => handleDelete(p.id, p.category)} disabled={deletingId === p.id}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
@@ -727,6 +834,7 @@ function KeyPartnersTab() {
                       : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>}
                     Hapus
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -765,12 +873,15 @@ function KeyPartnersTab() {
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>#{p.order}</td>
                     <td style={{ padding: '12px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {edit && (
                         <button onClick={() => setModal({ mode: 'edit', partner: p })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.accent; b.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}>
                           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
                         </button>
+                        )}
+                        {canDelete && (
                         <button onClick={() => handleDelete(p.id, p.category)} disabled={deletingId === p.id}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
@@ -779,6 +890,7 @@ function KeyPartnersTab() {
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -800,6 +912,7 @@ const TABS = [
 ] as const
 
 export default function TeamsPage() {
+  const { edit, delete: canDelete } = usePermission('teams')
   const [tab, setTab] = useState<typeof TABS[number]['key']>('leadership')
 
   return (
@@ -814,7 +927,7 @@ export default function TeamsPage() {
         ))}
       </div>
 
-      {tab === 'leadership' ? <LeadershipTab /> : <KeyPartnersTab />}
+      {tab === 'leadership' ? <LeadershipTab edit={edit} canDelete={canDelete} /> : <KeyPartnersTab edit={edit} canDelete={canDelete} />}
     </>
   )
 }

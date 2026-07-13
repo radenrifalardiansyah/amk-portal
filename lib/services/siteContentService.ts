@@ -7,6 +7,9 @@ export interface HeroContent {
   titleLine1: string
   titleLine2: string
   titleLine3: string
+  titleLine1Size: string
+  titleLine2Size: string
+  titleLine3Size: string
   description: string
   primaryCtaLabel: string
   primaryCtaHref: string
@@ -54,7 +57,45 @@ export interface ContactContent {
   waNumber: string
   waResponseTitle: string
   waResponseSubtitle: string
-  serviceOptions: string[]
+  googleFormUrl: string
+  waMessageTemplate: string
+}
+
+export interface ServicesSectionContent {
+  heading: string
+  description: string
+}
+
+export interface AdvantageSectionContent {
+  heading: string
+  description: string
+  image: string
+}
+
+export interface PortfolioSectionContent {
+  heading: string
+  description: string
+}
+
+export interface TeamsSectionContent {
+  heading: string
+  description: string
+  partnersHeading: string
+  partnersDescription: string
+}
+
+export interface ClientsSectionContent {
+  heading: string
+}
+
+export interface GallerySectionContent {
+  heading: string
+  description: string
+}
+
+export interface NewsSectionContent {
+  heading: string
+  description: string
 }
 
 export interface CompanyProfile {
@@ -68,6 +109,8 @@ export interface CompanyProfile {
   waNumber: string
   instagramUrl: string
   linkedinUrl: string
+  tiktokUrl: string
+  youtubeUrl: string
   copyrightText: string
 }
 
@@ -75,7 +118,9 @@ const COL = 'site_content'
 
 const empty = {
   hero: {
-    badge: '', titleLine1: '', titleLine2: '', titleLine3: '', description: '',
+    badge: '', titleLine1: '', titleLine2: '', titleLine3: '',
+    titleLine1Size: '', titleLine2Size: '', titleLine3Size: '',
+    description: '',
     primaryCtaLabel: '', primaryCtaHref: '', secondaryCtaLabel: '', secondaryCtaHref: '', image: '',
   } as HeroContent,
   aboutHome: {
@@ -87,11 +132,17 @@ const empty = {
     missionTitle: '', missionIntro: '', missions: [], businessUnitsTitle: '', businessUnitsIntro: '', businessUnits: [],
   } as AboutPageContent,
   contact: {
-    heading: '', description: '', waNumber: '', waResponseTitle: '', waResponseSubtitle: '', serviceOptions: [],
+    heading: '', description: '', waNumber: '', waResponseTitle: '', waResponseSubtitle: '', googleFormUrl: '', waMessageTemplate: '',
   } as ContactContent,
+  servicesSection: {
+    heading: '', description: '',
+  } as ServicesSectionContent,
+  advantageSection: {
+    heading: '', description: '', image: '',
+  } as AdvantageSectionContent,
   company: {
     legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '', waNumber: '',
-    instagramUrl: '', linkedinUrl: '', copyrightText: '',
+    instagramUrl: '', linkedinUrl: '', tiktokUrl: '', youtubeUrl: '', copyrightText: '',
   } as CompanyProfile,
 }
 
@@ -101,6 +152,9 @@ const seedData = {
     titleLine1: 'Collaboration',
     titleLine2: 'Meets',
     titleLine3: 'Innovation',
+    titleLine1Size: 'text-6xl md:text-8xl',
+    titleLine2Size: 'text-6xl md:text-8xl',
+    titleLine3Size: 'text-6xl md:text-8xl',
     description:
       'Digital Creative Agency inovatif di Bogor sebagai One-Stop Solution untuk estetika visual, produksi video sinematik, dan strategi pemasaran berbasis data.',
     primaryCtaLabel: 'Mulai Kolaborasi',
@@ -164,15 +218,47 @@ const seedData = {
     waNumber: '6285155336838',
     waResponseTitle: 'Respon Cepat via WhatsApp',
     waResponseSubtitle: 'Kami biasanya membalas dalam waktu 1 jam kerja.',
-    serviceOptions: [
-      'Cinematic Visuals (Video Produksi)',
-      'Pro Audio (Podcast/Sonic Branding)',
-      'Data-Driven Marketing (Precision Growth)',
-      'AI Creative Assistant (Market Intelligence)',
-      'O2O Brand Experience (Hybrid Activation)',
-      'Konsultasi Umum / Lainnya',
-    ],
+    googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSeI0JTIHiG-l3vaJ8YmyLy2xlNVzN-Ixw6JNoeMW6jFJFXnAw/viewform?embedded=true',
+    waMessageTemplate:
+      'Halo Tim AMK 👋\n\nSaya *[Nama]* dari *[Perusahaan/Instansi]*.\nSaya tertarik untuk konsultasi mengenai:\n_[Tuliskan kebutuhan atau proyek Anda di sini]_\n\nMohon informasi lebih lanjut, terima kasih! 🙏',
   } as ContactContent,
+
+  servicesSection: {
+    heading: 'Core Pillars',
+    description: 'Kami menyediakan ekosistem terpadu untuk segala kebutuhan transformasi digital Anda.',
+  } as ServicesSectionContent,
+
+  advantageSection: {
+    heading: 'The AMK Advantage',
+    description: 'Keunggulan kompetitif yang mendefinisikan setiap langkah strategis kami.',
+    image: '/images/tech.png',
+  } as AdvantageSectionContent,
+
+  portfolioSection: {
+    heading: 'Recent Manifestations',
+    description: 'Intip beberapa karya terpilih yang mendefinisikan standar keunggulan kami.',
+  } as PortfolioSectionContent,
+
+  teamsSection: {
+    heading: 'Teams',
+    description: 'Pemimpin, talenta, dan mitra di balik inovasi PT. Adikara Mandala Kreasi.',
+    partnersHeading: 'Key Partners',
+    partnersDescription: 'Kolaborasi dengan talenta dan mitra terbaik di setiap lini produksi.',
+  } as TeamsSectionContent,
+
+  clientsSection: {
+    heading: 'Our Clients',
+  } as ClientsSectionContent,
+
+  gallerySection: {
+    heading: 'Gallery',
+    description: 'Momen di balik layar dan hasil visual dari perjalanan kreatif kami.',
+  } as GallerySectionContent,
+
+  newsSection: {
+    heading: 'Berita',
+    description: 'Kabar terbaru, pencapaian, dan wawasan industri kreatif dari tim AMK.',
+  } as NewsSectionContent,
 
   company: {
     legalName: 'PT. Adikara Mandala Kreasi',
@@ -185,6 +271,8 @@ const seedData = {
     waNumber: '6285155336838',
     instagramUrl: '',
     linkedinUrl: '',
+    tiktokUrl: '',
+    youtubeUrl: '',
     copyrightText: 'PT. Adikara Mandala Kreasi - All rights reserved.',
   } as CompanyProfile,
 }
@@ -216,11 +304,35 @@ export const siteContentService = {
   getContact: () => getContent<ContactContent>('contact', empty.contact),
   saveContact: (data: ContactContent) => saveContent('contact', data),
 
+  getServicesSection: () => getContent<ServicesSectionContent>('servicesSection', seedData.servicesSection),
+  saveServicesSection: (data: ServicesSectionContent) => saveContent('servicesSection', data),
+
+  getAdvantageSection: () => getContent<AdvantageSectionContent>('advantageSection', seedData.advantageSection),
+  saveAdvantageSection: (data: AdvantageSectionContent) => saveContent('advantageSection', data),
+
+  getPortfolioSection: () => getContent<PortfolioSectionContent>('portfolioSection', seedData.portfolioSection),
+  savePortfolioSection: (data: PortfolioSectionContent) => saveContent('portfolioSection', data),
+
+  getTeamsSection: () => getContent<TeamsSectionContent>('teamsSection', seedData.teamsSection),
+  saveTeamsSection: (data: TeamsSectionContent) => saveContent('teamsSection', data),
+
+  getClientsSection: () => getContent<ClientsSectionContent>('clientsSection', seedData.clientsSection),
+  saveClientsSection: (data: ClientsSectionContent) => saveContent('clientsSection', data),
+
+  getGallerySection: () => getContent<GallerySectionContent>('gallerySection', seedData.gallerySection),
+  saveGallerySection: (data: GallerySectionContent) => saveContent('gallerySection', data),
+
+  getNewsSection: () => getContent<NewsSectionContent>('newsSection', seedData.newsSection),
+  saveNewsSection: (data: NewsSectionContent) => saveContent('newsSection', data),
+
   getCompany: () => getContent<CompanyProfile>('company', empty.company),
   saveCompany: (data: CompanyProfile) => saveContent('company', data),
 
   async seedDefaults(): Promise<{ key: string; seeded: boolean }[]> {
-    const keys = ['hero', 'aboutHome', 'aboutPage', 'contact', 'company'] as const
+    const keys = [
+      'hero', 'aboutHome', 'aboutPage', 'contact', 'servicesSection', 'advantageSection',
+      'portfolioSection', 'teamsSection', 'clientsSection', 'gallerySection', 'newsSection', 'company',
+    ] as const
     const results: { key: string; seeded: boolean }[] = []
     for (const key of keys) {
       const snap = await getDoc(doc(db, COL, key))

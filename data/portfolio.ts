@@ -5,6 +5,8 @@ export interface PortfolioGalleryItem {
   caption?: string
 }
 
+export type PortfolioStatus = 'draft' | 'pending' | 'published'
+
 export interface PortfolioProject {
   slug: string
   category: string
@@ -19,6 +21,7 @@ export interface PortfolioProject {
   solution: string
   result: string
   gallery?: PortfolioGalleryItem[]
+  status: PortfolioStatus
   prevSlug: string | null
   nextSlug: string | null
   nextLabel: string | null

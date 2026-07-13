@@ -4,7 +4,7 @@ import {
 import { cache } from 'react'
 import { db } from '@/lib/firebase'
 
-export type NewsStatus = 'draft' | 'published'
+export type NewsStatus = 'draft' | 'pending' | 'published'
 
 export interface NewsArticle {
   slug: string

@@ -1,8 +1,8 @@
 'use client'
 
-import type { Client } from '@/lib/services'
+import type { Client, ClientsSectionContent } from '@/lib/services'
 
-export default function ClientsSection({ clients }: { clients: Client[] }) {
+export default function ClientsSection({ clients, content }: { clients: Client[]; content: ClientsSectionContent }) {
   const half = Math.ceil(clients.length / 2)
   const row1 = clients.slice(0, half)
   const row2 = clients.slice(half)
@@ -10,7 +10,7 @@ export default function ClientsSection({ clients }: { clients: Client[] }) {
   return (
     <section className="py-12 bg-surface-container-lowest reveal scroll-mt-8" id="clients">
       <div className="max-w-7xl mx-auto px-8 mb-6">
-        <h2 className="text-center text-3xl font-headline font-bold text-primary opacity-60">Our Clients</h2>
+        <h2 className="text-center text-3xl font-headline font-bold text-primary opacity-60">{content.heading}</h2>
         <div className="marquee py-6">
           <div className="marquee-content flex items-center">
             {row1.map((c) => (
