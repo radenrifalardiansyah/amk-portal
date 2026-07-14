@@ -14,17 +14,19 @@ export async function GET() {
   const company = await siteContentService.getCompany()
   const logo = company.logoUrl
 
+  const bundledIcons = [
+    { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+  ]
+
+  // Company logo is a user-uploaded data: URI of unknown/arbitrary dimensions, so it
+  // can't reliably replace the bundled icons (browsers may reject it as an install icon).
+  // Keep the bundled set as the guaranteed-valid baseline and only add the logo on top.
   const icons = logo
-    ? [
-        { src: logo, sizes: '192x192', type: iconType(logo), purpose: 'any' },
-        { src: logo, sizes: '512x512', type: iconType(logo), purpose: 'any' },
-      ]
-    : [
-        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-        { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-        { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-      ]
+    ? [...bundledIcons, { src: logo, sizes: '512x512', type: iconType(logo), purpose: 'any' }]
+    : bundledIcons
 
   const manifest = {
     name: 'AMK Admin Portal',

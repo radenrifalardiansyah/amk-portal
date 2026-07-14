@@ -3,12 +3,11 @@ import AdminPwaSetup from '@/components/admin/AdminPwaSetup'
 import { siteContentService } from '@/lib/services'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const company = await siteContentService.getCompany()
-
   return {
     robots: { index: false, follow: false },
     manifest: '/admin/manifest.webmanifest',
-    icons: { apple: company.logoUrl || '/icons/apple-touch-icon.png' },
+    // iOS is unreliable with data: URI apple-touch-icon tags, so always use the bundled PNG.
+    icons: { apple: '/icons/apple-touch-icon.png' },
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
