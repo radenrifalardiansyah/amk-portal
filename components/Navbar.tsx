@@ -38,7 +38,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
               alt={`${shortName} Logo`}
               width={64}
               height={64}
-              className="h-9 lg:h-10 xl:h-11 w-auto object-contain mix-blend-multiply"
+              className="h-11 lg:h-12 xl:h-14 w-auto object-contain mix-blend-multiply -my-1 xl:-my-1.5"
             />
           </Link>
 
