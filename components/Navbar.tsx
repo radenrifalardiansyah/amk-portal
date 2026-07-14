@@ -31,7 +31,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
     <>
       <nav className="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-[30px] shadow-[0_4px_30px_rgba(37,99,235,0.08)]">
         <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#60a5fa] to-primary" />
-        <div className="flex justify-between items-center w-full px-4 md:px-6 lg:px-8 py-2 lg:py-2.5 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center w-full px-8 py-2 lg:py-2.5 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center shrink-0 space-x-3 text-2xl font-bold tracking-tighter text-on-surface font-headline">
             <Image
               src={logoUrl}
