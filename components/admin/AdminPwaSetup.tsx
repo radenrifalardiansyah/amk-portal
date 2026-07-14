@@ -11,7 +11,7 @@ function isRunningStandalone(): boolean {
   return window.matchMedia?.('(display-mode: standalone)').matches || nav.standalone === true
 }
 
-export default function AdminPwaSetup() {
+export default function AdminPwaSetup({ logoUrl }: { logoUrl?: string }) {
   const [showSplash, setShowSplash] = useState(false)
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AdminPwaSetup() {
       }}
       className="admin-splash-fade"
     >
-      <img src="/icons/icon-192.png" alt="AMK Admin" style={{ width: 88, height: 88, borderRadius: 20 }} />
+      <img src={logoUrl || '/icons/icon-192.png'} alt="AMK Admin" style={{ width: 88, height: 88, borderRadius: 20, objectFit: 'contain' }} />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
         <p style={{ fontSize: 15, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, letterSpacing: '0.01em' }}>
           AMK Admin Portal
