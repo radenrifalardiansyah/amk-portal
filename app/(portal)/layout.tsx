@@ -12,6 +12,7 @@ const NAV_LINK_BY_ID: Record<string, NavLink> = {
   homepage: { label: 'Home', href: '/#home' },
   about: { label: 'About', href: '/about' },
   services: { label: 'Services', href: '/#services' },
+  advantages: { label: 'Advantage', href: '/#advantage' },
   portfolio: { label: 'Portfolio', href: '/#portfolio' },
   gallery: { label: 'Gallery', href: '/#gallery' },
   teams: { label: 'Teams', href: '/#teams' },
@@ -19,7 +20,7 @@ const NAV_LINK_BY_ID: Record<string, NavLink> = {
 }
 
 const DEFAULT_NAV_ORDER: Record<string, number> = {
-  homepage: 1, about: 2, services: 3, portfolio: 5, teams: 6, gallery: 8, news: 9,
+  homepage: 1, about: 2, services: 3, advantages: 4, portfolio: 5, teams: 6, gallery: 8, news: 9,
 }
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {

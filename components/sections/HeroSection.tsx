@@ -35,7 +35,7 @@ export default function HeroSection({ content }: { content: HeroContent }) {
         <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-surface to-transparent" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+      <div className="w-full max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div className="space-y-8 reveal-left active">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-outline-variant/30 bg-surface-container-low/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
