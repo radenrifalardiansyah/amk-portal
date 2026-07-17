@@ -45,7 +45,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <div className="pt-[88px] md:pt-0 page-enter">
         {children}
       </div>
-      <Footer company={company} waMessageTemplate={contact.waMessageTemplate} navLinks={navLinks} />
+      <Footer company={company} waMessageTemplate={contact.waMessageTemplate} contactWaNumber={contact.waNumber} navLinks={navLinks} />
       <BackToTop />
     </>
   )

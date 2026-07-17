@@ -60,7 +60,9 @@ function PreviewModal({ item, onClose }: { item: GalleryItem; onClose: () => voi
 
       <div className="relative w-full max-w-4xl aspect-video" onClick={(e) => e.stopPropagation()}>
         {item.type === 'image' ? (
-          <Image src={item.url} alt={item.title} fill unoptimized className="object-contain" />
+          item.url
+            ? <Image src={item.url} alt={item.title} fill unoptimized className="object-contain" />
+            : <MediaPlaceholder label="Tidak ada foto" className="rounded-2xl" />
         ) : embed?.kind === 'file' ? (
           // eslint-disable-next-line jsx-a11y/media-has-caption
           <video src={embed.embedUrl} controls autoPlay className="w-full h-full object-contain" />
@@ -378,8 +380,9 @@ export default function GalleryPage() {
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', item: { order: nextOrder, type: 'image' } })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Item
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Item</span>
           </button>
           )}
         </div>

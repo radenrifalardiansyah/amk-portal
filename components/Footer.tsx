@@ -39,11 +39,11 @@ function formatPhoneDisplay(phone: string) {
   return local.replace(/(\d{4})(?=\d)/g, '$1 ')
 }
 
-export default function Footer({ company, waMessageTemplate, navLinks = DEFAULT_NAV_LINKS }: { company?: CompanyProfile; waMessageTemplate?: string; navLinks?: NavLink[] }) {
+export default function Footer({ company, waMessageTemplate, contactWaNumber, navLinks = DEFAULT_NAV_LINKS }: { company?: CompanyProfile; waMessageTemplate?: string; contactWaNumber?: string; navLinks?: NavLink[] }) {
   const logoUrl = company?.logoUrl || '/images/logo.png'
   const shortName = company?.shortName || 'AMK'
   const tagline = company?.tagline || 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.'
-  const waNumber = company?.waNumber || company?.phone || '6285155336838'
+  const waNumber = company?.waNumber || company?.phone || contactWaNumber || '6285155336838'
   const waHref = `https://wa.me/${waNumber}${waMessageTemplate ? `?text=${encodeURIComponent(waMessageTemplate)}` : ''}`
   const email = company?.email || 'adikaramandalakreasi@gmail.com'
   const copyrightText = company?.copyrightText || 'PT. Adikara Mandala Kreasi - All rights reserved.'

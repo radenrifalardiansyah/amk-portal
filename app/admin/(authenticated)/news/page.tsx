@@ -5,23 +5,23 @@ import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { newsService, siteContentService } from '@/lib/services'
+import { newsService, newsCategoriesService, siteContentService } from '@/lib/services'
 import type { NewsArticle, NewsStatus, NewsSectionContent } from '@/lib/services'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import SearchSelect from '@/components/admin/SearchSelect'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
-const CATEGORY_OPTIONS = ['Company News', 'Partnership', 'Event', 'Press Release', 'Insight', 'Achievement']
-
 const todayISO = () => new Date().toISOString().slice(0, 10)
 
 const emptyArticle: NewsArticle = {
   slug: '', title: '', excerpt: '', content: '', coverImage: '/images/company.png',
-  category: CATEGORY_OPTIONS[0], author: '', status: 'draft', publishedAt: todayISO(), tags: '',
+  category: '', author: '', status: 'draft', publishedAt: todayISO(), tags: '',
 }
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -34,10 +34,11 @@ function formatDate(iso: string) {
 }
 
 function NewsModal({
-  mode, article, canApprove, onClose, onSave, onError,
+  mode, article, categoryOptions, canApprove, onClose, onSave, onError,
 }: {
   mode: 'add' | 'edit'
   article: Partial<NewsArticle>
+  categoryOptions: string[]
   canApprove: boolean
   onClose: () => void
   onSave: (data: NewsArticle) => void
@@ -104,11 +105,14 @@ function NewsModal({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label style={labelStyle}>Kategori *</label>
-                <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.category}
-                  onChange={(e) => set('category', e.target.value)}>
-                  {CATEGORY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <label style={labelStyle}>Kategori</label>
+                <SearchSelect
+                  value={form.category}
+                  options={categoryOptions.map((c) => ({ value: c, label: c }))}
+                  onChange={(v) => set('category', v)}
+                  clearLabel="Tanpa kategori"
+                  placeholder="Cari & pilih kategori..."
+                />
               </div>
               <div>
                 <label style={labelStyle}>Penulis *</label>
@@ -129,12 +133,16 @@ function NewsModal({
               </div>
               <div>
                 <label style={labelStyle}>Status *</label>
-                <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.status}
-                  onChange={(e) => set('status', e.target.value as NewsStatus)}>
-                  <option value="draft">Draft</option>
-                  <option value="pending">Menunggu Persetujuan</option>
-                  <option value="published" disabled={!canApprove}>Published</option>
-                </select>
+                <SearchSelect
+                  value={form.status}
+                  options={[
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'pending', label: 'Menunggu Persetujuan' },
+                    ...(canApprove || form.status === 'published' ? [{ value: 'published', label: 'Published' }] : []),
+                  ]}
+                  onChange={(v) => set('status', v as NewsStatus)}
+                  allowClear={false}
+                />
               </div>
             </div>
             <div>
@@ -271,14 +279,19 @@ const NEWS_STATUS_STYLES: Record<NewsStatus, { label: string; color: string; bac
 export default function NewsPage() {
   const { edit, delete: canDelete, approve } = usePermission('news')
   const { data: articles = [], isLoading: loading, mutate } = useSWR('news', newsService.getAll)
+  const { data: categories = [] } = useSWR('news-categories', newsCategoriesService.getAll)
+  const categoryOptions = categories.map((c) => c.name)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; article: Partial<NewsArticle> } | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | NewsStatus>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [page, setPage] = useState(1)
   const pageSize = 9
+
+  const articleCategories = Array.from(new Set(articles.map((a) => a.category).filter(Boolean))).sort()
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -328,6 +341,7 @@ export default function NewsPage() {
 
   const filtered = articles.filter((a) => {
     if (statusFilter !== 'all' && a.status !== statusFilter) return false
+    if (categoryFilter !== 'all' && a.category !== categoryFilter) return false
     if (!search) return true
     const q = search.toLowerCase()
     return a.title.toLowerCase().includes(q) || a.category.toLowerCase().includes(q) || a.author.toLowerCase().includes(q)
@@ -340,7 +354,7 @@ export default function NewsPage() {
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
       {modal && (
-        <NewsModal mode={modal.mode} article={modal.article} canApprove={approve}
+        <NewsModal mode={modal.mode} article={modal.article} categoryOptions={categoryOptions} canApprove={approve}
           onClose={() => setModal(null)} onSave={handleSave}
           onError={(msg) => showToast('error', msg)} />
       )}
@@ -348,8 +362,8 @@ export default function NewsPage() {
       <SectionHeaderCard canEdit={edit} showToast={showToast} />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-5">
-        <div className="relative flex-1 min-w-0">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0 order-1">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari berita..." value={search}
@@ -361,22 +375,7 @@ export default function NewsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-          {/* Status filter — scrolls internally if it doesn't fit */}
-          <div className="overflow-x-auto min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-            {([
-              { key: 'all' as const, label: 'Semua' },
-              { key: 'published' as const, label: 'Published' },
-              { key: 'pending' as const, label: 'Pending' },
-              { key: 'draft' as const, label: 'Draft' },
-            ]).map((s) => (
-              <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
-                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 sm:order-3">
           {/* View toggle */}
           <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
             {(['grid', 'table'] as const).map((v) => (
@@ -389,12 +388,44 @@ export default function NewsPage() {
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', article: {} })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Berita
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Berita</span>
           </button>
           )}
         </div>
+
+        {/* Status filter — full width on mobile so all tabs are visible without scrolling, inline on desktop */}
+        <div className="overflow-x-auto w-full sm:w-auto sm:min-w-0 order-3 sm:order-2" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+          {([
+            { key: 'all' as const, label: 'Semua' },
+            { key: 'published' as const, label: 'Published' },
+            { key: 'pending' as const, label: 'Pending' },
+            { key: 'draft' as const, label: 'Draft' },
+          ]).map((s) => (
+            <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
+              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Category tabs */}
+      {articleCategories.length > 0 && (
+        <div className="overflow-x-auto mb-5" style={{ display: 'flex', gap: 6, paddingBottom: 2 }}>
+          <button onClick={() => { setCategoryFilter('all'); setPage(1) }}
+            style={{ padding: '6px 14px', borderRadius: 9999, border: `1px solid ${categoryFilter === 'all' ? theme.accent : theme.border}`, cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: categoryFilter === 'all' ? theme.accentSoft : theme.surface, color: categoryFilter === 'all' ? theme.accentText : theme.textSecondary, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Semua Kategori
+          </button>
+          {articleCategories.map((c) => (
+            <button key={c} title={c} onClick={() => { setCategoryFilter(c); setPage(1) }}
+              style={{ padding: '6px 14px', borderRadius: 9999, border: `1px solid ${categoryFilter === c ? theme.accent : theme.border}`, cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: categoryFilter === c ? theme.accentSoft : theme.surface, color: categoryFilter === c ? theme.accentText : theme.textSecondary, flexShrink: 0 }}>
+              <span style={{ display: 'inline-block', maxWidth: 'min(160px, 42vw)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{c}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 0' }}>
@@ -428,12 +459,9 @@ export default function NewsPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-video relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                <Image src={a.coverImage} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
-                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(16,24,40,0.55)', backdropFilter: 'blur(6px)' }}>
-                    {a.category}
-                  </span>
-                </div>
+                {a.coverImage
+                  ? <Image src={a.coverImage} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  : <MediaPlaceholder label="Tidak ada foto" />}
                 <div style={{ position: 'absolute', top: 10, right: 10 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: NEWS_STATUS_STYLES[a.status].color, background: NEWS_STATUS_STYLES[a.status].background }}>
                     {NEWS_STATUS_STYLES[a.status].label}
@@ -507,7 +535,9 @@ export default function NewsPage() {
                       <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>/news/{a.slug}</p>
                     </td>
                     <td style={{ padding: '12px 20px' }}>
-                      <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{a.category}</span>
+                      {a.category
+                        ? <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{a.category}</span>
+                        : <span style={{ fontSize: 12, color: theme.textMuted }}>—</span>}
                     </td>
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{a.author}</td>
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{formatDate(a.publishedAt)}</td>

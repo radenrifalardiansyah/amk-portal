@@ -8,6 +8,7 @@ import { siteContentService } from '@/lib/services'
 import type { HeroContent, ContactContent, AboutPageContent } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import SearchSelect from '@/components/admin/SearchSelect'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 
@@ -52,12 +53,12 @@ function TextArea({ value, onChange, rows = 3, placeholder }: { value: string; o
 
 function Select({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { label: string; value: string }[] }) {
   return (
-    <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} value={value}
-      onChange={(e) => onChange(e.target.value)}
-      onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-      onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}>
-      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+    <SearchSelect
+      value={value}
+      options={options.map((o) => ({ value: o.value, label: o.label }))}
+      onChange={onChange}
+      allowClear={false}
+    />
   )
 }
 
@@ -203,7 +204,7 @@ export default function HomepageContentPage() {
       await siteContentService.saveContact(contact)
       await mutateContact(contact, false)
       showToast('success', 'Contact berhasil disimpan!')
-      revalidatePaths(['/'])
+      revalidatePaths([{ path: '/', type: 'layout' }])
     } catch {
       showToast('error', 'Gagal menyimpan Contact')
     } finally {
@@ -224,7 +225,7 @@ export default function HomepageContentPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, width: 'fit-content' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, width: 'fit-content' }}>
             {TABS.map((t) => {
               const isActive = activeTab === t.key
               return (
@@ -246,12 +247,12 @@ export default function HomepageContentPage() {
           {activeTab === 'hero' && (
           <SectionCard title="Hero" subtitle="Section paling atas homepage" onSave={saveHero} saving={savingHero || uploadingHeroImage} canEdit={edit}>
             <Field label="Badge *"><TextInput value={hero.badge} onChange={(v) => setHero({ ...hero, badge: v })} /></Field>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="Judul Baris 1 *"><TextInput value={hero.titleLine1} onChange={(v) => setHero({ ...hero, titleLine1: v })} /></Field>
               <Field label="Judul Baris 2 *"><TextInput value={hero.titleLine2} onChange={(v) => setHero({ ...hero, titleLine2: v })} /></Field>
               <Field label="Judul Baris 3 (gradient) *"><TextInput value={hero.titleLine3} onChange={(v) => setHero({ ...hero, titleLine3: v })} /></Field>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="Ukuran Font Baris 1"><Select value={hero.titleLine1Size} onChange={(v) => setHero({ ...hero, titleLine1Size: v })} options={HERO_TITLE_SIZE_OPTIONS} /></Field>
               <Field label="Ukuran Font Baris 2"><Select value={hero.titleLine2Size} onChange={(v) => setHero({ ...hero, titleLine2Size: v })} options={HERO_TITLE_SIZE_OPTIONS} /></Field>
               <Field label="Ukuran Font Baris 3"><Select value={hero.titleLine3Size} onChange={(v) => setHero({ ...hero, titleLine3Size: v })} options={HERO_TITLE_SIZE_OPTIONS} /></Field>
@@ -262,7 +263,7 @@ export default function HomepageContentPage() {
               onUploadingChange={setUploadingHeroImage} onError={(msg) => showToast('error', msg)}
             />
             <Field label="Deskripsi"><TextArea value={hero.description} onChange={(v) => setHero({ ...hero, description: v })} /></Field>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Label CTA Utama"><TextInput value={hero.primaryCtaLabel} onChange={(v) => setHero({ ...hero, primaryCtaLabel: v })} /></Field>
               <Field label="Link CTA Utama"><TextInput value={hero.primaryCtaHref} onChange={(v) => setHero({ ...hero, primaryCtaHref: v })} /></Field>
               <Field label="Label CTA Sekunder"><TextInput value={hero.secondaryCtaLabel} onChange={(v) => setHero({ ...hero, secondaryCtaLabel: v })} /></Field>
@@ -319,8 +320,10 @@ export default function HomepageContentPage() {
           <SectionCard title="Contact" subtitle="Section formulir kontak & WhatsApp di homepage" onSave={saveContact} saving={savingContact} canEdit={edit}>
             <Field label="Heading"><TextInput value={contact.heading} onChange={(v) => setContact({ ...contact, heading: v })} /></Field>
             <Field label="Deskripsi"><TextArea value={contact.description} onChange={(v) => setContact({ ...contact, description: v })} /></Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Nomor WhatsApp"><TextInput value={contact.waNumber} onChange={(v) => setContact({ ...contact, waNumber: v })} placeholder="62812xxxxxxx" /></Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Nomor WhatsApp" hint="Khusus tombol WA di section Contact ini. Nomor WA di footer diatur terpisah di halaman Company Profile (nomor ini dipakai sebagai fallback jika kolom di sana kosong).">
+                <TextInput value={contact.waNumber} onChange={(v) => setContact({ ...contact, waNumber: v })} placeholder="62812xxxxxxx" />
+              </Field>
               <Field label="Judul Kotak WhatsApp"><TextInput value={contact.waResponseTitle} onChange={(v) => setContact({ ...contact, waResponseTitle: v })} /></Field>
             </div>
             <Field label="Subjudul Kotak WhatsApp"><TextInput value={contact.waResponseSubtitle} onChange={(v) => setContact({ ...contact, waResponseSubtitle: v })} /></Field>

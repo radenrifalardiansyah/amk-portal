@@ -8,6 +8,7 @@ import Pagination from '@/components/admin/Pagination'
 import { clientsService, siteContentService } from '@/lib/services'
 import type { Client, ClientsSectionContent } from '@/lib/services'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
@@ -358,8 +359,9 @@ export default function ClientsPage() {
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', client: { order: nextOrder } })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Client
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Client</span>
           </button>
           )}
         </div>
@@ -397,7 +399,9 @@ export default function ClientsPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-[4/3] relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                <Image src={c.src} alt={c.name} fill className="object-contain p-6" />
+                {c.src
+                  ? <Image src={c.src} alt={c.name} fill className="object-contain p-6" />
+                  : <MediaPlaceholder label="Tidak ada foto" />}
                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
                   <span style={{ padding: '3px 8px', borderRadius: 7, fontSize: 10.5, fontWeight: 600, color: theme.textMuted, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', border: `1px solid ${theme.border}` }}>
                     #{c.order}
@@ -452,7 +456,9 @@ export default function ClientsPage() {
                     <td style={{ padding: '12px 20px', color: theme.textMuted, fontSize: 12.5 }}>{(page - 1) * pageSize + i + 1}</td>
                     <td style={{ padding: '12px 20px' }}>
                       <div style={{ width: 44, height: 44, position: 'relative', borderRadius: 8, overflow: 'hidden', background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                        <Image src={c.src} alt={c.name} fill className="object-contain p-1.5" />
+                        {c.src
+                          ? <Image src={c.src} alt={c.name} fill className="object-contain p-1.5" />
+                          : <MediaPlaceholder icon="image_not_supported" size="sm" />}
                       </div>
                     </td>
                     <td style={{ padding: '12px 20px', fontWeight: 600, color: theme.text, fontSize: 13 }}>{c.name}</td>

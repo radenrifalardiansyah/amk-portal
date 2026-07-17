@@ -9,6 +9,7 @@ import { portfolioService, servicesService, clientsService, siteContentService, 
 import type { PortfolioSectionContent } from '@/lib/services'
 import { PortfolioProject, PortfolioGalleryItem, PortfolioStatus } from '@/data/portfolio'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
@@ -127,12 +128,14 @@ function PortfolioModal({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label style={labelStyle}>Kategori *</label>
-                <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.category}
-                  onChange={(e) => set('category', e.target.value)}>
-                  <option value="">Pilih Kategori</option>
-                  {categoryOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <label style={labelStyle}>Kategori (Service)</label>
+                <SearchSelect
+                  value={form.category}
+                  options={categoryOptions.map((c) => ({ value: c, label: c }))}
+                  onChange={(v) => set('category', v)}
+                  placeholder="Pilih Kategori"
+                  clearLabel="Tanpa kategori"
+                />
               </div>
               <div>
                 <label style={labelStyle}>Client *</label>
@@ -147,12 +150,16 @@ function PortfolioModal({
             </div>
             <div>
               <label style={labelStyle}>Status *</label>
-              <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.status}
-                onChange={(e) => set('status', e.target.value as PortfolioStatus)}>
-                <option value="draft">Draft</option>
-                <option value="pending">Menunggu Persetujuan</option>
-                <option value="published" disabled={!canApprove}>Published</option>
-              </select>
+              <SearchSelect
+                value={form.status}
+                options={[
+                  { value: 'draft', label: 'Draft' },
+                  { value: 'pending', label: 'Menunggu Persetujuan' },
+                  ...(canApprove || form.status === 'published' ? [{ value: 'published', label: 'Published' }] : []),
+                ]}
+                onChange={(v) => set('status', v as PortfolioStatus)}
+                allowClear={false}
+              />
             </div>
             <div>
               <label style={labelStyle}>Deskripsi Singkat *</label>
@@ -368,9 +375,12 @@ export default function PortfolioPage() {
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; project: Partial<PortfolioProject> } | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | PortfolioStatus>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [page, setPage] = useState(1)
   const pageSize = 9
+
+  const projectCategories = Array.from(new Set(projects.map((p) => p.category).filter(Boolean))).sort()
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -420,6 +430,7 @@ export default function PortfolioPage() {
 
   const filtered = projects.filter((p) => {
     if (statusFilter !== 'all' && p.status !== statusFilter) return false
+    if (categoryFilter !== 'all' && p.category !== categoryFilter) return false
     if (!search) return true
     const q = search.toLowerCase()
     return p.title.toLowerCase().includes(q) || p.client.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
@@ -440,8 +451,8 @@ export default function PortfolioPage() {
       <SectionHeaderCard canEdit={edit} showToast={showToast} />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-5">
-        <div className="relative flex-1 min-w-0">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-5">
+        <div className="relative flex-1 min-w-0 order-1">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
             type="text" placeholder="Cari portfolio..." value={search}
@@ -453,22 +464,7 @@ export default function PortfolioPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-          {/* Status filter — scrolls internally if it doesn't fit */}
-          <div className="overflow-x-auto min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-            {([
-              { key: 'all' as const, label: 'Semua' },
-              { key: 'published' as const, label: 'Published' },
-              { key: 'pending' as const, label: 'Pending' },
-              { key: 'draft' as const, label: 'Draft' },
-            ]).map((s) => (
-              <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
-                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 order-2 sm:order-3">
           {/* View toggle */}
           <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
             {(['grid', 'table'] as const).map((v) => (
@@ -481,12 +477,44 @@ export default function PortfolioPage() {
 
           {edit && (
             <button onClick={() => setModal({ mode: 'add', project: {} })}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Proyek
+              className="px-3 sm:px-4"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Proyek</span>
             </button>
           )}
         </div>
+
+        {/* Status filter — full width on mobile so all tabs are visible without scrolling, inline on desktop */}
+        <div className="overflow-x-auto w-full sm:w-auto sm:min-w-0 order-3 sm:order-2" style={{ display: 'flex', alignItems: 'center', gap: 2, padding: 4, borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+          {([
+            { key: 'all' as const, label: 'Semua' },
+            { key: 'published' as const, label: 'Published' },
+            { key: 'pending' as const, label: 'Pending' },
+            { key: 'draft' as const, label: 'Draft' },
+          ]).map((s) => (
+            <button key={s.key} onClick={() => { setStatusFilter(s.key); setPage(1) }}
+              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: statusFilter === s.key ? theme.accentSoftHover : 'transparent', color: statusFilter === s.key ? theme.accentText : theme.textMuted, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Category tabs */}
+      {projectCategories.length > 0 && (
+        <div className="overflow-x-auto mb-5" style={{ display: 'flex', gap: 6, paddingBottom: 2 }}>
+          <button onClick={() => { setCategoryFilter('all'); setPage(1) }}
+            style={{ padding: '6px 14px', borderRadius: 9999, border: `1px solid ${categoryFilter === 'all' ? theme.accent : theme.border}`, cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: categoryFilter === 'all' ? theme.accentSoft : theme.surface, color: categoryFilter === 'all' ? theme.accentText : theme.textSecondary, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Semua Kategori
+          </button>
+          {projectCategories.map((c) => (
+            <button key={c} title={c} onClick={() => { setCategoryFilter(c); setPage(1) }}
+              style={{ padding: '6px 14px', borderRadius: 9999, border: `1px solid ${categoryFilter === c ? theme.accent : theme.border}`, cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 600, background: categoryFilter === c ? theme.accentSoft : theme.surface, color: categoryFilter === c ? theme.accentText : theme.textSecondary, flexShrink: 0 }}>
+              <span style={{ display: 'inline-block', maxWidth: 'min(160px, 42vw)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{c}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 0' }}>
@@ -520,12 +548,9 @@ export default function PortfolioPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-video relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                <Image src={p.image} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div style={{ position: 'absolute', top: 10, left: 10 }}>
-                  <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(16,24,40,0.55)', backdropFilter: 'blur(6px)' }}>
-                    {p.category}
-                  </span>
-                </div>
+                {p.image
+                  ? <Image src={p.image} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  : <MediaPlaceholder label="Tidak ada foto" />}
                 <div style={{ position: 'absolute', top: 10, right: 10 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: PORTFOLIO_STATUS_STYLES[p.status].color, background: PORTFOLIO_STATUS_STYLES[p.status].background }}>
                     {PORTFOLIO_STATUS_STYLES[p.status].label}
@@ -538,7 +563,7 @@ export default function PortfolioPage() {
                   <span style={{ fontSize: 11, color: theme.textMuted, flexShrink: 0 }}>{p.year}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                  {p.clientId && clientMap.get(p.clientId) && (
+                  {p.clientId && clientMap.get(p.clientId)?.src && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={clientMap.get(p.clientId)!.src} alt="" style={{ width: 16, height: 16, objectFit: 'contain', borderRadius: 4 }} />
                   )}
@@ -615,7 +640,9 @@ export default function PortfolioPage() {
                       </div>
                     </td>
                     <td style={{ padding: '12px 20px' }}>
-                      <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{p.category}</span>
+                      {p.category
+                        ? <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{p.category}</span>
+                        : <span style={{ fontSize: 12, color: theme.textMuted }}>—</span>}
                     </td>
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{p.year}</td>
                     <td style={{ padding: '12px 20px', color: theme.textMuted, fontSize: 11 }}>

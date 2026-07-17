@@ -9,6 +9,7 @@ import IconPickerField from '@/components/admin/IconPickerField'
 import { leadersService, keyPartnersService, siteContentService } from '@/lib/services'
 import type { Leader, KeyPartner, KeyPartnerMember, TeamsSectionContent } from '@/lib/services'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import AvatarPicker from '@/components/admin/AvatarPicker'
@@ -346,8 +347,9 @@ function LeadershipTab({ edit, canDelete }: { edit: boolean; canDelete: boolean 
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', leader: { order: nextOrder } })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Leader
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Leader</span>
           </button>
           )}
         </div>
@@ -385,7 +387,9 @@ function LeadershipTab({ edit, canDelete }: { edit: boolean; canDelete: boolean 
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-[3/4] relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                <Image src={l.image} alt={l.name} fill sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                {l.image
+                  ? <Image src={l.image} alt={l.name} fill sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  : <MediaPlaceholder label="Tidak ada foto" />}
                 <div style={{ position: 'absolute', top: 10, left: 10 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(16,24,40,0.55)', backdropFilter: 'blur(6px)' }}>
                     #{l.order}
@@ -441,7 +445,9 @@ function LeadershipTab({ edit, canDelete }: { edit: boolean; canDelete: boolean 
                     <td style={{ padding: '12px 20px', color: theme.textMuted, fontSize: 12.5 }}>{(page - 1) * pageSize + i + 1}</td>
                     <td style={{ padding: '12px 20px' }}>
                       <div style={{ width: 40, height: 40, position: 'relative', borderRadius: 10, overflow: 'hidden', background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-                        <Image src={l.image} alt={l.name} fill sizes="40px" className="object-cover" />
+                        {l.image
+                          ? <Image src={l.image} alt={l.name} fill sizes="40px" className="object-cover" />
+                          : <MediaPlaceholder icon="person" size="sm" />}
                       </div>
                     </td>
                     <td style={{ padding: '12px 20px', fontWeight: 600, color: theme.text, fontSize: 13 }}>{l.name}</td>
@@ -763,8 +769,9 @@ function KeyPartnersTab({ edit, canDelete }: { edit: boolean; canDelete: boolean
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', partner: { order: nextOrder } })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Key Partner
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Key Partner</span>
           </button>
           )}
         </div>

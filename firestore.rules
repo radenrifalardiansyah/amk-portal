@@ -18,6 +18,7 @@ service cloud.firestore {
     match /advantages/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /leaders/{docId}    { allow read: if true; allow write: if isAdmin(); }
     match /news/{docId}       { allow read: if true; allow write: if isAdmin(); }
+    match /news_categories/{docId} { allow read: if true; allow write: if isAdmin(); }
     match /clients/{docId}    { allow read: if true; allow write: if isAdmin(); }
     match /badges/{docId}     { allow read: if true; allow write: if isAdmin(); }
     match /services/{docId}   { allow read: if true; allow write: if isAdmin(); }

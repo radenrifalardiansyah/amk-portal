@@ -312,9 +312,9 @@ function ModulTab() {
             ))}
           </div>
 
-          <button disabled title="Sementara dinonaktifkan"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'not-allowed', boxShadow: 'none', opacity: 0.5, whiteSpace: 'nowrap' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Modul
+          <button disabled title="Sementara dinonaktifkan" className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'not-allowed', boxShadow: 'none', opacity: 0.5, whiteSpace: 'nowrap' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Modul</span>
           </button>
         </div>
       </div>
@@ -509,9 +509,9 @@ function MenuTab() {
             ))}
           </div>
 
-          <button disabled title="Sementara dinonaktifkan"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'not-allowed', boxShadow: 'none', opacity: 0.5, whiteSpace: 'nowrap' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Menu
+          <button disabled title="Sementara dinonaktifkan" className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'not-allowed', boxShadow: 'none', opacity: 0.5, whiteSpace: 'nowrap' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Menu</span>
           </button>
         </div>
       </div>

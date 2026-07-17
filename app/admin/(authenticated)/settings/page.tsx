@@ -76,7 +76,6 @@ type TabKey = 'profile' | 'security' | 'system'
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profil', icon: 'person' },
   { key: 'security', label: 'Keamanan', icon: 'lock' },
-  { key: 'system', label: 'Sistem', icon: 'database' },
 ]
 
 export default function SettingsPage() {

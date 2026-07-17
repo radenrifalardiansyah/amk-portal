@@ -479,10 +479,10 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
           )}
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.2, fontFamily: theme.fontHeadline }}>
+            <h1 style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.2, fontFamily: theme.fontHeadline, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {meta.title}
             </h1>
-            {meta.subtitle && <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{meta.subtitle}</p>}
+            {meta.subtitle && <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta.subtitle}</p>}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

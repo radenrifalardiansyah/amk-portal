@@ -16,8 +16,8 @@ export default function AdvantageSection({ advantages, content }: { advantages: 
               className="w-full scale-105 object-cover"
             />
           </div>
-          <div className="absolute -bottom-10 -right-10 bg-surface-container-highest p-8 rounded-2xl border border-primary/30 shadow-2xl z-20 reveal-scale">
-            <span className="text-primary font-headline font-bold text-2xl">Innovation First</span>
+          <div className="absolute -bottom-5 -right-3 sm:-bottom-10 sm:-right-10 bg-surface-container-highest p-4 sm:p-8 rounded-2xl border border-primary/30 shadow-2xl z-20 reveal-scale">
+            <span className="text-primary font-headline font-bold text-base sm:text-2xl whitespace-nowrap">Innovation First</span>
           </div>
         </div>
 

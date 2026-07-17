@@ -1,7 +1,7 @@
 import {
   advantagesService, keyPartnersService, clientsService, leadersService,
   badgesService, servicesService, portfolioService, siteContentService, newsService,
-  modulesService, menuItemsService, rolePermissionService,
+  newsCategoriesService, modulesService, menuItemsService, rolePermissionService,
 } from '@/lib/services'
 
 export interface SeedResult {
@@ -19,6 +19,7 @@ export async function seedInitialContent(): Promise<SeedResult[]> {
     { label: 'Leadership', run: () => leadersService.seedDefaults() },
     { label: 'Core Business', run: () => badgesService.seedDefaults() },
     { label: 'News', run: () => newsService.seedDefaults() },
+    { label: 'Kategori Berita', run: () => newsCategoriesService.seedDefaults() },
     { label: 'Modul Menu', run: () => modulesService.seedDefaults() },
     { label: 'Menu Navigasi Admin', run: () => menuItemsService.seedDefaults() },
     { label: 'Hak Akses Role', run: () => rolePermissionService.seedDefaults() },

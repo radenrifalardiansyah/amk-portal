@@ -3,11 +3,19 @@ import AdminPwaSetup from '@/components/admin/AdminPwaSetup'
 import { siteContentService } from '@/lib/services'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const company = await siteContentService.getCompany()
+
   return {
+    title: { absolute: `${company.shortName || 'AMK'} Admin` },
     robots: { index: false, follow: false },
     manifest: '/admin/manifest.webmanifest',
-    // iOS is unreliable with data: URI apple-touch-icon tags, so always use the bundled PNG.
-    icons: { apple: '/icons/apple-touch-icon.png' },
+    icons: {
+      // Root layout's `icons.icon` doesn't carry over here since this segment
+      // defines its own `icons`, so the browser-tab favicon must be repeated.
+      icon: company.logoUrl || '/images/logo.png',
+      // iOS is unreliable with data: URI apple-touch-icon tags, so always use the bundled PNG.
+      apple: '/icons/apple-touch-icon.png',
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',

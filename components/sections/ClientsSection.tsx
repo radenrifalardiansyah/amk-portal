@@ -30,22 +30,24 @@ export default function ClientsSection({ clients, content }: { clients: Client[]
         <div className="marquee py-6">
           <div className="marquee-content flex items-center">
             {row1.map((c) => (
-              <ClientLogo
-                key={c.id}
-                src={c.src}
-                name={c.name}
-                className="h-16 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-              />
+              <Link key={c.id} href={`/clients/${c.id}`} className="shrink-0">
+                <ClientLogo
+                  src={c.src}
+                  name={c.name}
+                  className="h-16 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                />
+              </Link>
             ))}
           </div>
           <div aria-hidden="true" className="marquee-content flex items-center">
             {row2.map((c) => (
-              <ClientLogo
-                key={c.id}
-                src={c.src}
-                name={c.name}
-                className="h-16 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-              />
+              <Link key={c.id} href={`/clients/${c.id}`} className="shrink-0" tabIndex={-1}>
+                <ClientLogo
+                  src={c.src}
+                  name={c.name}
+                  className="h-16 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                />
+              </Link>
             ))}
           </div>
         </div>

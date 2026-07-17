@@ -7,8 +7,11 @@ export default function SafeImage({ src, alt, fill, width, height, className, ..
   if (!src) {
     return (
       <div
-        className={fill ? 'absolute inset-0' : 'inline-block'}
-        style={fill ? undefined : { width, height }}
+        className={fill ? 'absolute inset-0' : 'block w-full'}
+        style={fill ? undefined : {
+          maxWidth: typeof width === 'number' ? width : undefined,
+          aspectRatio: typeof width === 'number' && typeof height === 'number' ? `${width} / ${height}` : undefined,
+        }}
       >
         <MediaPlaceholder label="Tidak ada foto" />
       </div>

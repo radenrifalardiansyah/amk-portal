@@ -7,6 +7,7 @@ import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import IconPickerField from '@/components/admin/IconPickerField'
+import SearchSelect from '@/components/admin/SearchSelect'
 import { servicesService, badgesService, siteContentService } from '@/lib/services'
 import type { Badge, ServicesSectionContent } from '@/lib/services'
 import { Service, ServiceFeature } from '@/data/services'
@@ -108,11 +109,13 @@ function ServiceModal({
               </div>
               <div>
                 <label style={labelStyle}>Core Business *</label>
-                <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} required value={form.badge}
-                  onChange={(e) => set('badge', e.target.value)}>
-                  <option value="">Pilih Core Business</option>
-                  {badges.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-                </select>
+                <SearchSelect
+                  value={form.badge}
+                  options={badges.map((b) => ({ value: b.name, label: b.name }))}
+                  onChange={(v) => set('badge', v)}
+                  placeholder="Pilih Core Business"
+                  allowClear={false}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -451,8 +454,9 @@ export default function ServicesPage() {
 
           {edit && (
           <button onClick={() => setModal({ mode: 'add', service: {} })}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Service
+            className="px-3 sm:px-4"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Service</span>
           </button>
           )}
         </div>

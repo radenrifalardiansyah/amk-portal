@@ -5,30 +5,30 @@ import { createPortal } from 'react-dom'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
-import { badgesService } from '@/lib/services'
-import type { Badge } from '@/lib/services'
+import { newsCategoriesService } from '@/lib/services'
+import type { NewsCategory } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
-const emptyBadge: Badge = { id: '', name: '', order: 1 }
+const emptyCategory: NewsCategory = { id: '', name: '', order: 1 }
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
-function BadgeModal({
-  mode, badge, onClose, onSave,
+function CategoryModal({
+  mode, category, onClose, onSave,
 }: {
   mode: 'add' | 'edit'
-  badge: Partial<Badge>
+  category: Partial<NewsCategory>
   onClose: () => void
-  onSave: (data: Badge) => void
+  onSave: (data: NewsCategory) => void
 }) {
-  const [form, setForm] = useState<Badge>({ ...emptyBadge, ...badge })
+  const [form, setForm] = useState<NewsCategory>({ ...emptyCategory, ...category })
   const [saving, setSaving] = useState(false)
 
-  const set = (k: keyof Badge, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
+  const set = (k: keyof NewsCategory, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +49,7 @@ function BadgeModal({
         style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 20, boxShadow: theme.shadowElevated }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: `1px solid ${theme.divider}` }}>
           <h3 style={{ fontWeight: 700, color: theme.text, fontSize: 15, fontFamily: theme.fontHeadline }}>
-            {mode === 'add' ? 'Tambah Core Business' : 'Edit Core Business'}
+            {mode === 'add' ? 'Tambah Kategori Berita' : 'Edit Kategori Berita'}
           </h3>
           <button onClick={onClose}
             style={{ padding: 8, borderRadius: 8, background: theme.surfaceSoft, border: 'none', cursor: 'pointer', color: theme.textSecondary, display: 'flex', transition: 'all 0.15s' }}
@@ -63,9 +63,9 @@ function BadgeModal({
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
             <div>
-              <label style={labelStyle}>Nama Core Business *</label>
+              <label style={labelStyle}>Nama Kategori *</label>
               <input className={inputCls} style={inputStyle} required value={form.name}
-                placeholder="Core Pillar"
+                placeholder="Company News"
                 onChange={(e) => set('name', e.target.value)}
                 onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
@@ -101,12 +101,12 @@ function BadgeModal({
   )
 }
 
-export default function BadgesPage() {
-  const { edit, delete: canDelete } = usePermission('badges')
-  const { data: badges = [], isLoading: loading, mutate } = useSWR('badges', badgesService.getAll)
+export default function NewsCategoriesPage() {
+  const { edit, delete: canDelete } = usePermission('news-kategori')
+  const { data: categories = [], isLoading: loading, mutate } = useSWR('news-categories', newsCategoriesService.getAll)
   const [toast, setToast] = useState<ToastState | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [modal, setModal] = useState<{ mode: 'add' | 'edit'; badge: Partial<Badge> } | null>(null)
+  const [modal, setModal] = useState<{ mode: 'add' | 'edit'; category: Partial<NewsCategory> } | null>(null)
   const [search, setSearch] = useState('')
   const [view, setView] = useState<'grid' | 'table'>('grid')
   const [page, setPage] = useState(1)
@@ -117,38 +117,38 @@ export default function BadgesPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  const handleSave = async (data: Badge) => {
+  const handleSave = async (data: NewsCategory) => {
     try {
-      await badgesService.save(data)
+      await newsCategoriesService.save(data)
       await mutate()
       setModal(null)
-      showToast('success', modal?.mode === 'add' ? 'Core Business berhasil ditambahkan!' : 'Core Business berhasil diperbarui!')
-      revalidatePaths(['/'])
+      showToast('success', modal?.mode === 'add' ? 'Kategori berita berhasil ditambahkan!' : 'Kategori berita berhasil diperbarui!')
+      revalidatePaths(['/', '/news'])
     } catch {
-      showToast('error', 'Gagal menyimpan core business')
+      showToast('error', 'Gagal menyimpan kategori berita')
     }
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Hapus core business "${name}"?`)) return
+    if (!confirm(`Hapus kategori berita "${name}"?`)) return
     setDeletingId(id)
     try {
-      await badgesService.delete(id)
+      await newsCategoriesService.delete(id)
       await mutate()
-      showToast('success', 'Core Business berhasil dihapus')
-      revalidatePaths(['/'])
+      showToast('success', 'Kategori berita berhasil dihapus')
+      revalidatePaths(['/', '/news'])
     } catch {
-      showToast('error', 'Gagal menghapus core business')
+      showToast('error', 'Gagal menghapus kategori berita')
     } finally {
       setDeletingId(null)
     }
   }
 
-  const nextOrder = badges.length ? Math.max(...badges.map((b) => b.order)) + 1 : 1
+  const nextOrder = categories.length ? Math.max(...categories.map((c) => c.order)) + 1 : 1
 
-  const filtered = badges.filter((b) => {
+  const filtered = categories.filter((c) => {
     if (!search) return true
-    return b.name.toLowerCase().includes(search.toLowerCase())
+    return c.name.toLowerCase().includes(search.toLowerCase())
   })
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
@@ -158,7 +158,7 @@ export default function BadgesPage() {
         <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
       {modal && (
-        <BadgeModal mode={modal.mode} badge={modal.badge} onClose={() => setModal(null)} onSave={handleSave} />
+        <CategoryModal mode={modal.mode} category={modal.category} onClose={() => setModal(null)} onSave={handleSave} />
       )}
 
       {/* Toolbar */}
@@ -166,7 +166,7 @@ export default function BadgesPage() {
         <div className="relative flex-1 min-w-0">
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
           <input
-            type="text" placeholder="Cari core business..." value={search}
+            type="text" placeholder="Cari kategori berita..." value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="w-full outline-none text-sm rounded-xl transition-all"
             style={{ ...inputStyle, paddingLeft: 34, paddingRight: 14, paddingTop: 9, paddingBottom: 9 }}
@@ -187,10 +187,10 @@ export default function BadgesPage() {
           </div>
 
           {edit && (
-          <button onClick={() => setModal({ mode: 'add', badge: { order: nextOrder } })}
+          <button onClick={() => setModal({ mode: 'add', category: { order: nextOrder } })}
             className="px-3 sm:px-4"
             style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Core Business</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Kategori</span>
           </button>
           )}
         </div>
@@ -199,29 +199,29 @@ export default function BadgesPage() {
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 0' }}>
           <div className="w-7 h-7 border-4 rounded-full admin-spin" style={{ borderColor: theme.divider, borderTopColor: theme.accent }} />
-          <p style={{ fontSize: 13, color: theme.textMuted }}>Memuat core business...</p>
+          <p style={{ fontSize: 13, color: theme.textMuted }}>Memuat kategori berita...</p>
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 20, padding: '64px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 30, color: theme.textMuted }}>local_offer</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 30, color: theme.textMuted }}>sell</span>
           </div>
           <div>
-            <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada core business'}</p>
-            <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan core business baru untuk mulai mengelola konten'}</p>
+            <p style={{ fontWeight: 700, color: theme.textSecondary, fontSize: 15 }}>{search ? 'Tidak ditemukan' : 'Belum ada kategori berita'}</p>
+            <p style={{ fontSize: 12, color: theme.textMuted, marginTop: 6 }}>{search ? 'Coba keyword lain' : 'Tambahkan kategori baru untuk mulai mengelola berita'}</p>
           </div>
           {!search && edit && (
-            <button onClick={() => setModal({ mode: 'add', badge: { order: nextOrder } })}
+            <button onClick={() => setModal({ mode: 'add', category: { order: nextOrder } })}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Core Business
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Kategori
             </button>
           )}
         </div>
       ) : view === 'grid' ? (
         <>
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-          {paginated.map((b, i) => (
-            <div key={b.id}
+          {paginated.map((c, i) => (
+            <div key={c.id}
               className="rounded-2xl overflow-hidden admin-fade-up"
               style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard, animationDelay: `${i * 0.05}s`, transition: 'box-shadow 0.2s, border-color 0.2s' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.borderHover; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCardHover }}
@@ -230,16 +230,16 @@ export default function BadgesPage() {
               <div style={{ padding: '18px 18px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}` }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: theme.accent }}>work</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: theme.accent }}>sell</span>
                   </div>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.surfaceSoft, color: theme.textMuted, border: `1px solid ${theme.border}` }}>
-                    #{b.order}
+                    #{c.order}
                   </span>
                 </div>
-                <h3 style={{ fontWeight: 700, color: theme.text, marginBottom: 14, lineHeight: 1.3, fontFamily: theme.fontHeadline, fontSize: 14 }} className="line-clamp-2">{b.name}</h3>
+                <h3 style={{ fontWeight: 700, color: theme.text, marginBottom: 14, lineHeight: 1.3, fontFamily: theme.fontHeadline, fontSize: 14 }} className="line-clamp-2">{c.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
                   {edit && (
-                    <button onClick={() => setModal({ mode: 'edit', badge: b })}
+                    <button onClick={() => setModal({ mode: 'edit', category: c })}
                       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoftHover }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.accentSoft }}>
@@ -247,11 +247,11 @@ export default function BadgesPage() {
                     </button>
                   )}
                   {canDelete && (
-                    <button onClick={() => handleDelete(b.id, b.name)} disabled={deletingId === b.id}
+                    <button onClick={() => handleDelete(c.id, c.name)} disabled={deletingId === c.id}
                       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.danger, background: theme.dangerSoft, border: 'none', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoftHover }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = theme.dangerSoft }}>
-                      {deletingId === b.id
+                      {deletingId === c.id
                         ? <span className="w-3 h-3 border-2 rounded-full admin-spin" style={{ borderColor: 'rgba(220,38,38,0.25)', borderTopColor: theme.danger }} />
                         : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>}
                       Hapus
@@ -277,18 +277,18 @@ export default function BadgesPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginated.map((b, i) => (
-                  <tr key={b.id} style={{ borderBottom: `1px solid ${theme.divider}`, transition: 'background 0.12s' }}
+                {paginated.map((c, i) => (
+                  <tr key={c.id} style={{ borderBottom: `1px solid ${theme.divider}`, transition: 'background 0.12s' }}
                     className="hover:bg-slate-50">
                     <td className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ color: theme.textMuted, fontSize: 12.5 }}>{(page - 1) * pageSize + i + 1}</td>
                     <td className="px-3 py-2.5 sm:px-5 sm:py-3">
-                      <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText, border: `1px solid ${theme.accentSoftBorder}`, whiteSpace: 'nowrap' }}>{b.name}</span>
+                      <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText, border: `1px solid ${theme.accentSoftBorder}`, whiteSpace: 'nowrap' }}>{c.name}</span>
                     </td>
-                    <td className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ color: theme.textSecondary, fontSize: 13, whiteSpace: 'nowrap' }}>#{b.order}</td>
+                    <td className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ color: theme.textSecondary, fontSize: 13, whiteSpace: 'nowrap' }}>#{c.order}</td>
                     <td className="px-3 py-2.5 sm:px-5 sm:py-3">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         {edit && (
-                        <button onClick={() => setModal({ mode: 'edit', badge: b })}
+                        <button onClick={() => setModal({ mode: 'edit', category: c })}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.color = theme.accent; btn.style.background = theme.accentSoft }}
                           onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.color = theme.textMuted; btn.style.background = 'none' }}>
@@ -296,11 +296,11 @@ export default function BadgesPage() {
                         </button>
                         )}
                         {canDelete && (
-                        <button onClick={() => handleDelete(b.id, b.name)} disabled={deletingId === b.id}
+                        <button onClick={() => handleDelete(c.id, c.name)} disabled={deletingId === c.id}
                           style={{ padding: 7, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex', transition: 'all 0.12s' }}
                           onMouseEnter={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.color = theme.danger; btn.style.background = theme.dangerSoft }}
                           onMouseLeave={(e) => { const btn = e.currentTarget as HTMLButtonElement; btn.style.color = theme.textMuted; btn.style.background = 'none' }}>
-                          {deletingId === b.id
+                          {deletingId === c.id
                             ? <span className="w-4 h-4 border-2 rounded-full admin-spin block" style={{ borderColor: theme.divider, borderTopColor: theme.danger }} />
                             : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>}
                         </button>

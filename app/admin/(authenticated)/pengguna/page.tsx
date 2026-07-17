@@ -8,10 +8,15 @@ import Toast from '@/components/admin/Toast'
 import { usersService } from '@/lib/services'
 import type { AdminUser, SessionUser } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import SearchSelect from '@/components/admin/SearchSelect'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const inputCls = 'w-full px-3 py-2.5 text-sm rounded-xl outline-none transition-all'
+const ROLE_OPTIONS = [
+  { value: 'editor', label: 'Editor' },
+  { value: 'admin', label: 'Administrator' },
+]
 const labelStyle = { display: 'block' as const, fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: theme.textMuted, marginBottom: 6 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -177,12 +182,13 @@ export default function PenggunaPage() {
               <p style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{editingUser.name}</p>
               <p style={{ fontSize: 11.5, color: theme.textMuted, marginTop: -12 }}>{editingUser.email}</p>
               <Field label="Role">
-                <select className={inputCls} style={{ ...inputStyle, cursor: 'pointer' }} value={editUserRole}
-                  onChange={(e) => setEditUserRole(e.target.value as 'admin' | 'editor')}
-                  disabled={editingUser.email === profile?.email}>
-                  <option value="editor">Editor</option>
-                  <option value="admin">Administrator</option>
-                </select>
+                <SearchSelect
+                  value={editUserRole}
+                  options={ROLE_OPTIONS}
+                  onChange={(v) => setEditUserRole(v as 'admin' | 'editor')}
+                  allowClear={false}
+                  disabled={editingUser.email === profile?.email}
+                />
               </Field>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: `1px solid ${theme.divider}` }}>
@@ -216,15 +222,12 @@ export default function PenggunaPage() {
               <TextInput type="password" value={newUserPassword} onChange={setNewUserPassword} placeholder="Minimal 6 karakter" />
             </Field>
             <Field label="Role">
-              <select
-                className={inputCls}
-                style={inputStyle}
+              <SearchSelect
                 value={newUserRole}
-                onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'editor')}
-              >
-                <option value="editor">Editor</option>
-                <option value="admin">Administrator</option>
-              </select>
+                options={ROLE_OPTIONS}
+                onChange={(v) => setNewUserRole(v as 'admin' | 'editor')}
+                allowClear={false}
+              />
             </Field>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

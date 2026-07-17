@@ -158,7 +158,7 @@ export default function CompanyProfilePage() {
               <Field label="No. Telepon" hint="Format angka saja dengan kode negara, cth. 6281234567890">
                 <TextInput value={company.phone} onChange={(v) => setCompany({ ...company, phone: v })} placeholder="6281234567890" />
               </Field>
-              <Field label="Nomor WhatsApp" hint="Digunakan untuk tombol WA di footer & navbar. Format angka saja dengan kode negara, cth. 6281234567890">
+              <Field label="Nomor WhatsApp" hint="Digunakan untuk tombol WA di footer. Jika kosong, otomatis pakai nomor WA dari section Contact homepage. Format angka saja dengan kode negara, cth. 6281234567890">
                 <TextInput value={company.waNumber ?? ''} onChange={(v) => setCompany({ ...company, waNumber: v })} placeholder="6281234567890" />
               </Field>
             </div>
