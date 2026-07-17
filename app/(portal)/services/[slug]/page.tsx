@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import { servicesService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 
@@ -75,7 +75,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
           <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
             <div className="reveal-left">
               <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border border-outline-variant/20">
-                <Image
+                <SafeImage
                   src={service.image}
                   alt={service.imageAlt}
                   fill

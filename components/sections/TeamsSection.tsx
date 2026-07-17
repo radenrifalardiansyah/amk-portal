@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { Leader, KeyPartner, TeamsSectionContent } from '@/lib/services'
 
 const InstagramIcon = () => (
@@ -31,7 +31,7 @@ export default function TeamsSection({ leaders, partners, content }: { leaders: 
                 style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
               >
                 <div className="aspect-[3/4] overflow-hidden mb-6 relative">
-                  <Image
+                  <SafeImage
                     src={leader.image}
                     alt={leader.name}
                     fill

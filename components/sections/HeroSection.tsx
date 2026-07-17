@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { HeroContent } from '@/lib/services'
 
 export default function HeroSection({ content }: { content: HeroContent }) {
@@ -78,7 +78,7 @@ export default function HeroSection({ content }: { content: HeroContent }) {
           <div className="aspect-square rounded-full border border-primary/10 absolute -inset-10 animate-[spin_20s_linear_infinite]" />
           <div className="aspect-square rounded-full border border-primary/5 absolute -inset-20 animate-[spin_35s_linear_infinite_reverse]" />
           <div className="relative z-10 w-full h-[500px]">
-            <Image
+            <SafeImage
               src={content.image}
               alt="Hero Visual"
               fill

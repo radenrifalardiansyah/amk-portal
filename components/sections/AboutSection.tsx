@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { AboutHomeContent } from '@/lib/services'
 
 export default function AboutSection({ content }: { content: AboutHomeContent }) {
@@ -53,7 +53,7 @@ export default function AboutSection({ content }: { content: AboutHomeContent })
                 <p className="text-sm text-on-surface-variant">{content.stat2Label}</p>
               </div>
               <div className="relative h-80 rounded-2xl overflow-hidden reveal-scale">
-                <Image
+                <SafeImage
                   src={content.teamImage}
                   alt="Team Work"
                   fill

@@ -231,7 +231,7 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
       <button type="button" onClick={() => setOpen((o) => !o)}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul Section</h2>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
           <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Our Clients" yang tampil di homepage sebelum daftar logo client</p>
         </div>
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
@@ -243,6 +243,13 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
               <label style={labelStyle}>Judul</label>
               <input className={inputCls} style={inputStyle} value={form.heading}
                 onChange={(e) => setForm({ ...form, heading: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
+            <div>
+              <label style={labelStyle}>Deskripsi</label>
+              <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
                 onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>

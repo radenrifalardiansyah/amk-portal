@@ -11,7 +11,7 @@ export default function ContactSection({ content }: { content: ContactContent })
     <section className="py-24 relative overflow-hidden scroll-mt-8" id="contact">
       <div className="absolute inset-0 bg-primary/5" />
       <div className="max-w-7xl mx-auto px-8 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className={content.googleFormUrl ? 'grid lg:grid-cols-2 gap-16 items-center' : 'max-w-2xl mx-auto'}>
           <div className="space-y-8 reveal-left">
             <h2 className="text-5xl font-headline font-bold text-primary">{content.heading}</h2>
             <p className="text-xl text-on-surface-variant leading-relaxed">
@@ -33,19 +33,21 @@ export default function ContactSection({ content }: { content: ContactContent })
             </a>
           </div>
 
-          <div className="bg-surface p-2 rounded-3xl shadow-2xl border border-outline-variant/20 reveal-right overflow-hidden">
-            <iframe
-              src={content.googleFormUrl}
-              title="Formulir Kontak"
-              className="w-full rounded-2xl"
-              height={840}
-              frameBorder={0}
-              marginHeight={0}
-              marginWidth={0}
-            >
-              Memuat…
-            </iframe>
-          </div>
+          {content.googleFormUrl && (
+            <div className="bg-surface p-2 rounded-3xl shadow-2xl border border-outline-variant/20 reveal-right overflow-hidden">
+              <iframe
+                src={content.googleFormUrl}
+                title="Formulir Kontak"
+                className="w-full rounded-2xl"
+                height={840}
+                frameBorder={0}
+                marginHeight={0}
+                marginWidth={0}
+              >
+                Memuat…
+              </iframe>
+            </div>
+          )}
         </div>
       </div>
     </section>

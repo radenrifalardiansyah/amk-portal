@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import { portfolioService, clientsService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 import ProjectGallery from './ProjectGallery'
@@ -71,7 +71,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
             <p className="text-xl text-on-surface-variant max-w-3xl mx-auto mb-10">{project.description}</p>
 
             <div className="relative w-full h-[60vh] rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 mb-16">
-              <Image
+              <SafeImage
                 src={project.image}
                 alt={project.title}
                 fill
@@ -86,8 +86,10 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
                 <h4 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Client</h4>
                 {client ? (
                   <div className="flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={client.src} alt={client.name} className="h-8 w-auto object-contain" />
+                    {client.src && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={client.src} alt={client.name} className="h-8 w-auto object-contain" />
+                    )}
                     {client.website ? (
                       <a href={client.website} target="_blank" rel="noopener noreferrer"
                         className="text-xl text-on-surface font-headline font-medium hover:text-primary transition-colors">

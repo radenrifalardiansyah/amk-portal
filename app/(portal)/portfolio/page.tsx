@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import { portfolioService, clientsService } from '@/lib/services'
 
 export const revalidate = 300
@@ -54,7 +54,7 @@ export default async function PortfolioPage() {
                 style={i > 0 ? { transitionDelay: `${i * 0.15}s` } : {}}
               >
                 <div className="relative aspect-video overflow-hidden">
-                  <Image
+                  <SafeImage
                     src={project.image}
                     alt={project.title}
                     fill
@@ -69,7 +69,7 @@ export default async function PortfolioPage() {
                 <div className="p-6">
                   <h2 className="text-xl font-headline font-bold text-primary mb-2">{project.title}</h2>
                   <div className="flex items-center gap-2 mb-3">
-                    {project.clientId && clientMap.get(project.clientId) && (
+                    {project.clientId && clientMap.get(project.clientId)?.src && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={clientMap.get(project.clientId)!.src} alt="" className="h-4 w-auto object-contain" />
                     )}

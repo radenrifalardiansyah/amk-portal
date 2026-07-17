@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import { newsService, siteContentService } from '@/lib/services'
 import { SITE_URL, absoluteUrl, ogImage } from '@/lib/seo'
 
@@ -115,7 +115,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
 
       <section className="max-w-4xl mx-auto px-8 pb-20">
         <div className="relative w-full h-[40vh] md:h-[55vh] rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 mb-14">
-          <Image
+          <SafeImage
             src={article.coverImage}
             alt={article.title}
             fill
@@ -161,7 +161,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                   className="group block rounded-3xl overflow-hidden bg-surface border border-outline-variant/10 hover-lift"
                 >
                   <div className="relative aspect-video overflow-hidden">
-                    <Image
+                    <SafeImage
                       src={item.coverImage}
                       alt={item.title}
                       fill

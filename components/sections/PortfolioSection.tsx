@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { PortfolioProject } from '@/data/portfolio'
 import type { PortfolioSectionContent } from '@/lib/services'
 
@@ -31,7 +31,7 @@ export default function PortfolioSection({ previews, content }: { previews: Port
               className="reveal-scale group relative overflow-hidden rounded-2xl aspect-video bg-surface-bright shadow-lg block"
               style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
             >
-              <Image
+              <SafeImage
                 src={item.image}
                 alt={item.title}
                 fill

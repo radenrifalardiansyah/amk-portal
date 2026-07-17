@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { NewsArticle } from '@/lib/services'
 
 function formatDate(iso: string) {
@@ -37,7 +37,7 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
           className="reveal-scale group grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden bg-surface-container-low border border-outline-variant/10 hover-lift mb-16"
         >
           <div className="relative aspect-video md:aspect-auto md:h-full overflow-hidden">
-            <Image
+            <SafeImage
               src={featured.coverImage}
               alt={featured.title}
               fill
@@ -107,7 +107,7 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
               style={i > 0 ? { transitionDelay: `${Math.min(i, 6) * 0.1}s` } : {}}
             >
               <div className="relative aspect-video overflow-hidden">
-                <Image
+                <SafeImage
                   src={article.coverImage}
                   alt={article.title}
                   fill

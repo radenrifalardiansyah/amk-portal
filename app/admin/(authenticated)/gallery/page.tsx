@@ -8,6 +8,7 @@ import Pagination from '@/components/admin/Pagination'
 import { galleryService, siteContentService } from '@/lib/services'
 import type { GalleryItem, GallerySectionContent } from '@/lib/services'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
@@ -27,9 +28,7 @@ function GalleryThumb({ item, className }: { item: GalleryItem; className: strin
           // eslint-disable-next-line @next/next/no-img-element
           <img src={embed.thumbnailUrl} alt={item.title} className={className} />
         ) : (
-          <div className={`${className} flex items-center justify-center`} style={{ background: theme.surfaceSoft }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 28, color: theme.textMuted }}>movie</span>
-          </div>
+          <MediaPlaceholder icon="movie" className={className} />
         )}
         <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(16,24,40,0.25)' }}>
           <span className="material-symbols-outlined text-white" style={{ fontSize: 26 }}>play_circle</span>
@@ -37,7 +36,9 @@ function GalleryThumb({ item, className }: { item: GalleryItem; className: strin
       </>
     )
   }
-  return item.url ? <Image src={item.url} alt={item.title} fill className={className} unoptimized /> : null
+  return item.url
+    ? <Image src={item.url} alt={item.title} fill className={className} unoptimized />
+    : <MediaPlaceholder className={className} />
 }
 
 function PreviewModal({ item, onClose }: { item: GalleryItem; onClose: () => void }) {

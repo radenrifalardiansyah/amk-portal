@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import type { PortfolioGalleryItem } from '@/data/portfolio'
 import { getVideoEmbed } from '@/lib/videoEmbed'
 
 function GalleryThumbnail({ item }: { item: PortfolioGalleryItem }) {
   if (item.type === 'image') {
-    return <Image src={item.url} alt={item.caption || 'Foto galeri'} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+    return <SafeImage src={item.url} alt={item.caption || 'Foto galeri'} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
   }
   const embed = getVideoEmbed(item.url)
   return (
@@ -16,9 +17,7 @@ function GalleryThumbnail({ item }: { item: PortfolioGalleryItem }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={embed.thumbnailUrl} alt={item.caption || 'Video galeri'} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
       ) : (
-        <div className="w-full h-full bg-surface flex items-center justify-center">
-          <span className="material-symbols-outlined text-5xl text-on-surface-variant/40">movie</span>
-        </div>
+        <MediaPlaceholder icon="movie" />
       )}
       <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/35 transition-colors">
         <span className="material-symbols-outlined text-white text-5xl drop-shadow-lg">play_circle</span>
@@ -29,7 +28,7 @@ function GalleryThumbnail({ item }: { item: PortfolioGalleryItem }) {
 
 function LightboxMedia({ item }: { item: PortfolioGalleryItem }) {
   if (item.type === 'image') {
-    return <Image src={item.url} alt={item.caption || 'Foto galeri'} fill className="object-contain" />
+    return <SafeImage src={item.url} alt={item.caption || 'Foto galeri'} fill className="object-contain" />
   }
   const embed = getVideoEmbed(item.url)
   if (embed.kind === 'file') {

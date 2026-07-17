@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { NewsArticle, NewsSectionContent } from '@/lib/services'
 
 function formatDate(iso: string) {
@@ -39,7 +39,7 @@ export default function NewsSection({ previews, content }: { previews: NewsArtic
               style={i > 0 ? { transitionDelay: `${i * 0.15}s` } : {}}
             >
               <div className="relative aspect-video overflow-hidden">
-                <Image
+                <SafeImage
                   src={item.coverImage}
                   alt={item.title}
                   fill

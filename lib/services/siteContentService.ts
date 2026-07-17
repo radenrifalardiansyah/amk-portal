@@ -86,6 +86,7 @@ export interface TeamsSectionContent {
 
 export interface ClientsSectionContent {
   heading: string
+  description: string
 }
 
 export interface GallerySectionContent {
@@ -248,6 +249,7 @@ const seedData = {
 
   clientsSection: {
     heading: 'Our Clients',
+    description: 'Kepercayaan dari berbagai institusi dan brand adalah bukti nyata dedikasi kami terhadap kualitas.',
   } as ClientsSectionContent,
 
   gallerySection: {

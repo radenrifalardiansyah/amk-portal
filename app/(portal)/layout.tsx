@@ -14,13 +14,14 @@ const NAV_LINK_BY_ID: Record<string, NavLink> = {
   services: { label: 'Services', href: '/#services' },
   advantages: { label: 'Advantage', href: '/#advantage' },
   portfolio: { label: 'Portfolio', href: '/#portfolio' },
-  gallery: { label: 'Gallery', href: '/#gallery' },
   teams: { label: 'Teams', href: '/#teams' },
+  clients: { label: 'Clients', href: '/#clients' },
+  gallery: { label: 'Gallery', href: '/#gallery' },
   news: { label: 'News', href: '/#news' },
 }
 
 const DEFAULT_NAV_ORDER: Record<string, number> = {
-  homepage: 1, about: 2, services: 3, advantages: 4, portfolio: 5, teams: 6, gallery: 8, news: 9,
+  homepage: 1, about: 2, services: 3, advantages: 4, portfolio: 5, teams: 6, clients: 7, gallery: 8, news: 9,
 }
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {

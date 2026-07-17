@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import type { Advantage, AdvantageSectionContent } from '@/lib/services'
 
 export default function AdvantageSection({ advantages, content }: { advantages: Advantage[]; content: AdvantageSectionContent }) {
@@ -8,7 +8,7 @@ export default function AdvantageSection({ advantages, content }: { advantages: 
         <div className="relative reveal-left">
           <div className="absolute -inset-4 bg-primary/20 blur-3xl opacity-20 animate-pulse" />
           <div className="relative z-10 rounded-3xl overflow-hidden rotate-1 hover:rotate-0 transition-all duration-700 shadow-[0_0_50px_rgba(37,99,235,0.15)] border border-primary/20">
-            <Image
+            <SafeImage
               src={content.image}
               alt="Tech Visual"
               width={600}

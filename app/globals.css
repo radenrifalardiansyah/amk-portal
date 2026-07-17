@@ -30,7 +30,8 @@ body {
   border-radius: 2px;
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.nav-link-active::after {
   width: 100%;
 }
 
@@ -52,7 +53,7 @@ body {
   justify-content: space-around;
   min-width: 100%;
   gap: 4rem;
-  animation: scroll 30s linear infinite;
+  animation: scroll 60s linear infinite;
 }
 
 @keyframes scroll {
