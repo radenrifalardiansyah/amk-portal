@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import useSWR, { SWRConfig } from 'swr'
 import { usersService, siteContentService, SESSION_UPDATED_EVENT, HEARTBEAT_INTERVAL_MS } from '@/lib/services'
-import type { SessionUser } from '@/lib/services'
+import type { SessionUser, LoginRequest } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
 import { useAdminNav } from '@/lib/useAdminNav'
 import type { NavItem } from '@/lib/useAdminNav'
@@ -33,6 +33,8 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [showAboutModal, setShowAboutModal] = useState(false)
+  const [loginRequest, setLoginRequest] = useState<LoginRequest | null>(null)
+  const [respondingToLoginRequest, setRespondingToLoginRequest] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -133,6 +135,32 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
       clearInterval(heartbeatId)
     }
   }, [session?.email, router])
+
+  // Listens for a pending login request from another device trying to sign into
+  // this same account, so this session can accept (approving logs this session
+  // out via the watcher above once the new device takes the lock) or reject it.
+  useEffect(() => {
+    const email = session?.email
+    if (!email) return
+
+    const unsubscribe = usersService.watchLoginRequest(email, (request) => {
+      setLoginRequest(request?.status === 'pending' ? request : null)
+    })
+
+    return unsubscribe
+  }, [session?.email])
+
+  const respondToLoginRequest = async (decision: 'approved' | 'rejected') => {
+    const email = session?.email
+    if (!email) return
+    setRespondingToLoginRequest(true)
+    try {
+      await usersService.respondToLoginRequest(email, decision)
+    } finally {
+      setRespondingToLoginRequest(false)
+      setLoginRequest(null)
+    }
+  }
 
   useEffect(() => { setSidebarOpen(false) }, [pathname])
 
@@ -658,6 +686,69 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
+
+      {/* Incoming Login Request Modal */}
+      {loginRequest && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(16,24,40,0.45)', backdropFilter: 'blur(4px)', padding: 16,
+          }}
+          className="admin-modal-backdrop"
+        >
+          <div
+            style={{
+              width: '100%', maxWidth: 380, padding: 24, borderRadius: 16,
+              background: theme.surface, border: `1px solid ${theme.border}`,
+              boxShadow: theme.shadowElevated,
+            }}
+            className="admin-modal-card"
+          >
+            <div style={{
+              width: 48, height: 48, borderRadius: 14, marginBottom: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: theme.accentSoft,
+            }}>
+              <span className="material-symbols-outlined" style={{ color: theme.accent, fontSize: 24 }}>
+                {loginRequest.device === 'mobile' ? 'smartphone' : 'computer'}
+              </span>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, marginBottom: 6 }}>
+              Permintaan Login Baru
+            </h2>
+            <p style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5, marginBottom: 22 }}>
+              Ada percobaan login ke akun ini dari perangkat <strong>{loginRequest.device === 'mobile' ? 'Mobile' : 'Desktop'}</strong> lain
+              (pukul {new Date(loginRequest.requestedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}).
+              Terima akan langsung mengeluarkan Anda dari sesi ini.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                disabled={respondingToLoginRequest}
+                onClick={() => respondToLoginRequest('rejected')}
+                style={{
+                  padding: '9px 16px', borderRadius: 10, cursor: respondingToLoginRequest ? 'not-allowed' : 'pointer',
+                  border: `1px solid ${theme.border}`, background: theme.surface,
+                  color: theme.textSecondary, fontSize: 13, fontWeight: 600, transition: 'all 0.15s',
+                }}
+              >
+                Tolak
+              </button>
+              <button
+                disabled={respondingToLoginRequest}
+                onClick={() => respondToLoginRequest('approved')}
+                style={{
+                  padding: '9px 16px', borderRadius: 10, cursor: respondingToLoginRequest ? 'not-allowed' : 'pointer', border: 'none',
+                  background: theme.accent, color: '#fff', fontSize: 13, fontWeight: 600,
+                  boxShadow: '0 6px 16px rgba(37,99,235,0.28)', transition: 'all 0.15s',
+                }}
+              >
+                Terima
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (

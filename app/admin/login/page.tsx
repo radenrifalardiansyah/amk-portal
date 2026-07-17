@@ -3,12 +3,14 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { usersService, siteContentService, ActiveSessionConflictError } from '@/lib/services'
+import { usersService, siteContentService, LoginApprovalPendingError } from '@/lib/services'
 import type { CompanyProfile, DeviceType } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
 import InstallPwaCard from '@/components/admin/InstallPwaCard'
 
-interface SessionConflict { device: DeviceType; lastActiveAt: string }
+const APPROVAL_TIMEOUT_MS = 60_000
+
+interface PendingApproval { requestId: string; existingDevice: DeviceType; existingLastActiveAt: string }
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -18,7 +20,8 @@ export default function AdminLoginPage() {
   const [info, setInfo] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [company, setCompany] = useState<CompanyProfile | null>(null)
-  const [conflict, setConflict] = useState<SessionConflict | null>(null)
+  const [waiting, setWaiting] = useState<PendingApproval | null>(null)
+  const [secondsLeft, setSecondsLeft] = useState(APPROVAL_TIMEOUT_MS / 1000)
   const router = useRouter()
 
   useEffect(() => {
@@ -43,8 +46,13 @@ export default function AdminLoginPage() {
       usersService.saveSession(user)
       router.replace('/admin/dashboard')
     } catch (err) {
-      if (err instanceof ActiveSessionConflictError) {
-        setConflict({ device: err.device, lastActiveAt: err.lastActiveAt })
+      if (err instanceof LoginApprovalPendingError) {
+        setSecondsLeft(APPROVAL_TIMEOUT_MS / 1000)
+        setWaiting({
+          requestId: err.requestId,
+          existingDevice: err.existingDevice,
+          existingLastActiveAt: err.existingLastActiveAt,
+        })
         return
       }
       const code = (err as { code?: string })?.code
@@ -60,19 +68,59 @@ export default function AdminLoginPage() {
     }
   }
 
-  const handleForceLogin = async () => {
-    setConflict(null)
-    setLoading(true)
-    setError('')
-    try {
-      const user = await usersService.login(email, password, { force: true })
-      usersService.saveSession(user)
-      router.replace('/admin/dashboard')
-    } catch {
-      setError('Terjadi kesalahan. Silakan coba lagi.')
-    } finally {
-      setLoading(false)
+  // Waits for the existing session to accept/reject this login attempt. Approval
+  // finalizes via the same "force" path used previously for direct takeovers; a
+  // rejection or 60s timeout with no response cancels the attempt.
+  useEffect(() => {
+    if (!waiting) return
+
+    let settled = false
+
+    const finalizeApproved = async () => {
+      if (settled) return
+      settled = true
+      try {
+        const user = await usersService.login(email, password, { force: true })
+        usersService.saveSession(user)
+        setWaiting(null)
+        router.replace('/admin/dashboard')
+      } catch {
+        setWaiting(null)
+        setError('Terjadi kesalahan. Silakan coba lagi.')
+      }
     }
+
+    const finalizeRejected = async (message: string) => {
+      if (settled) return
+      settled = true
+      await usersService.cancelPendingLogin()
+      await usersService.clearLoginRequest(email)
+      setWaiting(null)
+      setError(message)
+    }
+
+    const unsubscribe = usersService.watchLoginRequest(email, (request) => {
+      if (!request || request.requestId !== waiting.requestId) return
+      if (request.status === 'approved') finalizeApproved()
+      else if (request.status === 'rejected') finalizeRejected('Login ditolak oleh sesi yang aktif di perangkat lain.')
+    })
+
+    const timeoutId = setTimeout(() => finalizeRejected('Waktu tunggu persetujuan habis. Silakan coba lagi.'), APPROVAL_TIMEOUT_MS)
+    const tickId = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000)
+
+    return () => {
+      unsubscribe()
+      clearTimeout(timeoutId)
+      clearInterval(tickId)
+    }
+  }, [waiting, email, password, router])
+
+  const handleCancelWaiting = async () => {
+    if (!waiting) return
+    await usersService.cancelPendingLogin()
+    await usersService.clearLoginRequest(email)
+    setWaiting(null)
+    setError('Login dibatalkan.')
   }
 
   const inputBase = {
@@ -248,10 +296,9 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      {/* Active Session Conflict Modal */}
-      {conflict && (
+      {/* Waiting for Approval Modal */}
+      {waiting && (
         <div
-          onClick={() => setConflict(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -260,7 +307,6 @@ export default function AdminLoginPage() {
           className="admin-modal-backdrop"
         >
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%', maxWidth: 380, padding: 24, borderRadius: 16,
               background: theme.surface, border: `1px solid ${theme.border}`,
@@ -271,23 +317,21 @@ export default function AdminLoginPage() {
             <div style={{
               width: 48, height: 48, borderRadius: 14, marginBottom: 16,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: theme.dangerSoft,
+              background: theme.accentSoft,
             }}>
-              <span className="material-symbols-outlined" style={{ color: theme.danger, fontSize: 24 }}>
-                {conflict.device === 'mobile' ? 'smartphone' : 'computer'}
-              </span>
+              <span className="w-5 h-5 border-2 rounded-full admin-spin" style={{ borderColor: theme.accentSoftBorder, borderTopColor: theme.accent }} />
             </div>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, marginBottom: 6 }}>
-              Akun Sedang Aktif di Tempat Lain
+              Menunggu Persetujuan
             </h2>
             <p style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 1.5, marginBottom: 22 }}>
-              Akun ini sedang login di perangkat <strong>{conflict.device === 'mobile' ? 'Mobile' : 'Desktop'}</strong> lain
-              (terakhir aktif {new Date(conflict.lastActiveAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}).
-              Tetap masuk di sini akan otomatis mengeluarkan sesi tersebut.
+              Akun ini sedang aktif di perangkat <strong>{waiting.existingDevice === 'mobile' ? 'Mobile' : 'Desktop'}</strong> lain
+              (terakhir aktif {new Date(waiting.existingLastActiveAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}).
+              Menunggu sesi tersebut menerima atau menolak permintaan login ini ({secondsLeft}s).
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
-                onClick={() => setConflict(null)}
+                onClick={handleCancelWaiting}
                 style={{
                   padding: '9px 16px', borderRadius: 10, cursor: 'pointer',
                   border: `1px solid ${theme.border}`, background: theme.surface,
@@ -295,16 +339,6 @@ export default function AdminLoginPage() {
                 }}
               >
                 Batal
-              </button>
-              <button
-                onClick={handleForceLogin}
-                style={{
-                  padding: '9px 16px', borderRadius: 10, cursor: 'pointer', border: 'none',
-                  background: theme.danger, color: '#fff', fontSize: 13, fontWeight: 600,
-                  boxShadow: '0 6px 16px rgba(220,38,38,0.28)', transition: 'all 0.15s',
-                }}
-              >
-                Tetap Masuk
               </button>
             </div>
           </div>

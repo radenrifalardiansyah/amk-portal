@@ -15,6 +15,13 @@ export interface ActiveSession {
   lastActiveAt: string
 }
 
+export interface LoginRequest {
+  requestId: string
+  device: DeviceType
+  requestedAt: string
+  status: 'pending' | 'approved' | 'rejected'
+}
+
 export interface AdminUser {
   email: string
   name: string
@@ -26,20 +33,26 @@ export interface AdminUser {
   lastLoginAt?: string
   lastLoginDevice?: DeviceType
   activeSession?: ActiveSession | null
+  loginRequest?: LoginRequest | null
 }
 
 export type SessionUser = AdminUser
 
 // Thrown by login() when another device/browser holds a still-fresh session lock;
-// the login page catches this to offer a "take over & sign the other one out" prompt.
-export class ActiveSessionConflictError extends Error {
-  device: DeviceType
-  lastActiveAt: string
-  constructor(device: DeviceType, lastActiveAt: string) {
-    super('Akun ini sedang aktif di perangkat lain')
-    this.name = 'ActiveSessionConflictError'
-    this.device = device
-    this.lastActiveAt = lastActiveAt
+// the login page catches this to show a "waiting for approval" state while the
+// existing session decides whether to accept or reject the new login.
+export class LoginApprovalPendingError extends Error {
+  requestId: string
+  requestingDevice: DeviceType
+  existingDevice: DeviceType
+  existingLastActiveAt: string
+  constructor(requestId: string, requestingDevice: DeviceType, existingDevice: DeviceType, existingLastActiveAt: string) {
+    super('Menunggu persetujuan dari sesi yang sedang aktif')
+    this.name = 'LoginApprovalPendingError'
+    this.requestId = requestId
+    this.requestingDevice = requestingDevice
+    this.existingDevice = existingDevice
+    this.existingLastActiveAt = existingLastActiveAt
   }
 }
 
@@ -78,9 +91,16 @@ export const usersService = {
       throw new Error('Profil admin tidak ditemukan di Firestore')
     }
     if (!options?.force && isSessionActive(profile.activeSession)) {
-      const { device, lastActiveAt } = profile.activeSession
-      await signOut(auth)
-      throw new ActiveSessionConflictError(device, lastActiveAt)
+      const { device: existingDevice, lastActiveAt: existingLastActiveAt } = profile.activeSession
+      const requestId = generateSessionId()
+      const requestingDevice = detectDevice()
+      const loginRequest: LoginRequest = {
+        requestId, device: requestingDevice, requestedAt: new Date().toISOString(), status: 'pending',
+      }
+      // Stay signed in: the existing session needs us authenticated to read/write this
+      // doc, and if approved we finalize below without asking for the password again.
+      await updateDoc(doc(db, COL, email), { loginRequest })
+      throw new LoginApprovalPendingError(requestId, requestingDevice, existingDevice, existingLastActiveAt)
     }
 
     const device = detectDevice()
@@ -88,7 +108,7 @@ export const usersService = {
     const sessionId = generateSessionId()
     const activeSession: ActiveSession = { sessionId, device, lastActiveAt: now }
 
-    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession })
+    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession, loginRequest: null })
     if (typeof window !== 'undefined') localStorage.setItem(SESSION_ID_KEY, sessionId)
 
     return { ...profile, lastLoginAt: now, lastLoginDevice: device, activeSession }
@@ -125,6 +145,29 @@ export const usersService = {
 
   async sendHeartbeat(email: string): Promise<void> {
     await updateDoc(doc(db, COL, email), { 'activeSession.lastActiveAt': new Date().toISOString() }).catch(() => {})
+  },
+
+  watchLoginRequest(email: string, callback: (request: LoginRequest | null | undefined) => void) {
+    return onSnapshot(
+      doc(db, COL, email),
+      (snap) => callback((snap.data() as AdminUser | undefined)?.loginRequest),
+      () => { /* ignore transient errors, e.g. right after sign-out during navigation */ },
+    )
+  },
+
+  async respondToLoginRequest(email: string, decision: 'approved' | 'rejected'): Promise<void> {
+    await updateDoc(doc(db, COL, email), { 'loginRequest.status': decision }).catch(() => {})
+  },
+
+  async clearLoginRequest(email: string): Promise<void> {
+    await updateDoc(doc(db, COL, email), { loginRequest: null }).catch(() => {})
+  },
+
+  // Signs out a login attempt that was left waiting for approval (rejected, timed
+  // out, or manually cancelled) — this browser was signed in while pending but never
+  // completed login, so no activeSession lock was ever taken.
+  async cancelPendingLogin(): Promise<void> {
+    await signOut(auth).catch(() => {})
   },
 
   markKickedElsewhere(): void {
