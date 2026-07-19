@@ -9,6 +9,7 @@ import type { AdminUser, SessionUser } from '@/lib/services'
 import { uploadMedia, uploadErrorMessage } from '@/lib/upload'
 import { seedInitialContent, type SeedResult } from '@/lib/seedContent'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
+import { auth } from '@/lib/firebase'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -73,10 +74,12 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
 
 type TabKey = 'profile' | 'security' | 'system'
 
-const TABS: { key: TabKey; label: string; icon: string }[] = [
+const BASE_TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'profile', label: 'Profil', icon: 'person' },
   { key: 'security', label: 'Keamanan', icon: 'lock' },
 ]
+
+const SYSTEM_TAB = { key: 'system' as const, label: 'Sistem', icon: 'settings_suggest' }
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -101,6 +104,9 @@ export default function SettingsPage() {
 
   const [seeding, setSeeding] = useState(false)
   const [seedResults, setSeedResults] = useState<SeedResult[] | null>(null)
+  const [deploying, setDeploying] = useState(false)
+
+  const TABS = profile?.role === 'admin' ? [...BASE_TABS, SYSTEM_TAB] : BASE_TABS
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -219,6 +225,24 @@ export default function SettingsPage() {
       showToast('error', 'Gagal menjalankan seed data')
     } finally {
       setSeeding(false)
+    }
+  }
+
+  const handleForceDeploy = async () => {
+    setDeploying(true)
+    try {
+      const token = await auth.currentUser?.getIdToken()
+      if (!token) throw new Error('NO_TOKEN')
+      const res = await fetch('/api/force-deploy', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('REQUEST_FAILED')
+      showToast('success', 'Deploy dipicu! Situs akan ter-refresh penuh dalam 1-2 menit.')
+    } catch {
+      showToast('error', 'Gagal memicu deploy. Coba lagi atau hubungi developer.')
+    } finally {
+      setDeploying(false)
     }
   }
 
@@ -353,6 +377,23 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'system' && (
+            <>
+            <SectionCard title="Paksa Refresh Situs" subtitle="Redeploy penuh — pakai kalau perubahan konten tidak muncul di situs live">
+              <p style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.6 }}>
+                Update konten biasanya langsung tampil otomatis begitu disimpan. Kalau muncul peringatan &ldquo;cache gagal di-refresh&rdquo;
+                setelah menyimpan (misal karena kuota hosting sedang penuh), tombol ini memicu build ulang penuh di Vercel
+                sehingga seluruh halaman ter-refresh dengan data terbaru, terlepas dari status cache saat ini.
+              </p>
+              <div>
+                <button onClick={handleForceDeploy} disabled={deploying}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: deploying ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: deploying ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: deploying ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                  {deploying
+                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Memicu deploy...</>
+                    : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>bolt</span>Paksa Refresh Situs</>}
+                </button>
+              </div>
+            </SectionCard>
+
             <SectionCard title="Seed Konten Awal" subtitle="Isi Firestore dengan konten awal untuk koleksi yang masih kosong">
               <p style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.6 }}>
                 Aksi ini hanya mengisi koleksi Firestore yang saat ini <strong>masih kosong</strong> (Services, Portfolio,
@@ -382,6 +423,7 @@ export default function SettingsPage() {
                 </div>
               )}
             </SectionCard>
+            </>
           )}
         </div>
       )}
