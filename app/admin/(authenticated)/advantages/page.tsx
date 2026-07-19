@@ -177,6 +177,14 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
                 onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
+            <div>
+              <label style={labelStyle}>Teks Badge (di atas gambar)</label>
+              <input className={inputCls} style={inputStyle} value={form.badgeText}
+                placeholder="Innovation First"
+                onChange={(e) => setForm({ ...form, badgeText: e.target.value })}
+                onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+            </div>
             <MediaUploadField
               label="Gambar" folder="advantages/section" aspect="aspect-[4/3]"
               value={form.image} onChange={(url) => setForm({ ...form, image: url })}

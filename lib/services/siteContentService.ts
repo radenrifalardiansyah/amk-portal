@@ -70,6 +70,7 @@ export interface AdvantageSectionContent {
   heading: string
   description: string
   image: string
+  badgeText: string
 }
 
 export interface PortfolioSectionContent {
@@ -139,7 +140,7 @@ const empty = {
     heading: '', description: '',
   } as ServicesSectionContent,
   advantageSection: {
-    heading: '', description: '', image: '',
+    heading: '', description: '', image: '', badgeText: '',
   } as AdvantageSectionContent,
   company: {
     legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '', waNumber: '',
@@ -233,6 +234,7 @@ const seedData = {
     heading: 'The AMK Advantage',
     description: 'Keunggulan kompetitif yang mendefinisikan setiap langkah strategis kami.',
     image: '/images/tech.png',
+    badgeText: 'Innovation First',
   } as AdvantageSectionContent,
 
   portfolioSection: {
