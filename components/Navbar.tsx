@@ -104,9 +104,9 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
             <Image
               src={logoUrl}
               alt={`${shortName} Logo`}
-              width={64}
-              height={64}
-              className="h-11 lg:h-12 xl:h-14 w-auto object-contain mix-blend-multiply -my-1 xl:-my-1.5"
+              width={96}
+              height={96}
+              className="h-14 lg:h-16 xl:h-20 w-auto object-contain mix-blend-multiply -my-2 xl:-my-3"
             />
           </Link>
 

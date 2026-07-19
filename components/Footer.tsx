@@ -57,9 +57,9 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
             <Image
               src={logoUrl}
               alt={`${shortName} Logo`}
-              width={64}
-              height={64}
-              className="h-16 w-auto object-contain mix-blend-multiply"
+              width={96}
+              height={96}
+              className="h-20 w-auto object-contain mix-blend-multiply"
             />
           </div>
           <p className="leading-relaxed">
