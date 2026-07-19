@@ -110,8 +110,8 @@ function PortfolioModal({
                   onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
               </div>
               <div>
-                <label style={labelStyle}>Tahun *</label>
-                <input className={inputCls} style={inputStyle} required value={form.year}
+                <label style={labelStyle}>Tahun</label>
+                <input className={inputCls} style={inputStyle} value={form.year}
                   placeholder="2025"
                   onChange={(e) => set('year', e.target.value)}
                   onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
@@ -560,7 +560,7 @@ export default function PortfolioPage() {
               <div style={{ padding: '14px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                   <h3 style={{ fontWeight: 700, color: theme.text, fontSize: 13.5, lineHeight: 1.35, flex: 1, fontFamily: theme.fontHeadline }}>{p.title}</h3>
-                  <span style={{ fontSize: 11, color: theme.textMuted, flexShrink: 0 }}>{p.year}</span>
+                  <span style={{ fontSize: 11, color: theme.textMuted, flexShrink: 0 }}>{p.year || '—'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   {p.clientId && clientMap.get(p.clientId)?.src && (
@@ -644,7 +644,7 @@ export default function PortfolioPage() {
                         ? <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, background: theme.accentSoft, color: theme.accentText }}>{p.category}</span>
                         : <span style={{ fontSize: 12, color: theme.textMuted }}>—</span>}
                     </td>
-                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{p.year}</td>
+                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{p.year || '—'}</td>
                     <td style={{ padding: '12px 20px', color: theme.textMuted, fontSize: 11 }}>
                       <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{p.services}</span>
                     </td>

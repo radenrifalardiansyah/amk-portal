@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 
 export interface SearchSelectOption {
@@ -8,6 +9,8 @@ export interface SearchSelectOption {
   label: string
   icon?: string
 }
+
+interface PanelCoords { left: number; width: number; top?: number; bottom?: number }
 
 export default function SearchSelect({
   value, options, onChange, placeholder = 'Pilih...', clearLabel = 'Tidak dihubungkan', allowClear = true, disabled,
@@ -22,15 +25,40 @@ export default function SearchSelect({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const ref = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState<PanelCoords | null>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  const updateCoords = () => {
+    const el = wrapRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+      setCoords({ left: rect.left, width: rect.width, bottom: window.innerHeight - rect.top + 6 })
+    } else {
+      setCoords({ left: rect.left, width: rect.width, top: rect.bottom + 6 })
+    }
+  }
 
   useEffect(() => {
     if (!open) return
+    updateCoords()
     const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setQuery('') }
+      const target = e.target as Node
+      if (wrapRef.current?.contains(target) || panelRef.current?.contains(target)) return
+      setOpen(false); setQuery('')
     }
+    const onReposition = () => updateCoords()
     document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
+    window.addEventListener('scroll', onReposition, true)
+    window.addEventListener('resize', onReposition)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      window.removeEventListener('scroll', onReposition, true)
+      window.removeEventListener('resize', onReposition)
+    }
   }, [open])
 
   const selected = options.find((o) => o.value === value)
@@ -39,7 +67,7 @@ export default function SearchSelect({
     : options
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={wrapRef} style={{ position: 'relative' }}>
       <button type="button" disabled={disabled} onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl outline-none transition-all"
         style={{ ...inputStyle, cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'left' }}
@@ -56,8 +84,8 @@ export default function SearchSelect({
         </span>
       </button>
 
-      {open && !disabled && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50, background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, boxShadow: theme.shadowElevated, overflow: 'hidden' }}>
+      {open && !disabled && coords && createPortal(
+        <div ref={panelRef} style={{ position: 'fixed', left: coords.left, width: coords.width, top: coords.top, bottom: coords.bottom, zIndex: 200, background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12, boxShadow: theme.shadowElevated, overflow: 'hidden' }}>
           <div style={{ padding: 8, borderBottom: `1px solid ${theme.divider}` }}>
             <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari..."
@@ -94,7 +122,8 @@ export default function SearchSelect({
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

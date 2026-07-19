@@ -16,7 +16,7 @@ export interface PortfolioProject {
   client: string
   clientId?: string | null
   services: string
-  year: string
+  year?: string
   challenge: string
   solution: string
   result: string

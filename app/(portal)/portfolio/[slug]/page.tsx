@@ -107,10 +107,12 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
                 <h4 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Services Delivered</h4>
                 <p className="text-xl text-on-surface font-headline font-medium">{project.services}</p>
               </div>
+              {project.year && (
               <div>
                 <h4 className="text-sm font-bold uppercase tracking-widest text-primary mb-2">Year</h4>
                 <p className="text-xl text-on-surface font-headline font-medium">{project.year}</p>
               </div>
+              )}
             </div>
 
             <div className="text-left space-y-12 max-w-4xl mx-auto">
