@@ -228,7 +228,7 @@ export const usersService = {
     }
   },
 
-  async adminUpdateUser(email: string, input: { role: 'admin' | 'editor' }): Promise<void> {
+  async adminUpdateUser(email: string, input: { role?: 'admin' | 'editor'; password?: string }): Promise<void> {
     const token = await auth.currentUser?.getIdToken()
     if (!token) throw new Error('Tidak ada sesi aktif')
     const res = await fetch('/api/admin/users', {

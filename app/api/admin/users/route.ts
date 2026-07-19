@@ -75,11 +75,25 @@ export async function PATCH(req: NextRequest) {
   const update: Record<string, unknown> = {}
   if (body?.role === 'admin' || body?.role === 'editor') update.role = body.role
 
-  if (Object.keys(update).length === 0) {
+  const password = typeof body?.password === 'string' ? body.password : ''
+  if (password) {
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'Password minimal 6 karakter' }, { status: 400 })
+    }
+    const userRecord = await adminAuth().getUserByEmail(email).catch(() => null)
+    if (!userRecord) {
+      return NextResponse.json({ error: 'Akun tidak ditemukan di Firebase Authentication' }, { status: 404 })
+    }
+    await adminAuth().updateUser(userRecord.uid, { password })
+  }
+
+  if (Object.keys(update).length === 0 && !password) {
     return NextResponse.json({ error: 'Tidak ada perubahan' }, { status: 400 })
   }
 
-  await adminDb().collection('users').doc(email).update(update)
+  if (Object.keys(update).length > 0) {
+    await adminDb().collection('users').doc(email).update(update)
+  }
 
   return NextResponse.json({ ok: true })
 }

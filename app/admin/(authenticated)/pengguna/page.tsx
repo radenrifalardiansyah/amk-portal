@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
+import Pagination from '@/components/admin/Pagination'
 import { usersService } from '@/lib/services'
 import type { AdminUser, SessionUser } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
@@ -46,19 +47,72 @@ function TextInput({ value, onChange, type = 'text', placeholder }: {
   )
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function PasswordInput({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string
+}) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        className={inputCls}
+        style={{ ...inputStyle, paddingRight: 38 }}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+        onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        tabIndex={-1}
+        style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', padding: 6, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex' }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
+          {visible ? 'visibility_off' : 'visibility'}
+        </span>
+      </button>
+    </div>
+  )
+}
+
+function SectionCard({ title, subtitle, children, collapsible = false, defaultOpen = true }: {
+  title: string; subtitle: string; children: React.ReactNode; collapsible?: boolean; defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const isOpen = !collapsible || open
   return (
     <div
       className="rounded-2xl overflow-hidden admin-fade-up"
       style={{ background: theme.surface, border: `1px solid ${theme.border}`, boxShadow: theme.shadowCard }}
     >
-      <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.divider}` }}>
-        <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>{title}</h2>
-        <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{subtitle}</p>
+      <div
+        onClick={collapsible ? () => setOpen((v) => !v) : undefined}
+        style={{
+          padding: '16px 20px', borderBottom: isOpen ? `1px solid ${theme.divider}` : 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          cursor: collapsible ? 'pointer' : 'default', userSelect: collapsible ? 'none' : 'auto',
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>{title}</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{subtitle}</p>
+        </div>
+        {collapsible && (
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 20, color: theme.textMuted, flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
+          >
+            expand_more
+          </span>
+        )}
       </div>
-      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {children}
-      </div>
+      {isOpen && (
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -81,7 +135,11 @@ export default function PenggunaPage() {
   const [deletingEmail, setDeletingEmail] = useState<string | null>(null)
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [editUserRole, setEditUserRole] = useState<'admin' | 'editor'>('editor')
+  const [editUserPassword, setEditUserPassword] = useState('')
   const [savingUserEdit, setSavingUserEdit] = useState(false)
+  const [userSearch, setUserSearch] = useState('')
+  const [userPage, setUserPage] = useState(1)
+  const userPageSize = 10
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -130,13 +188,21 @@ export default function PenggunaPage() {
   const openEditUser = (u: AdminUser) => {
     setEditingUser(u)
     setEditUserRole(u.role)
+    setEditUserPassword('')
   }
 
   const handleSaveUserEdit = async () => {
     if (!editingUser) return
+    if (editUserPassword && editUserPassword.length < 6) {
+      showToast('error', 'Password minimal 6 karakter')
+      return
+    }
     setSavingUserEdit(true)
     try {
-      await usersService.adminUpdateUser(editingUser.email, { role: editUserRole })
+      await usersService.adminUpdateUser(editingUser.email, {
+        role: editUserRole,
+        ...(editUserPassword ? { password: editUserPassword } : {}),
+      })
       await mutateUsers()
       setEditingUser(null)
       showToast('success', 'Pengguna berhasil diperbarui!')
@@ -146,6 +212,13 @@ export default function PenggunaPage() {
       setSavingUserEdit(false)
     }
   }
+
+  const filteredUsers = allUsers.filter((u) => {
+    if (!userSearch) return true
+    const q = userSearch.toLowerCase()
+    return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+  })
+  const paginatedUsers = filteredUsers.slice((userPage - 1) * userPageSize, userPage * userPageSize)
 
   const handleDeleteUser = async (email: string) => {
     if (!window.confirm(`Hapus akun ${email}? Tindakan ini tidak bisa dibatalkan.`)) return
@@ -179,8 +252,10 @@ export default function PenggunaPage() {
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <p style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{editingUser.name}</p>
-              <p style={{ fontSize: 11.5, color: theme.textMuted, marginTop: -12 }}>{editingUser.email}</p>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: theme.text, wordBreak: 'break-word' }}>{editingUser.name}</p>
+                <p style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 2, wordBreak: 'break-word' }}>{editingUser.email}</p>
+              </div>
               <Field label="Role">
                 <SearchSelect
                   value={editUserRole}
@@ -189,6 +264,9 @@ export default function PenggunaPage() {
                   allowClear={false}
                   disabled={editingUser.email === profile?.email}
                 />
+              </Field>
+              <Field label="Reset Password" hint="Kosongkan jika tidak ingin mengubah password">
+                <PasswordInput value={editUserPassword} onChange={setEditUserPassword} placeholder="Minimal 6 karakter" />
               </Field>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: `1px solid ${theme.divider}` }}>
@@ -210,7 +288,7 @@ export default function PenggunaPage() {
       )}
 
       <div className="flex flex-col gap-5">
-        <SectionCard title="Tambah Pengguna" subtitle="Buat akun admin/editor baru langsung dari sini, tanpa perlu Firebase Console">
+        <SectionCard title="Tambah Pengguna" subtitle="Buat akun admin/editor baru langsung dari sini, tanpa perlu Firebase Console" collapsible defaultOpen={false}>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Nama Lengkap">
               <TextInput value={newUserName} onChange={setNewUserName} placeholder="Nama pengguna baru" />
@@ -219,7 +297,7 @@ export default function PenggunaPage() {
               <TextInput type="email" value={newUserEmail} onChange={setNewUserEmail} placeholder="nama@adikaramandalakreasi.com" />
             </Field>
             <Field label="Password">
-              <TextInput type="password" value={newUserPassword} onChange={setNewUserPassword} placeholder="Minimal 6 karakter" />
+              <PasswordInput value={newUserPassword} onChange={setNewUserPassword} placeholder="Minimal 6 karakter" />
             </Field>
             <Field label="Role">
               <SearchSelect
@@ -241,8 +319,19 @@ export default function PenggunaPage() {
         </SectionCard>
 
         <SectionCard title="Daftar Pengguna" subtitle="Semua akun yang bisa mengakses admin panel">
+          <div className="relative">
+            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: theme.textMuted, pointerEvents: 'none' }}>search</span>
+            <input
+              type="text" placeholder="Cari nama atau email..." value={userSearch}
+              onChange={(e) => { setUserSearch(e.target.value); setUserPage(1) }}
+              className="w-full outline-none text-sm rounded-xl transition-all"
+              style={{ ...inputStyle, paddingLeft: 34, paddingRight: 14, paddingTop: 9, paddingBottom: 9 }}
+              onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+              onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
+            />
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {allUsers.map((u) => (
+            {paginatedUsers.map((u) => (
               <div key={u.email} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
                 padding: '10px 14px', borderRadius: 12, border: `1px solid ${theme.border}`, background: theme.surfaceSoft,
@@ -276,10 +365,13 @@ export default function PenggunaPage() {
                 </div>
               </div>
             ))}
-            {allUsers.length === 0 && (
-              <p style={{ fontSize: 12.5, color: theme.textMuted }}>Belum ada pengguna lain.</p>
+            {filteredUsers.length === 0 && (
+              <p style={{ fontSize: 12.5, color: theme.textMuted }}>
+                {userSearch ? 'Tidak ditemukan.' : 'Belum ada pengguna lain.'}
+              </p>
             )}
           </div>
+          <Pagination page={userPage} pageSize={userPageSize} totalItems={filteredUsers.length} onPageChange={setUserPage} />
         </SectionCard>
       </div>
     </>
