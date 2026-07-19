@@ -44,6 +44,36 @@ function TextInput({ value, onChange, type = 'text', placeholder, disabled }: {
   )
 }
 
+function PasswordInput({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string
+}) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        className={inputCls}
+        style={{ ...inputStyle, paddingRight: 38 }}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+        onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        tabIndex={-1}
+        style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', padding: 6, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted, display: 'flex' }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
+          {visible ? 'visibility_off' : 'visibility'}
+        </span>
+      </button>
+    </div>
+  )
+}
+
 function TextArea({ value, onChange, rows = 4, placeholder }: { value: string; onChange: (v: string) => void; rows?: number; placeholder?: string }) {
   return (
     <textarea
@@ -55,7 +85,7 @@ function TextArea({ value, onChange, rows = 4, placeholder }: { value: string; o
   )
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function SectionCard({ title, subtitle, footer, children }: { title: string; subtitle: string; footer?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div
       className="rounded-2xl overflow-hidden admin-fade-up"
@@ -68,6 +98,11 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {children}
       </div>
+      {footer && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+          {footer}
+        </div>
+      )}
     </div>
   )
 }
@@ -305,7 +340,16 @@ export default function SettingsPage() {
                 </div>
               </SectionCard>
 
-              <SectionCard title="Informasi Akun" subtitle="Detail identitas yang digunakan pada portal admin">
+              <SectionCard title="Informasi Akun" subtitle="Detail identitas yang digunakan pada portal admin"
+                footer={
+                  <button onClick={handleSaveProfile} disabled={saving}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: saving ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                    {saving
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                      : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil</>}
+                  </button>
+                }
+              >
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Nama Lengkap">
                     <TextInput value={profile.name} onChange={(v) => setProfile({ ...profile, name: v })} placeholder="Nama Anda" />
@@ -337,42 +381,33 @@ export default function SettingsPage() {
                   </div>
                 </Field>
               </SectionCard>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={handleSaveProfile} disabled={saving}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: saving ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
-                  {saving
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
-                    : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil</>}
-                </button>
-              </div>
             </>
           )}
 
           {activeTab === 'security' && (
             <>
-              <SectionCard title="Ubah Password" subtitle="Gunakan password yang kuat dan tidak digunakan di tempat lain">
+              <SectionCard title="Ubah Password" subtitle="Gunakan password yang kuat dan tidak digunakan di tempat lain"
+                footer={
+                  <button onClick={handleChangePassword} disabled={changingPassword}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: changingPassword ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: changingPassword ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                    {changingPassword
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                      : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>lock_reset</span>Ubah Password</>}
+                  </button>
+                }
+              >
                 <Field label="Password Saat Ini">
-                  <TextInput type="password" value={currentPassword} onChange={setCurrentPassword} placeholder="Masukkan password saat ini" />
+                  <PasswordInput value={currentPassword} onChange={setCurrentPassword} placeholder="Masukkan password saat ini" />
                 </Field>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="Password Baru">
-                    <TextInput type="password" value={newPassword} onChange={setNewPassword} placeholder="Minimal 6 karakter" />
+                    <PasswordInput value={newPassword} onChange={setNewPassword} placeholder="Minimal 6 karakter" />
                   </Field>
                   <Field label="Konfirmasi Password Baru">
-                    <TextInput type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="Ulangi password baru" />
+                    <PasswordInput value={confirmPassword} onChange={setConfirmPassword} placeholder="Ulangi password baru" />
                   </Field>
                 </div>
               </SectionCard>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button onClick={handleChangePassword} disabled={changingPassword}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: changingPassword ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: changingPassword ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
-                  {changingPassword
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
-                    : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>lock_reset</span>Ubah Password</>}
-                </button>
-              </div>
             </>
           )}
 
