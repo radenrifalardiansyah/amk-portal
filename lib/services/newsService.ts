@@ -21,6 +21,18 @@ export interface NewsArticle {
 
 const COL = 'news'
 
+function todayStr(): string {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function isVisible(article: NewsArticle): boolean {
+  return article.status === 'published' && article.publishedAt <= todayStr()
+}
+
 const seedData: NewsArticle[] = [
   {
     slug: 'amk-raih-penghargaan-agensi-kreatif-2025',
@@ -72,7 +84,7 @@ export const newsService = {
 
   async getAllPublished(): Promise<NewsArticle[]> {
     const all = await this.getAll()
-    return all.filter((n) => n.status === 'published')
+    return all.filter(isVisible)
   },
 
   getBySlug: cache(async (slug: string): Promise<NewsArticle | null> => {
@@ -83,7 +95,7 @@ export const newsService = {
   async getAllSlugs(): Promise<string[]> {
     try {
       const snap = await getDocs(collection(db, COL))
-      return snap.docs.filter((d) => (d.data() as NewsArticle).status === 'published').map((d) => d.id)
+      return snap.docs.filter((d) => isVisible(d.data() as NewsArticle)).map((d) => d.id)
     } catch {
       return []
     }

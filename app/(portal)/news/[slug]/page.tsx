@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { newsService, siteContentService } from '@/lib/services'
+import { isVisible } from '@/lib/services/newsService'
 import { SITE_URL, absoluteUrl, ogImage } from '@/lib/seo'
 
 export const revalidate = false
@@ -15,7 +16,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const article = await newsService.getBySlug(slug)
-  if (!article || article.status !== 'published') return {}
+  if (!article || !isVisible(article)) return {}
   return {
     title: `${article.title} | AMK News`,
     description: article.excerpt,
@@ -48,7 +49,7 @@ function formatDate(iso: string) {
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const article = await newsService.getBySlug(slug)
-  if (!article || article.status !== 'published') notFound()
+  if (!article || !isVisible(article)) notFound()
 
   const [all, company] = await Promise.all([
     newsService.getAllPublished(),
