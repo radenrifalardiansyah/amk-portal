@@ -47,7 +47,7 @@ function TextArea({ value, onChange, rows = 3, placeholder }: { value: string; o
   )
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function SectionCard({ title, subtitle, footer, children }: { title: string; subtitle: string; footer?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div
       className="rounded-2xl overflow-hidden admin-fade-up"
@@ -60,6 +60,11 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle: s
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {children}
       </div>
+      {footer && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
+          {footer}
+        </div>
+      )}
     </div>
   )
 }
@@ -181,20 +186,20 @@ export default function CompanyProfilePage() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Copyright" subtitle="Teks yang tampil di bagian bawah footer website">
+          <SectionCard title="Copyright" subtitle="Teks yang tampil di bagian bawah footer website"
+            footer={
+              <button onClick={handleSave} disabled={saving || uploadingLogo || !edit}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                {saving
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
+                  : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}
+              </button>
+            }
+          >
             <Field label="Teks Copyright">
               <TextInput value={company.copyrightText} onChange={(v) => setCompany({ ...company, copyrightText: v })} placeholder="Nama Perusahaan - All rights reserved." />
             </Field>
           </SectionCard>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button onClick={handleSave} disabled={saving || uploadingLogo || !edit}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
-              {saving
-                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
-                : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}
-            </button>
-          </div>
         </div>
       )}
     </>
