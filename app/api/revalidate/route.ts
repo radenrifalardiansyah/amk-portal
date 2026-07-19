@@ -7,11 +7,16 @@ async function requireAdmin(req: NextRequest) {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
   if (!token) return false
 
-  const decoded = await adminAuth().verifyIdToken(token).catch(() => null)
-  if (!decoded?.email) return false
+  try {
+    const decoded = await adminAuth().verifyIdToken(token)
+    if (!decoded?.email) return false
 
-  const callerDoc = await adminDb().collection('users').doc(decoded.email).get()
-  return callerDoc.exists
+    const callerDoc = await adminDb().collection('users').doc(decoded.email).get()
+    return callerDoc.exists
+  } catch (err) {
+    console.error('requireAdmin failed (check Firebase Admin env vars):', err)
+    return false
+  }
 }
 
 interface RevalidateEntry {

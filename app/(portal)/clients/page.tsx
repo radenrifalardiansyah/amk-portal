@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { clientsService, siteContentService } from '@/lib/services'
 import ClientLogo from '@/components/ClientLogo'
 
-export const revalidate = 300
+export const revalidate = false
 
 export const metadata: Metadata = {
   title: 'Clients | AMK Creative Agency',

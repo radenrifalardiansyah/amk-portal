@@ -5,7 +5,7 @@ import { clientsService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 import ClientLogo from '@/components/ClientLogo'
 
-export const revalidate = 300
+export const revalidate = false
 
 export async function generateStaticParams() {
   const clients = await clientsService.getAll()

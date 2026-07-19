@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { newsService } from '@/lib/services'
 import NewsExplorer from './NewsExplorer'
 
-export const revalidate = 300
+export const revalidate = false
 
 export const metadata: Metadata = {
   title: 'Berita | AMK Creative Agency',

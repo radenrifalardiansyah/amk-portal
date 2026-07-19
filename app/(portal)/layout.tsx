@@ -5,7 +5,7 @@ import RevealProvider from '@/components/RevealProvider'
 import PageViewTracker from '@/components/PageViewTracker'
 import { siteContentService, menuItemsService } from '@/lib/services'
 
-export const revalidate = 300
+export const revalidate = false
 
 // Menu-struktur id -> link publik. Hanya menu di sini yang tampil di navbar; urutannya ikut field `order` di menu_items.
 const NAV_LINK_BY_ID: Record<string, NavLink> = {

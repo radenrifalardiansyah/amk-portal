@@ -3,7 +3,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { portfolioService, clientsService } from '@/lib/services'
 
-export const revalidate = 300
+export const revalidate = false
 
 export const metadata: Metadata = {
   title: 'Portfolio | AMK Creative Agency',

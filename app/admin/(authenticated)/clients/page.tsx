@@ -217,7 +217,7 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
       await siteContentService.saveClientsSection(form)
       await mutate(form, false)
       showToast('success', 'Judul section berhasil disimpan!')
-      revalidatePaths(['/'])
+      revalidatePaths(['/', '/clients'])
     } catch {
       showToast('error', 'Gagal menyimpan judul section')
     } finally {
@@ -291,7 +291,7 @@ export default function ClientsPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Client berhasil ditambahkan!' : 'Client berhasil diperbarui!')
-      revalidatePaths(['/', '/portfolio'])
+      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${data.id}`])
     } catch {
       showToast('error', 'Gagal menyimpan client')
     }
@@ -304,7 +304,7 @@ export default function ClientsPage() {
       await clientsService.delete(id)
       await mutate()
       showToast('success', 'Client berhasil dihapus')
-      revalidatePaths(['/', '/portfolio'])
+      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${id}`])
     } catch {
       showToast('error', 'Gagal menghapus client')
     } finally {

@@ -13,7 +13,7 @@ import NewsSection from '@/components/sections/NewsSection'
 import ContactSection from '@/components/sections/ContactSection'
 import ClientsSection from '@/components/sections/ClientsSection'
 
-export const revalidate = 300
+export const revalidate = false
 
 // Fallback urutan (mengikuti nilai order default di menu_items) jika menu item belum di-seed/dihapus.
 const DEFAULT_SECTION_ORDER: Record<string, number> = {

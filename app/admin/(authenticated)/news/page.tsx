@@ -298,13 +298,18 @@ export default function NewsPage() {
     setTimeout(() => setToast(null), 4000)
   }
 
+  const notifyRevalidateFailure = () => {
+    setTimeout(() => showToast('info', 'Tersimpan, tapi cache halaman live gagal di-refresh. Perubahan akan tampil otomatis dalam ±5 menit.'), 4200)
+  }
+
   const handleSave = async (data: NewsArticle) => {
     try {
       await newsService.save(data)
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Berita berhasil ditambahkan!' : 'Berita berhasil diperbarui!')
-      revalidatePaths(['/', '/news', `/news/${data.slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${data.slug}`])
+      if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal menyimpan berita')
     }
@@ -317,7 +322,8 @@ export default function NewsPage() {
       await newsService.delete(slug)
       await mutate()
       showToast('success', 'Berita berhasil dihapus')
-      revalidatePaths(['/', '/news', `/news/${slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${slug}`])
+      if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal menghapus berita')
     } finally {
@@ -330,7 +336,8 @@ export default function NewsPage() {
       await newsService.save({ ...article, status })
       await mutate()
       showToast('success', message)
-      revalidatePaths(['/', '/news', `/news/${article.slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${article.slug}`])
+      if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal memperbarui status berita')
     }

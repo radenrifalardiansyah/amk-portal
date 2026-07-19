@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { siteContentService } from '@/lib/services'
 import AboutSection from '@/components/sections/AboutSection'
 
-export const revalidate = 300
+export const revalidate = false
 
 export const metadata: Metadata = {
   title: 'Tentang AMK',

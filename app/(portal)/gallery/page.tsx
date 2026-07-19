@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { galleryService } from '@/lib/services'
 import GalleryGrid from './GalleryGrid'
 
-export const revalidate = 300
+export const revalidate = false
 
 export const metadata: Metadata = {
   title: 'Gallery | AMK Creative Agency',

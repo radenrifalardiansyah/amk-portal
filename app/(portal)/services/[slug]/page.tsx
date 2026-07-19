@@ -5,7 +5,7 @@ import SafeImage from '@/components/SafeImage'
 import { servicesService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 
-export const revalidate = 300
+export const revalidate = false
 
 export async function generateStaticParams() {
   const slugs = await servicesService.getAllSlugs()

@@ -1,5 +1,5 @@
-const MAX_DIMENSION = 1600
-const TARGET_BYTES = 700 * 1024 // stay well under Firestore's 1 MiB document limit
+const MAX_DIMENSION = 1200
+const TARGET_BYTES = 280 * 1024 // stay well under Firestore's 1 MiB document limit and keep per-page payload small
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

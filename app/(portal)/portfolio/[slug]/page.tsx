@@ -6,7 +6,7 @@ import { portfolioService, clientsService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 import ProjectGallery from './ProjectGallery'
 
-export const revalidate = 300
+export const revalidate = false
 
 export async function generateStaticParams() {
   const slugs = await portfolioService.getAllSlugs()
