@@ -221,7 +221,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#fff', fontSize: 13, fontWeight: 700,
             background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-            boxShadow: '0 8px 24px rgba(37,99,235,0.28)',
+            boxShadow: '0 8px 24px rgba(7,82,183,0.28)',
             fontFamily: theme.fontHeadline,
           }}>
             {brandName}
@@ -281,7 +281,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
                 background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-                boxShadow: '0 6px 16px rgba(37,99,235,0.25)',
+                boxShadow: '0 6px 16px rgba(7,82,183,0.25)',
                 fontFamily: theme.fontHeadline,
               }}>
                 {brandName}
@@ -316,7 +316,10 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                     letterSpacing: '0.12em', color: theme.textMuted,
                   }}
                 >
-                  <span>{group.label}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span style={{ width: 3, height: 12, borderRadius: 2, flexShrink: 0, background: `linear-gradient(180deg, ${theme.accent}, ${theme.cyan})` }} />
+                    {group.label}
+                  </span>
                   <span
                     className="material-symbols-outlined"
                     style={{ fontSize: 16, transform: isGroupOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}
@@ -335,35 +338,43 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                         href={item.href}
                         title={collapsed ? item.label : undefined}
                         style={{
+                          position: 'relative',
                           display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0,
                           justifyContent: collapsed ? 'center' : 'flex-start',
                           padding: collapsed ? '9px 0' : '9px 10px', borderRadius: 10,
                           fontSize: 13.5, fontWeight: isActive ? 600 : 500, textDecoration: 'none',
-                          background: isActive ? theme.accentSoft : 'transparent',
-                          color: isActive ? theme.accentText : theme.textSecondary,
-                          borderLeft: isActive ? `2px solid ${theme.accent}` : '2px solid transparent',
+                          background: isActive ? `linear-gradient(90deg, ${theme.accentDark}, ${theme.accent})` : 'transparent',
+                          color: isActive ? '#fff' : theme.textSecondary,
+                          boxShadow: isActive ? '0 4px 12px -4px rgba(7,82,183,0.5)' : 'none',
                           transition: 'all 0.15s',
                         }}
                         onMouseEnter={(e) => {
-                          if (!isActive) { e.currentTarget.style.background = theme.surfaceSoft; e.currentTarget.style.color = theme.text }
+                          if (!isActive) { e.currentTarget.style.background = 'linear-gradient(90deg, rgba(7,82,183,0.07), rgba(7,82,183,0) 85%)'; e.currentTarget.style.color = theme.text }
                         }}
                         onMouseLeave={(e) => {
                           if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.textSecondary }
                         }}
                       >
+                        {isActive && (
+                          <span aria-hidden="true" style={{
+                            position: 'absolute', left: collapsed ? '50%' : 14, top: '50%',
+                            transform: collapsed ? 'translate(-50%, -50%)' : 'translateY(-50%)',
+                            width: 24, height: 24, borderRadius: '50%',
+                            background: 'radial-gradient(circle, rgba(93,225,230,0.65), transparent 70%)',
+                            filter: 'blur(5px)', pointerEvents: 'none', zIndex: 0,
+                          }} />
+                        )}
                         <span
                           className="material-symbols-outlined"
                           style={{
+                            position: 'relative', zIndex: 1,
                             fontSize: 18, flexShrink: 0,
-                            color: isActive ? theme.accent : 'inherit',
+                            color: isActive ? theme.cyan : 'inherit',
                             fontVariationSettings: `'FILL' ${isActive ? 1 : 0}, 'wght' 300, 'GRAD' 0, 'opsz' 24`,
                           }}
                         >{item.icon}</span>
                         {!collapsed && (
-                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
-                        )}
-                        {isActive && !hasChildren && !collapsed && (
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: theme.accent, flexShrink: 0, boxShadow: `0 0 5px ${theme.accent}` }} />
+                          <span style={{ position: 'relative', zIndex: 1, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
                         )}
                       </Link>
                       {hasChildren && !collapsed && (
@@ -398,12 +409,12 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                                 display: 'flex', alignItems: 'center', gap: 10,
                                 padding: '8px 10px', borderRadius: 10, marginBottom: 2,
                                 fontSize: 13, fontWeight: isChildLinkActive ? 600 : 500, textDecoration: 'none',
-                                background: isChildLinkActive ? theme.accentSoft : 'transparent',
-                                color: isChildLinkActive ? theme.accentText : theme.textSecondary,
+                                background: isChildLinkActive ? `linear-gradient(90deg, ${theme.accentDark}, ${theme.accent})` : 'transparent',
+                                color: isChildLinkActive ? '#fff' : theme.textSecondary,
                                 transition: 'all 0.15s',
                               }}
                               onMouseEnter={(e) => {
-                                if (!isChildLinkActive) { e.currentTarget.style.background = theme.surfaceSoft; e.currentTarget.style.color = theme.text }
+                                if (!isChildLinkActive) { e.currentTarget.style.background = 'linear-gradient(90deg, rgba(7,82,183,0.07), rgba(7,82,183,0) 85%)'; e.currentTarget.style.color = theme.text }
                               }}
                               onMouseLeave={(e) => {
                                 if (!isChildLinkActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.textSecondary }
@@ -413,14 +424,11 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                                 className="material-symbols-outlined"
                                 style={{
                                   fontSize: 16, flexShrink: 0,
-                                  color: isChildLinkActive ? theme.accent : 'inherit',
+                                  color: isChildLinkActive ? theme.cyan : 'inherit',
                                   fontVariationSettings: `'FILL' ${isChildLinkActive ? 1 : 0}, 'wght' 300, 'GRAD' 0, 'opsz' 24`,
                                 }}
                               >{child.icon}</span>
                               <span style={{ flex: 1 }}>{child.label}</span>
-                              {isChildLinkActive && (
-                                <span style={{ width: 5, height: 5, borderRadius: '50%', background: theme.accent, flexShrink: 0, boxShadow: `0 0 5px ${theme.accent}` }} />
-                              )}
                             </Link>
                           )
                         })}
@@ -480,14 +488,18 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
 
         {/* Header */}
         <header style={{
+          position: 'relative',
           flexShrink: 0, display: 'flex', alignItems: 'center', gap: 16,
           padding: '0 24px', height: 60,
           background: 'rgba(255,255,255,0.85)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: `1px solid ${theme.border}`,
           zIndex: 20,
         }}>
+          <div aria-hidden="true" style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: 2,
+            background: `linear-gradient(90deg, ${theme.accent}, ${theme.cyan}, ${theme.accent})`,
+          }} />
           {isDesktop ? (
             <button
               onClick={toggleSidebarCollapsed}
@@ -529,14 +541,21 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
               Website
             </Link>
             <Link href="/admin/settings" title="Pengaturan Profil" style={{
-              width: 30, height: 30, borderRadius: '50%',
+              width: 32, height: 32, borderRadius: '50%', padding: 2, flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0, overflow: 'hidden',
-              background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+              background: `linear-gradient(135deg, ${theme.cyan}, ${theme.accent})`,
+              boxShadow: '0 4px 14px -4px rgba(7,82,183,0.5)',
             }}>
-              {session.avatarUrl
-                ? <img src={session.avatarUrl} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : initials}
+              <span style={{
+                width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, color: '#fff',
+                background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+              }}>
+                {session.avatarUrl
+                  ? <img src={session.avatarUrl} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : initials}
+              </span>
             </Link>
           </div>
         </header>
@@ -740,7 +759,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
                 style={{
                   padding: '9px 16px', borderRadius: 10, cursor: respondingToLoginRequest ? 'not-allowed' : 'pointer', border: 'none',
                   background: theme.accent, color: '#fff', fontSize: 13, fontWeight: 600,
-                  boxShadow: '0 6px 16px rgba(37,99,235,0.28)', transition: 'all 0.15s',
+                  boxShadow: '0 6px 16px rgba(7,82,183,0.28)', transition: 'all 0.15s',
                 }}
               >
                 Terima

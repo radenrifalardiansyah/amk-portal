@@ -206,7 +206,7 @@ export default function CompanyProfilePage() {
           <SectionCard title="Copyright" subtitle="Teks yang tampil di bagian bawah footer website"
             footer={
               <button onClick={handleSave} disabled={saving || uploadingLogo || uploadingFavicon || !edit}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                 {saving
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                   : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}

@@ -11,12 +11,13 @@ export const theme = {
   textSecondary: '#5B6472',
   textMuted: '#98A2B3',
 
-  accent: '#2563EB',
-  accentDark: '#1D4ED8',
-  accentSoft: 'rgba(37,99,235,0.07)',
-  accentSoftHover: 'rgba(37,99,235,0.13)',
-  accentSoftBorder: 'rgba(37,99,235,0.18)',
-  accentText: '#1D4ED8',
+  accent: '#0752B7',
+  accentDark: '#06469C',
+  cyan: '#5DE1E6',
+  accentSoft: 'rgba(7,82,183,0.07)',
+  accentSoftHover: 'rgba(7,82,183,0.13)',
+  accentSoftBorder: 'rgba(7,82,183,0.18)',
+  accentText: '#06469C',
 
   danger: '#DC2626',
   dangerSoft: 'rgba(220,38,38,0.06)',
@@ -28,7 +29,7 @@ export const theme = {
 
   fontHeadline: "'Space Grotesk', sans-serif",
 
-  chartPalette: ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DB2777', '#0891B2'],
+  chartPalette: ['#0752B7', '#5DE1E6', '#7089C0', '#58C2C4', '#3D72BA', '#57A8CE'],
 } as const
 
 export const inputStyle = {

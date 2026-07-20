@@ -3,6 +3,9 @@ import Footer from '@/components/Footer'
 import BackToTop from '@/components/BackToTop'
 import RevealProvider from '@/components/RevealProvider'
 import PageViewTracker from '@/components/PageViewTracker'
+import PortalBackgroundFX from '@/components/PortalBackgroundFX'
+import CursorGlow from '@/components/CursorGlow'
+import ScrollProgressBar from '@/components/ScrollProgressBar'
 import { siteContentService, menuItemsService } from '@/lib/services'
 
 export const revalidate = false
@@ -39,6 +42,9 @@ export default async function PortalLayout({ children }: { children: React.React
 
   return (
     <>
+      <ScrollProgressBar />
+      <PortalBackgroundFX />
+      <CursorGlow />
       <Navbar company={company} navLinks={navLinks} />
       <RevealProvider />
       <PageViewTracker />

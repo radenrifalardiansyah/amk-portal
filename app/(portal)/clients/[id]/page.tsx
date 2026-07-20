@@ -53,7 +53,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       />
       <main>
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.05),transparent_70%)] animate-fluid" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(7,82,183,0.05),transparent_70%)] animate-fluid" />
           <div className="max-w-4xl mx-auto px-8 relative z-10 text-center reveal-scale active">
             <div className="w-40 h-24 mx-auto mb-8 rounded-2xl bg-surface-container-low border border-outline-variant/10 flex items-center justify-center p-4">
               <ClientLogo src={client.src} name={client.name} className="max-h-full max-w-full object-contain" />

@@ -12,7 +12,7 @@ interface ToastProps {
 const configs = {
   success: { icon: 'check_circle', bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', iconColor: '#22c55e' },
   error:   { icon: 'error',        bg: '#fef2f2', border: '#fecaca', text: '#dc2626', iconColor: '#ef4444' },
-  info:    { icon: 'info',         bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', iconColor: '#2563eb' },
+  info:    { icon: 'info',         bg: '#e9f1fb', border: '#c4d9f2', text: '#06469c', iconColor: '#0752b7' },
 }
 
 export default function Toast({ type, message, onClose }: ToastProps) {

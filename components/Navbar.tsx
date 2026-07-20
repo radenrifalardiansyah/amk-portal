@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import Magnetic from '@/components/Magnetic'
 import type { CompanyProfile } from '@/lib/services'
 
 export interface NavLink {
@@ -97,8 +98,8 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-[30px] shadow-[0_4px_30px_rgba(37,99,235,0.08)]">
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#60a5fa] to-primary" />
+      <nav className="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface/80 backdrop-blur-[30px] shadow-[0_4px_30px_rgba(7,82,183,0.08)]">
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
         <div className="flex justify-between items-center w-full px-8 py-2 lg:py-2.5 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center shrink-0 space-x-3 text-2xl font-bold tracking-tighter text-on-surface font-headline">
             <Image
@@ -112,22 +113,25 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
 
           <div className="hidden lg:flex items-center gap-5 xl:gap-8">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={linkClassName(link, 'nav-link font-headline tracking-[-0.04em] font-bold text-sm xl:text-base text-on-surface-variant hover:text-primary transition-all duration-500 ease-in-out')}
-              >
-                {link.label}
-              </Link>
+              <Magnetic key={link.href} strength={0.18}>
+                <Link
+                  href={link.href}
+                  className={linkClassName(link, 'nav-link font-headline tracking-[-0.04em] font-bold text-sm xl:text-base text-on-surface-variant hover:text-primary transition-all duration-500 ease-in-out')}
+                >
+                  {link.label}
+                </Link>
+              </Magnetic>
             ))}
           </div>
 
-          <Link
-            href="/#contact"
-            className="hidden lg:block shrink-0 font-headline tracking-[-0.04em] font-bold text-primary text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all duration-500 ease-in-out"
-          >
-            Contact Us
-          </Link>
+          <Magnetic strength={0.3}>
+            <Link
+              href="/#contact"
+              className="hidden lg:block shrink-0 font-headline tracking-[-0.04em] font-bold text-primary text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(7,82,183,0.4)] transition-all duration-500 ease-in-out"
+            >
+              Contact Us
+            </Link>
+          </Magnetic>
 
           <button
             id="mobile-menu-btn"

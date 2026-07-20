@@ -1,37 +1,15 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
+import Magnetic from '@/components/Magnetic'
 import type { HeroContent } from '@/lib/services'
 
 export default function HeroSection({ content }: { content: HeroContent }) {
-  const btnRef = useRef<HTMLAnchorElement>(null)
-
-  useEffect(() => {
-    const btn = btnRef.current
-    if (!btn) return
-
-    const onMove = (e: MouseEvent) => {
-      const pos = btn.getBoundingClientRect()
-      const x = (e.clientX - pos.left - pos.width / 2) * 0.4
-      const y = (e.clientY - pos.top - pos.height / 2) * 0.4
-      btn.style.transform = `translate(${x}px, ${y}px)`
-    }
-    const onLeave = () => { btn.style.transform = 'translate(0px, 0px)' }
-
-    btn.addEventListener('mousemove', onMove)
-    btn.addEventListener('mouseleave', onLeave)
-    return () => {
-      btn.removeEventListener('mousemove', onMove)
-      btn.removeEventListener('mouseleave', onLeave)
-    }
-  }, [])
-
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden scroll-mt-8" id="home">
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.08),transparent_70%)] animate-fluid" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(7,82,183,0.08),transparent_70%)] animate-fluid" />
         <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-surface to-transparent" />
       </div>
 
@@ -57,20 +35,23 @@ export default function HeroSection({ content }: { content: HeroContent }) {
           </p>
 
           <div className="flex items-center space-x-6 pt-4">
-            <Link
-              href={content.primaryCtaHref}
-              ref={btnRef}
-              className="magnetic-btn btn-pulse px-8 py-4 hero-gradient text-on-primary font-headline font-extrabold text-lg rounded-xl hover:scale-105 transition-all duration-300 relative overflow-hidden flex items-center justify-center"
-            >
-              <div className="shine-sweep" />
-              <span className="relative z-10">{content.primaryCtaLabel}</span>
-            </Link>
-            <Link href={content.secondaryCtaHref} className="group flex items-center space-x-3 text-primary font-headline font-bold">
-              <span>{content.secondaryCtaLabel}</span>
-              <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform">
-                arrow_forward
-              </span>
-            </Link>
+            <Magnetic strength={0.4}>
+              <Link
+                href={content.primaryCtaHref}
+                className="btn-pulse px-8 py-4 hero-gradient text-on-primary font-headline font-extrabold text-lg rounded-xl hover:scale-105 transition-all duration-300 relative overflow-hidden flex items-center justify-center"
+              >
+                <div className="shine-sweep" />
+                <span className="relative z-10">{content.primaryCtaLabel}</span>
+              </Link>
+            </Magnetic>
+            <Magnetic strength={0.25}>
+              <Link href={content.secondaryCtaHref} className="group flex items-center space-x-3 text-primary font-headline font-bold">
+                <span>{content.secondaryCtaLabel}</span>
+                <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform">
+                  arrow_forward
+                </span>
+              </Link>
+            </Magnetic>
           </div>
         </div>
 

@@ -275,7 +275,7 @@ export default function PenggunaPage() {
                 Batal
               </button>
               <button onClick={handleSaveUserEdit} disabled={savingUserEdit}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: savingUserEdit ? 'rgba(37,99,235,0.5)' : theme.accent }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: savingUserEdit ? 'rgba(7,82,183,0.5)' : theme.accent }}>
                 {savingUserEdit
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                   : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
@@ -310,7 +310,7 @@ export default function PenggunaPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={handleCreateUser} disabled={creatingUser}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: creatingUser ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: creatingUser ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: creatingUser ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: creatingUser ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: creatingUser ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: creatingUser ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
               {creatingUser
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Membuat...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>person_add</span>Buat Pengguna</>}

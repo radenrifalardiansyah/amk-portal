@@ -89,7 +89,7 @@ export default function InstallPwaCard() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               width: '100%', padding: '10px', borderRadius: 10, fontSize: 12.5, fontWeight: 600,
               color: '#fff', border: 'none', cursor: installing ? 'not-allowed' : 'pointer',
-              background: installing ? 'rgba(37,99,235,0.5)' : theme.accent,
+              background: installing ? 'rgba(7,82,183,0.5)' : theme.accent,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>

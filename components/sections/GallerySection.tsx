@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import MediaPlaceholder from '@/components/MediaPlaceholder'
+import TiltCard from '@/components/TiltCard'
 import type { GalleryItem, GallerySectionContent } from '@/lib/services'
 import { getVideoEmbed } from '@/lib/videoEmbed'
 
@@ -85,17 +86,22 @@ export default function GallerySection({ previews, content }: { previews: Galler
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {previews.map((item, i) => (
-            <button
+            <TiltCard
               key={item.id}
-              onClick={() => setActiveIndex(i)}
-              className="reveal-scale group relative block overflow-hidden rounded-2xl aspect-square bg-surface-bright shadow-lg"
+              className="reveal-scale"
               style={i > 0 ? { transitionDelay: `${i * 0.1}s` } : {}}
+              max={5}
             >
-              <Thumbnail item={item} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                <p className="text-sm font-headline font-bold text-white text-left">{item.title}</p>
-              </div>
-            </button>
+              <button
+                onClick={() => setActiveIndex(i)}
+                className="group relative block overflow-hidden rounded-2xl aspect-square bg-surface-bright shadow-lg w-full h-full"
+              >
+                <Thumbnail item={item} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                  <p className="text-sm font-headline font-bold text-white text-left">{item.title}</p>
+                </div>
+              </button>
+            </TiltCard>
           ))}
         </div>
       </div>

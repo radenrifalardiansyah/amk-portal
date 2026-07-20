@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import Magnetic from '@/components/Magnetic'
 import type { CompanyProfile } from '@/lib/services'
 import { DEFAULT_NAV_LINKS, type NavLink } from '@/components/Navbar'
 
@@ -50,10 +51,11 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
   const year = new Date().getFullYear()
 
   return (
-    <footer className="bg-surface-container-low border-t border-outline-variant/20 w-full py-12 px-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto font-['Inter'] text-sm text-on-surface-variant">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-primary to-primary-600 w-full py-12 px-8">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto font-['Inter'] text-sm text-white/75">
         <div className="space-y-6 reveal-left">
-          <div className="text-xl font-bold text-on-surface font-headline">
+          <div className="inline-block text-xl font-bold text-on-surface font-headline bg-white rounded-xl px-3 py-2">
             <Image
               src={logoUrl}
               alt={`${shortName} Logo`}
@@ -70,30 +72,30 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
           )}
           <div className="flex flex-wrap gap-4">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-primary transition-opacity">{link.label}</Link>
+              <Link key={link.href} href={link.href} className="hover:text-accent transition-colors">{link.label}</Link>
             ))}
-            <Link href="/#contact" className="hover:text-primary transition-opacity">Contact</Link>
+            <Link href="/#contact" className="hover:text-accent transition-colors">Contact</Link>
             <br />
             {company?.instagramUrl && (
-              <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-opacity flex items-center space-x-2">
+              <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center space-x-2">
                 <InstagramIcon />
                 <span>Instagram</span>
               </a>
             )}
             {company?.linkedinUrl && (
-              <a href={company.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi LinkedIn ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+              <a href={company.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi LinkedIn ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <LinkedInIcon />
                 <span>LinkedIn</span>
               </a>
             )}
             {company?.tiktokUrl && (
-              <a href={company.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi TikTok ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+              <a href={company.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi TikTok ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <TikTokIcon />
                 <span>TikTok</span>
               </a>
             )}
             {company?.youtubeUrl && (
-              <a href={company.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi YouTube ${shortName}`} className="hover:text-primary transition-opacity flex items-center space-x-2">
+              <a href={company.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi YouTube ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <YouTubeIcon />
                 <span>YouTube</span>
               </a>
@@ -102,32 +104,34 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
         </div>
 
         <div className="space-y-6 reveal">
-          <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
+          <h4 className="text-accent font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
           <div className="space-y-4">
-            <a href={waHref} target="_blank" rel="noopener noreferrer" className="block hover:text-primary transition-opacity">
+            <a href={waHref} target="_blank" rel="noopener noreferrer" className="block hover:text-accent transition-colors">
               WhatsApp: {formatPhoneDisplay(waNumber)}
             </a>
-            <a href={`mailto:${email}`} className="block hover:text-primary transition-opacity">
+            <a href={`mailto:${email}`} className="block hover:text-accent transition-colors">
               Email: {email}
             </a>
           </div>
         </div>
 
         <div className="space-y-6 reveal-right">
-          <h4 className="text-primary font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
-          <a
-            href={waHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="magnetic-btn inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"
-          >
-            <WhatsAppIcon />
-            <span>Hubungi via WhatsApp</span>
-          </a>
-          <p className="pt-8">
+          <h4 className="text-accent font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
+          <Magnetic strength={0.3}>
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"
+            >
+              <WhatsAppIcon />
+              <span>Hubungi via WhatsApp</span>
+            </a>
+          </Magnetic>
+          <p className="pt-8 text-white/60">
             Copyright &copy; {year} {copyrightText}{' '}
             <br />
-            Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-primary">RMedia Solution</a>
+            Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-accent text-white/60">RMedia Solution</a>
           </p>
         </div>
       </div>

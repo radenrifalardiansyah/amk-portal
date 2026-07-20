@@ -343,7 +343,7 @@ export default function SettingsPage() {
               <SectionCard title="Informasi Akun" subtitle="Detail identitas yang digunakan pada portal admin"
                 footer={
                   <button onClick={handleSaveProfile} disabled={saving}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: saving ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: saving ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: saving ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                     {saving
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                       : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil</>}
@@ -389,7 +389,7 @@ export default function SettingsPage() {
               <SectionCard title="Ubah Password" subtitle="Gunakan password yang kuat dan tidak digunakan di tempat lain"
                 footer={
                   <button onClick={handleChangePassword} disabled={changingPassword}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: changingPassword ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: changingPassword ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: changingPassword ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: changingPassword ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                     {changingPassword
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                       : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>lock_reset</span>Ubah Password</>}
@@ -421,7 +421,7 @@ export default function SettingsPage() {
               </p>
               <div>
                 <button onClick={handleForceDeploy} disabled={deploying}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: deploying ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: deploying ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: deploying ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: deploying ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: deploying ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: deploying ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                   {deploying
                     ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Memicu deploy...</>
                     : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>bolt</span>Paksa Refresh Situs</>}
@@ -437,7 +437,7 @@ export default function SettingsPage() {
               </p>
               <div>
                 <button onClick={handleSeed} disabled={seeding}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: seeding ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: seeding ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: seeding ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: seeding ? 'not-allowed' : 'pointer', transition: 'all 0.15s', background: seeding ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: seeding ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                   {seeding
                     ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Mengisi Firestore...</>
                     : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>cloud_upload</span>Seed Konten Awal ke Firestore</>}

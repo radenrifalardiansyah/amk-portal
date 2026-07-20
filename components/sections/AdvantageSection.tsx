@@ -7,7 +7,7 @@ export default function AdvantageSection({ advantages, content }: { advantages: 
       <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-20 items-center">
         <div className="relative reveal-left">
           <div className="absolute -inset-4 bg-primary/20 blur-3xl opacity-20 animate-pulse" />
-          <div className="relative z-10 rounded-3xl overflow-hidden rotate-1 hover:rotate-0 transition-all duration-700 shadow-[0_0_50px_rgba(37,99,235,0.15)] border border-primary/20">
+          <div className="relative z-10 rounded-3xl overflow-hidden rotate-1 hover:rotate-0 transition-all duration-700 shadow-[0_0_50px_rgba(7,82,183,0.15)] border border-primary/20">
             <SafeImage
               src={content.image}
               alt="Tech Visual"

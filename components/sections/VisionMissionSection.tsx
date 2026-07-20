@@ -27,7 +27,7 @@ export default function VisionMissionSection({ content }: { content: AboutPageCo
 
   return (
     <section className="relative py-24 bg-surface overflow-hidden reveal scroll-mt-8" id="vision-mission">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,235,0.07),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(7,82,183,0.07),transparent_55%)]" />
 
       <div className="max-w-7xl mx-auto px-8 relative z-10 space-y-20">
         {/* Vision */}

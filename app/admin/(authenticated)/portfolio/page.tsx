@@ -271,7 +271,7 @@ function PortfolioModal({
               Batal
             </button>
             <button type="submit" disabled={saving || uploading || anyGalleryUploading}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploading || anyGalleryUploading) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploading || anyGalleryUploading) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploading || anyGalleryUploading) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || uploading || anyGalleryUploading) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
@@ -345,7 +345,7 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '14px 20px', borderTop: `1px solid ${theme.divider}` }}>
             <button onClick={handleSave} disabled={saving || !canEdit}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !canEdit) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || !canEdit) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
@@ -478,7 +478,7 @@ export default function PortfolioPage() {
           {edit && (
             <button onClick={() => setModal({ mode: 'add', project: {} })}
               className="px-3 sm:px-4"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 9, paddingBottom: 9, borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(7,82,183,0.25)', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span><span className="hidden sm:inline">Tambah Proyek</span>
             </button>
           )}
@@ -532,7 +532,7 @@ export default function PortfolioPage() {
           </div>
           {!search && edit && (
             <button onClick={() => setModal({ mode: 'add', project: {} })}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(37,99,235,0.25)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: '#fff', background: theme.accent, border: 'none', cursor: 'pointer', boxShadow: '0 2px 12px rgba(7,82,183,0.25)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>add</span>Tambah Proyek
             </button>
           )}

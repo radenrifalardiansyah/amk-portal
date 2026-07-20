@@ -1,4 +1,5 @@
 import SafeImage from '@/components/SafeImage'
+import TiltCard from '@/components/TiltCard'
 import type { Leader, KeyPartner, TeamsSectionContent } from '@/lib/services'
 
 const InstagramIcon = () => (
@@ -25,23 +26,25 @@ export default function TeamsSection({ leaders, partners, content }: { leaders: 
         {leaders.length > 0 && (
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {leaders.map((leader, i) => (
-              <div
+              <TiltCard
                 key={leader.id}
-                className="reveal-scale group relative overflow-hidden rounded-3xl bg-surface-container text-center pb-8 border border-outline-variant/10 hover-lift"
+                className="reveal-scale"
                 style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
               >
-                <div className="aspect-[3/4] overflow-hidden mb-6 relative">
-                  <SafeImage
-                    src={leader.image}
-                    alt={leader.name}
-                    fill
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                    className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
-                  />
+                <div className="group relative overflow-hidden rounded-3xl bg-surface-container text-center pb-8 border border-outline-variant/10 hover-lift h-full">
+                  <div className="aspect-[3/4] overflow-hidden mb-6 relative">
+                    <SafeImage
+                      src={leader.image}
+                      alt={leader.name}
+                      fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <h3 className="text-2xl font-headline font-bold text-primary">{leader.name}</h3>
+                  <p className="text-on-surface-variant font-medium">{leader.role}</p>
                 </div>
-                <h3 className="text-2xl font-headline font-bold text-primary">{leader.name}</h3>
-                <p className="text-on-surface-variant font-medium">{leader.role}</p>
-              </div>
+              </TiltCard>
             ))}
           </div>
         )}
@@ -60,7 +63,7 @@ export default function TeamsSection({ leaders, partners, content }: { leaders: 
                   className="reveal-scale group relative overflow-hidden rounded-3xl bg-surface-container border border-outline-variant/10 hover-lift"
                   style={i > 0 ? { transitionDelay: `${i * 0.1}s` } : {}}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[#60a5fa] to-primary opacity-70" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-[#5de1e6] to-primary opacity-70" />
 
                   <div className="p-8">
                     <div className="flex items-center gap-4 mb-6">
@@ -81,7 +84,7 @@ export default function TeamsSection({ leaders, partners, content }: { leaders: 
                           key={j}
                           className="flex items-center gap-3 p-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/10 transition-colors hover:border-primary/20"
                         >
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#60a5fa] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold uppercase overflow-hidden">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#5de1e6] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold uppercase overflow-hidden">
                             {m.photo ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />

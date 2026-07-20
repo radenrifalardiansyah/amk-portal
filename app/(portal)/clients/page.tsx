@@ -31,7 +31,7 @@ export default async function ClientsPage() {
   return (
     <main>
       <section className="relative pt-32 pb-20 overflow-hidden bg-surface">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(37,99,235,0.08),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(7,82,183,0.08),transparent_50%)]" />
         <div className="max-w-6xl mx-auto px-8 text-center relative z-10">
           <span className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary/10 text-primary text-xs uppercase tracking-[0.3em] font-bold mb-6">
             Clients

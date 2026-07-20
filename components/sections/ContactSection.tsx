@@ -1,3 +1,4 @@
+import Magnetic from '@/components/Magnetic'
 import type { ContactContent } from '@/lib/services'
 
 const WhatsAppIcon = () => (
@@ -17,20 +18,22 @@ export default function ContactSection({ content }: { content: ContactContent })
             <p className="text-xl text-on-surface-variant leading-relaxed">
               {content.description}
             </p>
-            <a
-              href={`https://wa.me/${content.waNumber}?text=${encodeURIComponent(content.waMessageTemplate)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-4 p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm hover-lift cursor-pointer"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center">
-                <WhatsAppIcon />
-              </div>
-              <div>
-                <p className="font-bold text-lg text-on-surface">{content.waResponseTitle}</p>
-                <p className="text-sm text-on-surface-variant">{content.waResponseSubtitle}</p>
-              </div>
-            </a>
+            <Magnetic strength={0.15}>
+              <a
+                href={`https://wa.me/${content.waNumber}?text=${encodeURIComponent(content.waMessageTemplate)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-4 p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm hover-lift cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center">
+                  <WhatsAppIcon />
+                </div>
+                <div>
+                  <p className="font-bold text-lg text-on-surface">{content.waResponseTitle}</p>
+                  <p className="text-sm text-on-surface-variant">{content.waResponseSubtitle}</p>
+                </div>
+              </a>
+            </Magnetic>
           </div>
 
           {content.googleFormUrl && (

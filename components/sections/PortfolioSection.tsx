@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
+import TiltCard from '@/components/TiltCard'
 import type { PortfolioProject } from '@/data/portfolio'
 import type { PortfolioSectionContent } from '@/lib/services'
 
@@ -25,26 +26,30 @@ export default function PortfolioSection({ previews, content }: { previews: Port
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {previews.map((item, i) => (
-            <Link
+            <TiltCard
               key={item.slug}
-              href={`/portfolio/${item.slug}`}
-              className="reveal-scale group relative overflow-hidden rounded-2xl aspect-video bg-surface-bright shadow-lg block"
+              className="reveal-scale"
               style={i > 0 ? { transitionDelay: `${i * 0.2}s` } : {}}
             >
-              <SafeImage
-                src={item.image}
-                alt={item.title}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                <div>
-                  <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.category}</p>
-                  <h4 className="text-lg font-headline font-bold text-white">{item.title}</h4>
-                  <p className="text-xs text-white/70 mt-1">{item.client}</p>
+              <Link
+                href={`/portfolio/${item.slug}`}
+                className="group relative overflow-hidden rounded-2xl aspect-video bg-surface-bright shadow-lg block h-full"
+              >
+                <SafeImage
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                  <div>
+                    <p className="text-xs text-primary font-bold uppercase tracking-widest">{item.category}</p>
+                    <h4 className="text-lg font-headline font-bold text-white">{item.title}</h4>
+                    <p className="text-xs text-white/70 mt-1">{item.client}</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </TiltCard>
           ))}
         </div>
       </div>

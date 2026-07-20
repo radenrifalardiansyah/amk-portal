@@ -100,7 +100,7 @@ function ModuleModal({
               Batal
             </button>
             <button type="submit" disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: saving ? 'rgba(7,82,183,0.5)' : theme.accent }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}
@@ -231,7 +231,7 @@ function MenuItemModal({
               Batal
             </button>
             <button type="submit" disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: saving ? 'rgba(37,99,235,0.5)' : theme.accent }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', background: saving ? 'rgba(7,82,183,0.5)' : theme.accent }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan</>}

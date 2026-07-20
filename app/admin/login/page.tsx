@@ -142,9 +142,9 @@ export default function AdminLoginPage() {
     >
       {/* background orbs */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.09) 0%, transparent 65%)' }} />
-        <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 65%)' }} />
-        <div style={{ position: 'absolute', top: '40%', left: '30%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.04) 0%, transparent 65%)' }} />
+        <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(7,82,183,0.09) 0%, transparent 65%)' }} />
+        <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(7,82,183,0.06) 0%, transparent 65%)' }} />
+        <div style={{ position: 'absolute', top: '40%', left: '30%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(7,82,183,0.04) 0%, transparent 65%)' }} />
       </div>
 
       {/* grid pattern */}
@@ -187,7 +187,7 @@ export default function AdminLoginPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 marginBottom: 16, color: '#fff', fontSize: 15, fontWeight: 700, letterSpacing: '0.04em',
                 background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-                boxShadow: '0 8px 32px rgba(37,99,235,0.3)',
+                boxShadow: '0 8px 32px rgba(7,82,183,0.3)',
                 fontFamily: theme.fontHeadline,
               }}>
                 {brandName}
@@ -268,8 +268,8 @@ export default function AdminLoginPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '14px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: '#fff',
                 border: 'none', cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4,
-                background: loading ? 'rgba(37,99,235,0.5)' : `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
-                boxShadow: loading ? 'none' : '0 4px 20px rgba(37,99,235,0.3)',
+                background: loading ? 'rgba(7,82,183,0.5)' : `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+                boxShadow: loading ? 'none' : '0 4px 20px rgba(7,82,183,0.3)',
                 transition: 'all 0.2s',
               }}
             >

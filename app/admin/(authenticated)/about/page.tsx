@@ -188,7 +188,7 @@ export default function AboutPageContentAdmin() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={handleSave} disabled={saving || !edit || uploadingAboutImage}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !edit || uploadingAboutImage) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || !edit || uploadingAboutImage) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || !edit || uploadingAboutImage) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || !edit || uploadingAboutImage) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
               {saving
                 ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                 : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Semua</>}

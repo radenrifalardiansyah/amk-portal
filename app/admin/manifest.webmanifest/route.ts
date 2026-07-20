@@ -40,7 +40,7 @@ export async function GET() {
     display: 'standalone',
     orientation: 'portrait-primary',
     background_color: '#FFFFFF',
-    theme_color: '#2563EB',
+    theme_color: '#0752B7',
     lang: 'id',
     icons,
   }
