@@ -10,6 +10,7 @@ import { theme } from '@/lib/admin-theme'
 import { useAdminNav } from '@/lib/useAdminNav'
 import type { NavItem } from '@/lib/useAdminNav'
 import { PermissionContext, usePermissionValue } from '@/lib/permissions'
+import ActiveAccountsWidget from '@/components/admin/ActiveAccountsWidget'
 
 const APP_VERSION = '0.1.0'
 
@@ -134,6 +135,31 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
       unsubscribe()
       clearInterval(heartbeatId)
     }
+  }, [session?.email, router])
+
+  // Listens for an admin-initiated kick (distinct from the takeover watcher above:
+  // there's no new session claiming the lock here, so this browser also releases it).
+  useEffect(() => {
+    const email = session?.email
+    if (!email) return
+    let initial = true
+    let lastSeen: string | null = null
+
+    const unsubscribe = usersService.watchForceLogout(email, (forceLogoutAt) => {
+      if (initial) {
+        initial = false
+        lastSeen = forceLogoutAt ?? null
+        return
+      }
+      if (forceLogoutAt && forceLogoutAt !== lastSeen) {
+        lastSeen = forceLogoutAt
+        usersService.markKickedElsewhere()
+        usersService.clearSession()
+        usersService.logout().finally(() => router.replace('/admin/login'))
+      }
+    })
+
+    return unsubscribe
   }, [session?.email, router])
 
   // Listens for a pending login request from another device trying to sign into
@@ -705,6 +731,8 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
           </div>
         </div>
       </div>
+
+      <ActiveAccountsWidget session={session} canKick={permission.isAdminRole} />
 
       {/* Incoming Login Request Modal */}
       {loginRequest && (

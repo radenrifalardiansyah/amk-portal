@@ -34,6 +34,7 @@ export interface AdminUser {
   lastLoginDevice?: DeviceType
   activeSession?: ActiveSession | null
   loginRequest?: LoginRequest | null
+  forceLogoutAt?: string | null
 }
 
 export type SessionUser = AdminUser
@@ -72,7 +73,7 @@ function detectDevice(): DeviceType {
   return MOBILE_UA.test(navigator.userAgent) ? 'mobile' : 'desktop'
 }
 
-function isSessionActive(session?: ActiveSession | null): session is ActiveSession {
+export function isSessionActive(session?: ActiveSession | null): session is ActiveSession {
   if (!session?.sessionId) return false
   return Date.now() - new Date(session.lastActiveAt).getTime() < SESSION_STALE_MS
 }
@@ -108,7 +109,7 @@ export const usersService = {
     const sessionId = generateSessionId()
     const activeSession: ActiveSession = { sessionId, device, lastActiveAt: now }
 
-    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession, loginRequest: null })
+    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession, loginRequest: null, forceLogoutAt: null })
     if (typeof window !== 'undefined') localStorage.setItem(SESSION_ID_KEY, sessionId)
 
     return { ...profile, lastLoginAt: now, lastLoginDevice: device, activeSession }
@@ -141,6 +142,31 @@ export const usersService = {
       (snap) => callback((snap.data() as AdminUser | undefined)?.activeSession),
       () => { /* ignore transient errors, e.g. right after sign-out during navigation */ },
     )
+  },
+
+  // Live list of all admin accounts, used to compute/display who's currently active.
+  watchUsers(callback: (users: AdminUser[]) => void) {
+    return onSnapshot(
+      collection(db, COL),
+      (snap) => callback(snap.docs.map((d) => d.data() as AdminUser)),
+      () => { /* ignore transient errors */ },
+    )
+  },
+
+  watchForceLogout(email: string, callback: (forceLogoutAt: string | null | undefined) => void) {
+    return onSnapshot(
+      doc(db, COL, email),
+      (snap) => callback((snap.data() as AdminUser | undefined)?.forceLogoutAt),
+      () => { /* ignore transient errors */ },
+    )
+  },
+
+  // Admin-initiated kick: doesn't touch activeSession directly (that would either be
+  // ignored by the watcher's falsy check on null, or leave a fake session lingering
+  // as "active" for up to SESSION_STALE_MS). Instead it stamps a distinct signal the
+  // target's own browser watches for, then cleans up its own session on the way out.
+  async kick(email: string): Promise<void> {
+    await updateDoc(doc(db, COL, email), { forceLogoutAt: new Date().toISOString() })
   },
 
   async sendHeartbeat(email: string): Promise<void> {

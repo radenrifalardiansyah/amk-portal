@@ -1,7 +1,7 @@
 export { portfolioService } from './portfolioService'
 export { servicesService } from './servicesService'
 export { leadsService } from './leadsService'
-export { usersService, SESSION_UPDATED_EVENT, HEARTBEAT_INTERVAL_MS, LoginApprovalPendingError } from './usersService'
+export { usersService, SESSION_UPDATED_EVENT, HEARTBEAT_INTERVAL_MS, LoginApprovalPendingError, isSessionActive } from './usersService'
 export { advantagesService } from './advantagesService'
 export { leadersService } from './leadersService'
 export { clientsService } from './clientsService'
