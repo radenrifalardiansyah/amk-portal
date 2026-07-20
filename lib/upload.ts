@@ -30,7 +30,7 @@ function keepsTransparency(file: File): boolean {
   return file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/gif'
 }
 
-async function compressImage(file: File, onProgress?: (percent: number) => void): Promise<string> {
+async function compressImage(file: File, onProgress?: (percent: number) => void, squareCrop?: boolean): Promise<string> {
   const dataUrl = await fileToDataUrl(file)
   onProgress?.(30)
   const img = await loadImage(dataUrl)
@@ -39,12 +39,21 @@ async function compressImage(file: File, onProgress?: (percent: number) => void)
   const ctx = canvas.getContext('2d')
   if (!ctx) return dataUrl
 
-  let scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height))
+  // Center-crop to a square source rect first (rather than stretching), so a
+  // non-square upload (e.g. for a favicon) still renders undistorted when a
+  // browser/OS forces it into a square tile.
+  const cropSize = squareCrop ? Math.min(img.width, img.height) : null
+  const srcX = cropSize ? (img.width - cropSize) / 2 : 0
+  const srcY = cropSize ? (img.height - cropSize) / 2 : 0
+  const srcW = cropSize ?? img.width
+  const srcH = cropSize ?? img.height
+
+  let scale = Math.min(1, MAX_DIMENSION / Math.max(srcW, srcH))
   const render = (s: number) => {
-    canvas.width = Math.round(img.width * s)
-    canvas.height = Math.round(img.height * s)
+    canvas.width = Math.round(srcW * s)
+    canvas.height = Math.round(srcH * s)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height)
   }
   render(scale)
   onProgress?.(60)
@@ -79,9 +88,10 @@ export async function uploadMedia(
   file: File,
   _folder: string,
   onProgress?: (percent: number) => void,
+  squareCrop?: boolean,
 ): Promise<string> {
   onProgress?.(10)
-  const url = await compressImage(file, onProgress)
+  const url = await compressImage(file, onProgress, squareCrop)
   onProgress?.(100)
   return url
 }

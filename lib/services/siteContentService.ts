@@ -105,6 +105,7 @@ export interface CompanyProfile {
   shortName: string
   tagline: string
   logoUrl: string
+  faviconUrl: string
   address: string
   email: string
   phone: string
@@ -143,7 +144,7 @@ const empty = {
     heading: '', description: '', image: '', badgeText: '',
   } as AdvantageSectionContent,
   company: {
-    legalName: '', shortName: '', tagline: '', logoUrl: '', address: '', email: '', phone: '', waNumber: '',
+    legalName: '', shortName: '', tagline: '', logoUrl: '', faviconUrl: '', address: '', email: '', phone: '', waNumber: '',
     instagramUrl: '', linkedinUrl: '', tiktokUrl: '', youtubeUrl: '', copyrightText: '',
   } as CompanyProfile,
 }
@@ -269,6 +270,7 @@ const seedData = {
     shortName: 'AMK',
     tagline: 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.',
     logoUrl: '/images/logo.png',
+    faviconUrl: '',
     address: 'Jl. Ring Road Jl. Raya Bubulak No.A-4, Kota Bogor.',
     email: 'adikaramandalakreasi@gmail.com',
     phone: '6285155336838',

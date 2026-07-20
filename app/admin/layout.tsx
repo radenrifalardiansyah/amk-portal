@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import AdminPwaSetup from '@/components/admin/AdminPwaSetup'
 import { siteContentService } from '@/lib/services'
+import { faviconUrl } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const company = await siteContentService.getCompany()
@@ -12,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       // Root layout's `icons.icon` doesn't carry over here since this segment
       // defines its own `icons`, so the browser-tab favicon must be repeated.
-      icon: company.logoUrl || '/images/logo.png',
+      icon: faviconUrl(company),
       // iOS is unreliable with data: URI apple-touch-icon tags, so always use the bundled PNG.
       apple: '/icons/apple-touch-icon.png',
     },

@@ -12,7 +12,10 @@ function iconType(src: string): string | undefined {
 
 export async function GET() {
   const company = await siteContentService.getCompany()
-  const logo = company.logoUrl
+  // Prefer the favicon (guaranteed square-cropped on upload) over the raw logo,
+  // which can be any aspect ratio and would otherwise be stretched into the
+  // square install-icon slot.
+  const logo = company.faviconUrl || company.logoUrl
 
   const bundledIcons = [
     { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -21,9 +24,9 @@ export async function GET() {
     { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ]
 
-  // Company logo is a user-uploaded data: URI of unknown/arbitrary dimensions, so it
+  // Company logo/favicon is a user-uploaded data: URI of unknown/arbitrary dimensions, so it
   // can't reliably replace the bundled icons (browsers may reject it as an install icon).
-  // Keep the bundled set as the guaranteed-valid baseline and only add the logo on top.
+  // Keep the bundled set as the guaranteed-valid baseline and only add it on top.
   const icons = logo
     ? [...bundledIcons, { src: logo, sizes: '512x512', type: iconType(logo), purpose: 'any' }]
     : bundledIcons

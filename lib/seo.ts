@@ -1,4 +1,12 @@
+import type { CompanyProfile } from '@/lib/services'
+
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://amk-portal.vercel.app').replace(/\/$/, '')
+
+// Single source of truth for the browser-tab favicon, shared by the public
+// site and admin panel layouts so they can never drift apart.
+export function faviconUrl(company: Pick<CompanyProfile, 'faviconUrl' | 'logoUrl'>): string {
+  return company.faviconUrl || company.logoUrl || '/images/logo.png'
+}
 
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`

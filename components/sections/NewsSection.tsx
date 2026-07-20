@@ -1,12 +1,7 @@
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import type { NewsArticle, NewsSectionContent } from '@/lib/services'
-
-function formatDate(iso: string) {
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+import { formatPublishedAt } from '@/lib/services/newsService'
 
 export default function NewsSection({ previews, content }: { previews: NewsArticle[]; content: NewsSectionContent }) {
   if (previews.length === 0) return null
@@ -52,7 +47,7 @@ export default function NewsSection({ previews, content }: { previews: NewsArtic
                 </div>
               </div>
               <div className="p-6">
-                <p className="text-xs text-on-surface-variant mb-2">{formatDate(item.publishedAt)}</p>
+                <p className="text-xs text-on-surface-variant mb-2">{formatPublishedAt(item, { month: 'short' })}</p>
                 <h4 className="text-lg font-headline font-bold text-primary mb-2 leading-snug line-clamp-2">{item.title}</h4>
                 <p className="text-on-surface-variant text-sm leading-relaxed line-clamp-2">{item.excerpt}</p>
               </div>

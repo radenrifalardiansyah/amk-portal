@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import { newsService, siteContentService } from '@/lib/services'
-import { isVisible } from '@/lib/services/newsService'
+import { isVisible, formatPublishedAt, publishInstant } from '@/lib/services/newsService'
 import { SITE_URL, absoluteUrl, ogImage } from '@/lib/seo'
 
 export const revalidate = false
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       url: `/news/${slug}`,
       images: [ogImage(article.coverImage)],
       type: 'article',
-      publishedTime: article.publishedAt,
+      publishedTime: `${publishInstant(article)}:00+07:00`,
       authors: [article.author],
       tags: article.tags.split(',').map((t) => t.trim()).filter(Boolean),
     },
@@ -38,12 +38,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: [ogImage(article.coverImage)],
     },
   }
-}
-
-function formatDate(iso: string) {
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default async function NewsDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -65,8 +59,8 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
     headline: article.title,
     description: article.excerpt,
     image: [absoluteUrl(article.coverImage)],
-    datePublished: article.publishedAt,
-    dateModified: article.publishedAt,
+    datePublished: `${publishInstant(article)}:00+07:00`,
+    dateModified: `${publishInstant(article)}:00+07:00`,
     articleSection: article.category,
     keywords: tags.join(', '),
     author: { '@type': 'Person', name: article.author },
@@ -109,7 +103,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
           <div className="flex items-center justify-center gap-2 text-on-surface-variant text-sm">
             <span className="font-semibold">{article.author}</span>
             <span>&middot;</span>
-            <span>{formatDate(article.publishedAt)}</span>
+            <span>{formatPublishedAt(article)}</span>
           </div>
         </div>
       </section>
@@ -171,7 +165,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                     />
                   </div>
                   <div className="p-5">
-                    <p className="text-xs text-on-surface-variant mb-2">{formatDate(item.publishedAt)}</p>
+                    <p className="text-xs text-on-surface-variant mb-2">{formatPublishedAt(item, { month: 'short' })}</p>
                     <h3 className="text-base font-headline font-bold text-primary leading-snug line-clamp-2">{item.title}</h3>
                   </div>
                 </Link>

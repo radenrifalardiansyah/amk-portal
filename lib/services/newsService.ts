@@ -16,21 +16,53 @@ export interface NewsArticle {
   author: string
   status: NewsStatus
   publishedAt: string
+  publishedTime: string
   tags: string
 }
 
 const COL = 'news'
+const JAKARTA_TZ = 'Asia/Jakarta'
 
-function todayStr(): string {
-  const now = new Date()
-  const y = now.getFullYear()
-  const m = String(now.getMonth() + 1).padStart(2, '0')
-  const d = String(now.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+// Wall-clock "now" in WIB (UTC+7), independent of the server process's own
+// timezone (Vercel serverless functions run in UTC) — this is what "today"
+// and "this hour" mean to readers/admins, who are all in Indonesia.
+export function jakartaNowInstant(): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: JAKARTA_TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date())
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
+  // Midnight renders as "24" with hour12: false in some engines; normalize to "00".
+  const hour = get('hour') === '24' ? '00' : get('hour')
+  return `${get('year')}-${get('month')}-${get('day')}T${hour}:${get('minute')}`
+}
+
+// The article's scheduled publish instant, as a "YYYY-MM-DDTHH:mm" string
+// comparable lexically with jakartaNowInstant().
+export function publishInstant(article: Pick<NewsArticle, 'publishedAt' | 'publishedTime'>): string {
+  return `${article.publishedAt}T${article.publishedTime || '00:00'}`
 }
 
 export function isVisible(article: NewsArticle): boolean {
-  return article.status === 'published' && article.publishedAt <= todayStr()
+  return article.status === 'published' && publishInstant(article) <= jakartaNowInstant()
+}
+
+// Shared "Senin, 10 November 2025 · 14.30 WIB" formatter so every portal view
+// renders the same day-name/date/time, always in WIB regardless of the
+// reader's own browser timezone.
+export function formatPublishedAt(
+  article: Pick<NewsArticle, 'publishedAt' | 'publishedTime'>,
+  opts: { weekday?: boolean; month?: 'short' | 'long' } = {},
+): string {
+  const { weekday = true, month = 'long' } = opts
+  const date = new Date(`${publishInstant(article)}:00+07:00`)
+  if (Number.isNaN(date.getTime())) return article.publishedAt
+  const dateStr = date.toLocaleDateString('id-ID', {
+    ...(weekday ? { weekday: 'long' as const } : {}),
+    day: 'numeric', month, year: 'numeric', timeZone: JAKARTA_TZ,
+  })
+  const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: JAKARTA_TZ, hour12: false })
+  return `${dateStr} · ${timeStr} WIB`
 }
 
 const seedData: NewsArticle[] = [
@@ -44,6 +76,7 @@ const seedData: NewsArticle[] = [
     author: 'Tim AMK',
     status: 'published',
     publishedAt: '2025-11-10',
+    publishedTime: '09:00',
     tags: 'penghargaan, prestasi, agensi kreatif',
   },
   {
@@ -56,6 +89,7 @@ const seedData: NewsArticle[] = [
     author: 'Tim AMK',
     status: 'published',
     publishedAt: '2025-09-22',
+    publishedTime: '10:30',
     tags: 'jica, kolaborasi, pemberdayaan',
   },
   {
@@ -68,6 +102,7 @@ const seedData: NewsArticle[] = [
     author: 'Tim Kreatif AMK',
     status: 'published',
     publishedAt: '2025-08-05',
+    publishedTime: '08:00',
     tags: 'tren, video korporat, produksi',
   },
 ]
@@ -75,8 +110,11 @@ const seedData: NewsArticle[] = [
 export const newsService = {
   async getAll(): Promise<NewsArticle[]> {
     try {
+      // Sorted in-memory by full publish instant (date+time) rather than via a second
+      // Firestore orderBy, which would require a composite index to be created first.
       const snap = await getDocs(query(collection(db, COL), orderBy('publishedAt', 'desc')))
-      return snap.docs.map((d) => d.data() as NewsArticle)
+      const articles = snap.docs.map((d) => d.data() as NewsArticle)
+      return articles.sort((a, b) => publishInstant(b).localeCompare(publishInstant(a)))
     } catch {
       return []
     }

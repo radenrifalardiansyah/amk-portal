@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { siteContentService } from '@/lib/services'
-import { SITE_URL } from '@/lib/seo'
+import { SITE_URL, faviconUrl } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const company = await siteContentService.getCompany()
@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: ['/images/company.png'],
     },
-    icons: { icon: company.logoUrl || '/images/logo.png' },
+    icons: { icon: faviconUrl(company) },
   }
 }
 

@@ -4,12 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
 import type { NewsArticle } from '@/lib/services'
-
-function formatDate(iso: string) {
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+import { formatPublishedAt } from '@/lib/services/newsService'
 
 export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) {
   const [search, setSearch] = useState('')
@@ -54,7 +49,7 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
             <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-4 leading-tight">{featured.title}</h2>
             <p className="text-on-surface-variant leading-relaxed mb-6">{featured.excerpt}</p>
             <div className="flex items-center justify-between text-sm text-on-surface-variant">
-              <span>{featured.author} &middot; {formatDate(featured.publishedAt)}</span>
+              <span>{featured.author} &middot; {formatPublishedAt(featured)}</span>
               <span className="inline-flex items-center gap-1 text-primary font-bold group-hover:translate-x-1 transition-transform">
                 Baca Selengkapnya <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </span>
@@ -120,7 +115,7 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
                 </div>
               </div>
               <div className="p-6">
-                <p className="text-xs text-on-surface-variant mb-2">{formatDate(article.publishedAt)}</p>
+                <p className="text-xs text-on-surface-variant mb-2">{formatPublishedAt(article, { month: 'short' })}</p>
                 <h2 className="text-lg font-headline font-bold text-primary mb-2 leading-snug line-clamp-2">{article.title}</h2>
                 <p className="text-on-surface-variant text-sm leading-relaxed line-clamp-2">{article.excerpt}</p>
                 <div className="mt-4 flex items-center space-x-2 text-primary font-bold text-sm">

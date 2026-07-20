@@ -9,6 +9,7 @@ import type { CompanyProfile } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
+import { faviconUrl } from '@/lib/seo'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
@@ -75,6 +76,7 @@ export default function CompanyProfilePage() {
   const [company, setCompany] = useState<CompanyProfile | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingFavicon, setUploadingFavicon] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
 
   const showToast = (type: ToastState['type'], message: string) => {
@@ -103,7 +105,7 @@ export default function CompanyProfilePage() {
         favicon.rel = 'icon'
         document.head.appendChild(favicon)
       }
-      favicon.href = company.logoUrl || '/images/logo.png'
+      favicon.href = faviconUrl(company)
       showToast('success', 'Profil perusahaan berhasil disimpan!')
       revalidatePaths([{ path: '/', type: 'layout' }])
     } catch {
@@ -133,6 +135,21 @@ export default function CompanyProfilePage() {
                 folder="company"
                 aspect="aspect-square"
                 onUploadingChange={setUploadingLogo}
+                onError={(msg) => showToast('error', msg)}
+              />
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Favicon" subtitle="Ikon tab browser. Foto otomatis dipotong jadi persegi agar tidak gepeng">
+            <div style={{ maxWidth: 140 }}>
+              <MediaUploadField
+                label="Favicon"
+                value={company.faviconUrl}
+                onChange={(url) => setCompany({ ...company, faviconUrl: url })}
+                folder="company"
+                aspect="aspect-square"
+                squareCrop
+                onUploadingChange={setUploadingFavicon}
                 onError={(msg) => showToast('error', msg)}
               />
             </div>
@@ -188,8 +205,8 @@ export default function CompanyProfilePage() {
 
           <SectionCard title="Copyright" subtitle="Teks yang tampil di bagian bawah footer website"
             footer={
-              <button onClick={handleSave} disabled={saving || uploadingLogo || !edit}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
+              <button onClick={handleSave} disabled={saving || uploadingLogo || uploadingFavicon || !edit}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'rgba(37,99,235,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'none' : '0 2px 12px rgba(37,99,235,0.25)' }}>
                 {saving
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                   : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}

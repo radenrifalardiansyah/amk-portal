@@ -14,23 +14,23 @@ import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
+import { formatPublishedAt } from '@/lib/services/newsService'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
+const nowHHMM = () => new Date().toTimeString().slice(0, 5)
 
 const emptyArticle: NewsArticle = {
   slug: '', title: '', excerpt: '', content: '', coverImage: '/images/company.png',
-  category: '', author: '', status: 'draft', publishedAt: todayISO(), tags: '',
+  category: '', author: '', status: 'draft', publishedAt: todayISO(), publishedTime: nowHHMM(), tags: '',
 }
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
-function formatDate(iso: string) {
-  if (!iso) return '—'
-  const d = new Date(`${iso}T00:00:00`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+function formatDate(article: NewsArticle) {
+  if (!article.publishedAt) return '—'
+  return formatPublishedAt(article, { weekday: false, month: 'short' })
 }
 
 function NewsModal({
@@ -123,11 +123,18 @@ function NewsModal({
                   onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label style={labelStyle}>Tanggal Publikasi *</label>
                 <input type="date" className={inputCls} style={inputStyle} required value={form.publishedAt}
                   onChange={(e) => set('publishedAt', e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                  onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+              </div>
+              <div>
+                <label style={labelStyle}>Jam Publikasi *</label>
+                <input type="time" className={inputCls} style={inputStyle} required value={form.publishedTime}
+                  onChange={(e) => set('publishedTime', e.target.value)}
                   onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                   onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
               </div>
@@ -145,6 +152,9 @@ function NewsModal({
                 />
               </div>
             </div>
+            <p style={{ fontSize: 11, color: theme.textMuted, marginTop: -8 }}>
+              Berita baru tampil di website setelah tanggal &amp; jam ini tiba (waktu WIB).
+            </p>
             <div>
               <label style={labelStyle}>Ringkasan Singkat *</label>
               <textarea rows={2} className={inputCls} style={{ ...inputStyle, resize: 'none' }} required
@@ -479,7 +489,7 @@ export default function NewsPage() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                   <h3 style={{ fontWeight: 700, color: theme.text, fontSize: 13.5, lineHeight: 1.35, flex: 1, fontFamily: theme.fontHeadline }} className="line-clamp-2">{a.title}</h3>
                 </div>
-                <p style={{ fontSize: 11.5, color: theme.textSecondary, marginBottom: 8 }}>{a.author} &middot; {formatDate(a.publishedAt)}</p>
+                <p style={{ fontSize: 11.5, color: theme.textSecondary, marginBottom: 8 }}>{a.author} &middot; {formatDate(a)}</p>
                 <p style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.55 }} className="line-clamp-2">{a.excerpt}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${theme.divider}` }}>
                   {approve && a.status === 'pending' && (
@@ -547,7 +557,7 @@ export default function NewsPage() {
                         : <span style={{ fontSize: 12, color: theme.textMuted }}>—</span>}
                     </td>
                     <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{a.author}</td>
-                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{formatDate(a.publishedAt)}</td>
+                    <td style={{ padding: '12px 20px', color: theme.textSecondary, fontSize: 13 }}>{formatDate(a)}</td>
                     <td style={{ padding: '12px 20px' }}>
                       <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: NEWS_STATUS_STYLES[a.status].color, background: NEWS_STATUS_STYLES[a.status].background }}>
                         {NEWS_STATUS_STYLES[a.status].label}

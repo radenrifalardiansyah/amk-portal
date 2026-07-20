@@ -13,12 +13,13 @@ interface MediaUploadFieldProps {
   onChange: (url: string) => void
   folder: string
   aspect?: string
+  squareCrop?: boolean
   onUploadingChange?: (uploading: boolean) => void
   onError?: (message: string) => void
 }
 
 export default function MediaUploadField({
-  label, value, onChange, folder, aspect = 'aspect-video',
+  label, value, onChange, folder, aspect = 'aspect-video', squareCrop,
   onUploadingChange, onError,
 }: MediaUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -49,7 +50,7 @@ export default function MediaUploadField({
     onUploadingChange?.(true)
     setProgress(0)
     try {
-      const url = await uploadMedia(file, folder, setProgress)
+      const url = await uploadMedia(file, folder, setProgress, squareCrop)
       onChange(url)
     } catch (err) {
       console.error('Upload failed:', err)
