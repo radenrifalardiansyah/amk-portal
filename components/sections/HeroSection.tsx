@@ -36,7 +36,7 @@ export default function HeroSection({ content }: { content: HeroContent }) {
       </div>
 
       <div className="w-full max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-        <div className="space-y-8 reveal-left active">
+        <div className="space-y-8 reveal-left active order-2 lg:order-1">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-outline-variant/30 bg-surface-container-low/50">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-xs font-medium tracking-widest uppercase text-on-surface-variant">
@@ -74,10 +74,10 @@ export default function HeroSection({ content }: { content: HeroContent }) {
           </div>
         </div>
 
-        <div className="hidden lg:block relative reveal-right active">
+        <div className="block relative reveal-right active order-1 lg:order-2">
           <div className="aspect-square rounded-full border border-primary/10 absolute -inset-10 animate-[spin_20s_linear_infinite]" />
           <div className="aspect-square rounded-full border border-primary/5 absolute -inset-20 animate-[spin_35s_linear_infinite_reverse]" />
-          <div className="relative z-10 w-full h-[500px]">
+          <div className="relative z-10 w-full h-[300px] sm:h-[380px] lg:h-[500px]">
             <SafeImage
               src={content.image}
               alt="Hero Visual"

@@ -1,11 +1,61 @@
 import {
-  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy,
+  collection, getDocs, getDoc, getCountFromServer, doc, setDoc, deleteDoc, query, orderBy, where, limit,
 } from 'firebase/firestore'
 import { cache } from 'react'
 import { db } from '@/lib/firebase'
 import { PortfolioProject } from '@/data/portfolio'
 
 const COL = 'portfolio'
+const GALLERY_COL = 'gallery'
+
+// Mirrors each project's "Project Gallery" photos/videos into the sitewide `gallery`
+// collection, so the public Gallery page/section stays populated even while the admin
+// Gallery menu is turned off. Only published projects are mirrored; draft/pending items
+// are removed from `gallery` so unapproved content never leaks onto the public gallery.
+function galleryDocId(slug: string, itemId: string) {
+  return `portfolio-${slug}-${itemId}`
+}
+
+async function getNextGalleryOrder(): Promise<number> {
+  try {
+    const snap = await getDocs(query(collection(db, GALLERY_COL), orderBy('order', 'desc'), limit(1)))
+    if (snap.empty) return 0
+    const top = snap.docs[0].data().order
+    return (typeof top === 'number' ? top : 0) + 1
+  } catch {
+    return 0
+  }
+}
+
+async function syncGalleryItems(project: PortfolioProject): Promise<void> {
+  const existingSnap = await getDocs(query(collection(db, GALLERY_COL), where('sourceSlug', '==', project.slug)))
+  const existingById = new Map(existingSnap.docs.map((d) => [d.id, d.data()]))
+
+  const items = project.status === 'published' ? (project.gallery ?? []) : []
+  const keepIds = new Set(items.map((g) => galleryDocId(project.slug, g.id)))
+
+  const deletions = existingSnap.docs.filter((d) => !keepIds.has(d.id)).map((d) => deleteDoc(d.ref))
+
+  const needsNewOrder = items.some((g) => typeof existingById.get(galleryDocId(project.slug, g.id))?.order !== 'number')
+  let nextOrder = needsNewOrder ? await getNextGalleryOrder() : 0
+
+  const upserts = items.map((g) => {
+    const id = galleryDocId(project.slug, g.id)
+    const existingOrder = existingById.get(id)?.order
+    const order = typeof existingOrder === 'number' ? existingOrder : nextOrder++
+    return setDoc(doc(db, GALLERY_COL, id), {
+      id, title: g.caption?.trim() || project.title, type: g.type, url: g.url, order,
+      sourceSlug: project.slug, sourceItemId: g.id,
+    })
+  })
+
+  await Promise.all([...deletions, ...upserts])
+}
+
+async function deleteSyncedGalleryItems(slug: string): Promise<void> {
+  const existingSnap = await getDocs(query(collection(db, GALLERY_COL), where('sourceSlug', '==', slug)))
+  await Promise.all(existingSnap.docs.map((d) => deleteDoc(d.ref)))
+}
 
 const seedData: PortfolioProject[] = [
   {
@@ -110,10 +160,12 @@ export const portfolioService = {
 
   async save(project: PortfolioProject): Promise<void> {
     await setDoc(doc(db, COL, project.slug), { ...project })
+    await syncGalleryItems(project)
   },
 
   async delete(slug: string): Promise<void> {
     await deleteDoc(doc(db, COL, slug))
+    await deleteSyncedGalleryItems(slug)
   },
 
   async getCount(): Promise<number> {

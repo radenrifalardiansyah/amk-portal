@@ -393,7 +393,7 @@ export default function PortfolioPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Portfolio berhasil ditambahkan!' : 'Portfolio berhasil diperbarui!')
-      revalidatePaths(['/', '/portfolio', `/portfolio/${data.slug}`])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${data.slug}`, '/gallery'])
     } catch {
       showToast('error', 'Gagal menyimpan portfolio')
     }
@@ -406,7 +406,7 @@ export default function PortfolioPage() {
       await portfolioService.delete(slug)
       await mutate()
       showToast('success', 'Portfolio berhasil dihapus')
-      revalidatePaths(['/', '/portfolio', `/portfolio/${slug}`])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${slug}`, '/gallery'])
     } catch {
       showToast('error', 'Gagal menghapus portfolio')
     } finally {
@@ -419,7 +419,7 @@ export default function PortfolioPage() {
       await portfolioService.save({ ...project, status })
       await mutate()
       showToast('success', message)
-      revalidatePaths(['/', '/portfolio', `/portfolio/${project.slug}`])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${project.slug}`, '/gallery'])
     } catch {
       showToast('error', 'Gagal memperbarui status portfolio')
     }
