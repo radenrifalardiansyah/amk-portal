@@ -470,23 +470,38 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
 
         {/* User Profile */}
         <div style={{ padding: '10px', borderTop: `1px solid ${theme.divider}`, flexShrink: 0 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            flexDirection: collapsed ? 'column' : 'row',
-            padding: collapsed ? '10px 6px' : '10px 12px', borderRadius: 12,
-            background: theme.surfaceSoft,
-            border: `1px solid ${theme.border}`,
-          }}>
-            <Link href="/admin/settings" title="Pengaturan Profil" style={{
-              width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, color: '#fff', overflow: 'hidden',
-              background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+          <div
+            onClick={() => router.push('/admin/settings')}
+            title="Lihat detail akun"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              flexDirection: collapsed ? 'column' : 'row',
+              padding: collapsed ? '10px 6px' : '10px 12px', borderRadius: 12,
+              background: theme.surfaceSoft,
+              border: `1px solid ${theme.border}`,
+              cursor: 'pointer', transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = theme.border }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = theme.surfaceSoft }}
+          >
+            <div style={{
+              position: 'relative', width: 28, height: 28, flexShrink: 0,
             }}>
-              {session.avatarUrl
-                ? <img src={session.avatarUrl} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : initials}
-            </Link>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, color: '#fff', overflow: 'hidden',
+                background: `linear-gradient(135deg, ${theme.accentDark}, ${theme.accent})`,
+              }}>
+                {session.avatarUrl
+                  ? <img src={session.avatarUrl} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : initials}
+              </div>
+              <span style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9 }} className="flex">
+                <span className="animate-ping" style={{ position: 'absolute', display: 'inline-flex', width: '100%', height: '100%', borderRadius: '50%', background: '#22C55E', opacity: 0.75 }} />
+                <span style={{ position: 'relative', display: 'inline-flex', width: '100%', height: '100%', borderRadius: '50%', background: '#22C55E', border: `1.5px solid ${theme.surfaceSoft}` }} />
+              </span>
+            </div>
             {!collapsed && (
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ color: theme.text, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</p>
@@ -494,12 +509,12 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
               </div>
             )}
             <button
-              onClick={handleLogout}
+              onClick={(e) => { e.stopPropagation(); handleLogout() }}
               disabled={loggingOut}
               title="Keluar"
               style={{ color: theme.textMuted, background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 6, display: 'flex', borderRadius: 6, transition: 'all 0.15s' }}
-              onMouseEnter={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
-              onMouseLeave={(e) => { const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}
+              onMouseEnter={(e) => { e.stopPropagation(); const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.danger; b.style.background = theme.dangerSoft }}
+              onMouseLeave={(e) => { e.stopPropagation(); const b = e.currentTarget as HTMLButtonElement; b.style.color = theme.textMuted; b.style.background = 'none' }}
             >
               {loggingOut
                 ? <span style={{ width: 14, height: 14, border: `2px solid ${theme.border}`, borderTopColor: theme.textSecondary, borderRadius: '50%', display: 'block' }} className="admin-spin" />
