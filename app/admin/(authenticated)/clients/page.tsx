@@ -233,7 +233,7 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
         <div style={{ textAlign: 'left' }}>
           <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
-          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Our Clients" yang tampil di homepage sebelum daftar logo client</p>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Our Clients" yang tampil di homepage & halaman /clients</p>
         </div>
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
       </button>

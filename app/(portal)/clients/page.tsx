@@ -40,7 +40,7 @@ export default async function ClientsPage() {
             {content.heading || 'Our Clients'}
           </h1>
           <p className="mt-6 max-w-3xl mx-auto text-lg text-on-surface-variant leading-relaxed">
-            Kepercayaan dari berbagai institusi dan brand adalah bukti nyata dedikasi kami terhadap kualitas.
+            {content.description || 'Kepercayaan dari berbagai institusi dan brand adalah bukti nyata dedikasi kami terhadap kualitas.'}
           </p>
         </div>
       </section>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
-import { portfolioService, clientsService } from '@/lib/services'
+import { portfolioService, clientsService, siteContentService } from '@/lib/services'
 
 export const revalidate = false
 
@@ -23,7 +23,11 @@ export const metadata: Metadata = {
 }
 
 export default async function PortfolioPage() {
-  const [projects, clients] = await Promise.all([portfolioService.getAllPublished(), clientsService.getAll()])
+  const [projects, clients, content] = await Promise.all([
+    portfolioService.getAllPublished(),
+    clientsService.getAll(),
+    siteContentService.getPortfolioSection(),
+  ])
   const clientMap = new Map(clients.map((c) => [c.id, c]))
 
   return (
@@ -36,10 +40,10 @@ export default async function PortfolioPage() {
               Portfolio
             </span>
             <h1 className="text-5xl md:text-6xl font-headline font-bold text-primary leading-tight">
-              Recent Manifestations
+              {content.heading || 'Recent Manifestations'}
             </h1>
             <p className="mt-6 max-w-3xl mx-auto text-lg text-on-surface-variant leading-relaxed">
-              Setiap proyek adalah bukti nyata dari dedikasi kami terhadap kualitas dan inovasi.
+              {content.description || 'Setiap proyek adalah bukti nyata dari dedikasi kami terhadap kualitas dan inovasi.'}
             </p>
           </div>
         </section>

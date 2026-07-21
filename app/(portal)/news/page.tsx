@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { newsService } from '@/lib/services'
+import { newsService, siteContentService } from '@/lib/services'
 import NewsExplorer from './NewsExplorer'
 
 export const revalidate = false
@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 }
 
 export default async function NewsPage() {
-  const articles = await newsService.getAllPublished()
+  const [articles, content] = await Promise.all([
+    newsService.getAllPublished(),
+    siteContentService.getNewsSection(),
+  ])
 
   return (
     <main>
@@ -33,10 +36,10 @@ export default async function NewsPage() {
             Berita
           </span>
           <h1 className="text-5xl md:text-6xl font-headline font-bold text-primary leading-tight">
-            Kabar Terbaru AMK
+            {content.heading || 'Kabar Terbaru AMK'}
           </h1>
           <p className="mt-6 max-w-3xl mx-auto text-lg text-on-surface-variant leading-relaxed">
-            Ikuti pencapaian, kolaborasi, dan wawasan industri kreatif langsung dari tim kami.
+            {content.description || 'Ikuti pencapaian, kolaborasi, dan wawasan industri kreatif langsung dari tim kami.'}
           </p>
         </div>
       </section>
