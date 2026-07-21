@@ -38,7 +38,6 @@ export async function GET() {
     start_url: '/admin',
     scope: '/admin',
     display: 'standalone',
-    orientation: 'portrait-primary',
     background_color: '#FFFFFF',
     theme_color: '#0752B7',
     lang: 'id',
