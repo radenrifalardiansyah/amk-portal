@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { theme } from '@/lib/admin-theme'
-import { uploadMedia, uploadErrorMessage } from '@/lib/upload'
+import { uploadMedia, uploadErrorMessage, validateImageFile } from '@/lib/upload'
 
 export default function AvatarPicker({
   value, onChange, fallback = '?', size = 44, onError,
@@ -15,11 +15,15 @@ export default function AvatarPicker({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [linkMode, setLinkMode] = useState(false)
+  const [linkDraft, setLinkDraft] = useState('')
 
   const handleFile = async (file: File | undefined | null) => {
     if (!file) return
-    if (!file.type.startsWith('image/')) {
-      onError?.('File harus berupa gambar')
+    try {
+      validateImageFile(file)
+    } catch (err) {
+      onError?.(uploadErrorMessage(err))
       return
     }
     setUploading(true)
@@ -33,6 +37,18 @@ export default function AvatarPicker({
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ''
     }
+  }
+
+  const applyLink = () => {
+    const url = linkDraft.trim()
+    if (!url) { setLinkMode(false); return }
+    if (!/^https?:\/\//i.test(url)) {
+      onError?.('Link harus diawali http:// atau https://')
+      return
+    }
+    onChange(url)
+    setLinkDraft('')
+    setLinkMode(false)
   }
 
   return (
@@ -77,6 +93,52 @@ export default function AvatarPicker({
           </span>
         )}
       </button>
+
+      {!uploading && (
+        <button
+          type="button"
+          title="Pakai link gambar"
+          onClick={(e) => { e.stopPropagation(); setLinkMode((m) => !m) }}
+          style={{
+            position: 'absolute', bottom: -2, left: -2, fontSize: Math.max(11, size * 0.28),
+            background: theme.surface, color: theme.textSecondary, borderRadius: '50%',
+            border: `1.5px solid ${theme.surface}`, boxShadow: theme.shadowCard, padding: 1,
+            display: 'flex', cursor: 'pointer',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>link</span>
+        </button>
+      )}
+
+      {linkMode && (
+        <div
+          style={{
+            position: 'absolute', top: size + 6, left: 0, zIndex: 20, width: 220,
+            background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10,
+            boxShadow: theme.shadowElevated, padding: 8, display: 'flex', gap: 6,
+          }}
+        >
+          <input
+            type="url"
+            autoFocus
+            placeholder="https://..."
+            value={linkDraft}
+            onChange={(e) => setLinkDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); applyLink() }
+              if (e.key === 'Escape') setLinkMode(false)
+            }}
+            style={{ flex: 1, minWidth: 0, fontSize: 11.5, padding: '5px 7px', borderRadius: 6, border: `1px solid ${theme.border}`, color: theme.text }}
+          />
+          <button
+            type="button"
+            onClick={applyLink}
+            style={{ fontSize: 11, fontWeight: 600, padding: '5px 8px', borderRadius: 6, background: theme.accent, color: '#fff', border: 'none', cursor: 'pointer' }}
+          >
+            OK
+          </button>
+        </div>
+      )}
     </div>
   )
 }

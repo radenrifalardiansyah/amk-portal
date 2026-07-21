@@ -130,6 +130,8 @@ export default function SettingsPage() {
   const loading = !session || profileLoading
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarLinkMode, setAvatarLinkMode] = useState(false)
+  const [avatarLinkDraft, setAvatarLinkDraft] = useState('')
   const [toast, setToast] = useState<ToastState | null>(null)
 
   const [currentPassword, setCurrentPassword] = useState('')
@@ -186,6 +188,30 @@ export default function SettingsPage() {
     } finally {
       setUploadingAvatar(false)
       e.target.value = ''
+    }
+  }
+
+  const applyAvatarLink = async () => {
+    const url = avatarLinkDraft.trim()
+    if (!profile) return
+    if (!/^https?:\/\//i.test(url)) {
+      showToast('error', 'Link harus diawali http:// atau https://')
+      return
+    }
+    setUploadingAvatar(true)
+    try {
+      const updated = { ...profile, avatarUrl: url }
+      await usersService.updateProfile(profile.email, { avatarUrl: url })
+      setProfile(updated)
+      usersService.saveSession(updated)
+      await mutate(updated, false)
+      showToast('success', 'Foto profil berhasil disimpan!')
+      setAvatarLinkMode(false)
+      setAvatarLinkDraft('')
+    } catch {
+      showToast('error', 'Gagal menyimpan link foto')
+    } finally {
+      setUploadingAvatar(false)
     }
   }
 
@@ -329,12 +355,35 @@ export default function SettingsPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
-                    <button type="button" onClick={handleAvatarPick} disabled={uploadingAvatar}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}`, cursor: uploadingAvatar ? 'not-allowed' : 'pointer' }}>
-                      {uploadingAvatar
-                        ? <><span className="w-3.5 h-3.5 border-2 border-current/30 border-t-current rounded-full admin-spin" />Mengunggah...</>
-                        : <><span className="material-symbols-outlined" style={{ fontSize: 14 }}>upload</span>Ganti Foto</>}
-                    </button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button type="button" onClick={handleAvatarPick} disabled={uploadingAvatar}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: `1px solid ${theme.accentSoftBorder}`, cursor: uploadingAvatar ? 'not-allowed' : 'pointer' }}>
+                        {uploadingAvatar
+                          ? <><span className="w-3.5 h-3.5 border-2 border-current/30 border-t-current rounded-full admin-spin" />Mengunggah...</>
+                          : <><span className="material-symbols-outlined" style={{ fontSize: 14 }}>upload</span>Ganti Foto</>}
+                      </button>
+                      <button type="button" onClick={() => setAvatarLinkMode((m) => !m)} disabled={uploadingAvatar}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, color: theme.textSecondary, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, cursor: uploadingAvatar ? 'not-allowed' : 'pointer' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>link</span>Pakai Link
+                      </button>
+                    </div>
+                    {avatarLinkMode && (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <input
+                          type="url"
+                          autoFocus
+                          placeholder="https://..."
+                          value={avatarLinkDraft}
+                          onChange={(e) => setAvatarLinkDraft(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyAvatarLink() } }}
+                          style={{ flex: 1, fontSize: 12, padding: '6px 10px', borderRadius: 8, border: `1.5px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.text }}
+                        />
+                        <button type="button" onClick={applyAvatarLink} disabled={uploadingAvatar}
+                          style={{ fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 8, background: theme.accent, color: '#fff', border: 'none', cursor: uploadingAvatar ? 'not-allowed' : 'pointer' }}>
+                          Terapkan
+                        </button>
+                      </div>
+                    )}
                     <p style={{ fontSize: 11, color: theme.textMuted }}>JPG atau PNG, disarankan rasio 1:1</p>
                   </div>
                 </div>

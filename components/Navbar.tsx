@@ -107,6 +107,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
               alt={`${shortName} Logo`}
               width={96}
               height={96}
+              unoptimized
               className="h-8 lg:h-9 xl:h-10 w-auto object-contain mix-blend-multiply"
             />
           </Link>

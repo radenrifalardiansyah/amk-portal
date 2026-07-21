@@ -1,5 +1,6 @@
 import Image, { ImageProps } from 'next/image'
 import MediaPlaceholder from './MediaPlaceholder'
+import { cloudinaryAutoFormat } from '@/lib/cloudinary'
 
 type SafeImageProps = Omit<ImageProps, 'src'> & { src?: string | null }
 
@@ -17,5 +18,16 @@ export default function SafeImage({ src, alt, fill, width, height, className, ..
       </div>
     )
   }
-  return <Image src={src} alt={alt} fill={fill} width={width} height={height} className={className} {...props} />
+  return (
+    <Image
+      src={cloudinaryAutoFormat(src)}
+      alt={alt}
+      fill={fill}
+      width={width}
+      height={height}
+      className={className}
+      unoptimized
+      {...props}
+    />
+  )
 }

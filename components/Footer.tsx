@@ -61,6 +61,7 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
               alt={`${shortName} Logo`}
               width={96}
               height={96}
+              unoptimized
               className="h-9 w-auto object-contain mix-blend-multiply"
             />
           </div>

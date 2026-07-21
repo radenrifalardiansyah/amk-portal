@@ -1,5 +1,16 @@
 const MAX_DIMENSION = 1200
 
+// Source file cap before resize/compression kicks in — just a safety ceiling
+// against pathological uploads (e.g. an uncompressed scan) hanging the
+// browser during decode; ordinary photos never get close to this.
+export const MAX_SOURCE_MB = 5
+export const SUPPORTED_IMAGE_FORMATS_LABEL = 'JPG, PNG, WebP, atau GIF'
+
+export function validateImageFile(file: File): void {
+  if (!file.type.startsWith('image/')) throw new Error('NOT_IMAGE')
+  if (file.size > MAX_SOURCE_MB * 1024 * 1024) throw new Error('SOURCE_TOO_LARGE')
+}
+
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -110,6 +121,7 @@ export async function uploadMedia(
   onProgress?: (percent: number) => void,
   squareCrop?: boolean,
 ): Promise<string> {
+  validateImageFile(file)
   onProgress?.(5)
   const blob = await resizeImage(file, squareCrop)
   onProgress?.(15)
@@ -118,6 +130,10 @@ export async function uploadMedia(
 
 export function uploadErrorMessage(err: unknown): string {
   const message = (err as { message?: string })?.message
+  if (message === 'NOT_IMAGE') return 'File harus berupa gambar'
+  if (message === 'SOURCE_TOO_LARGE') {
+    return `Ukuran file maksimal ${MAX_SOURCE_MB}MB. Gunakan foto yang lebih kecil atau kompres dulu.`
+  }
   if (message === 'FILE_TOO_LARGE') return 'Foto terlalu besar untuk disimpan. Gunakan foto yang lebih kecil.'
   if (message === 'IMAGE_DECODE_FAILED') {
     return 'Format foto ini tidak didukung browser (mis. HEIC dari iPhone/Mac). Gunakan JPG atau PNG.'

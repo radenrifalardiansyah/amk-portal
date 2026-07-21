@@ -3,8 +3,9 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'placehold.co' },
-      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      // Admin bisa menempelkan link gambar dari domain manapun (fitur "Pakai Link"),
+      // jadi wildcard di sini mencegah next/image error "hostname not configured".
+      { protocol: 'https', hostname: '**' },
     ],
   },
   devIndicators: false,
