@@ -11,6 +11,7 @@ import { useAdminNav } from '@/lib/useAdminNav'
 import type { NavItem } from '@/lib/useAdminNav'
 import { PermissionContext, usePermissionValue } from '@/lib/permissions'
 import ActiveAccountsWidget from '@/components/admin/ActiveAccountsWidget'
+import VisitorChatsWidget from '@/components/admin/VisitorChatsWidget'
 
 const APP_VERSION = '0.1.0'
 
@@ -748,6 +749,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
       </div>
 
       <ActiveAccountsWidget session={session} canKick={permission.isAdminRole} />
+      <VisitorChatsWidget />
 
       {/* Incoming Login Request Modal */}
       {loginRequest && (

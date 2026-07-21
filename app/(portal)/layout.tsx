@@ -1,6 +1,7 @@
 import Navbar, { type NavLink } from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import BackToTop from '@/components/BackToTop'
+import VisitorChatWidget from '@/components/VisitorChatWidget'
 import RevealProvider from '@/components/RevealProvider'
 import PageViewTracker from '@/components/PageViewTracker'
 import PortalBackgroundFX from '@/components/PortalBackgroundFX'
@@ -53,6 +54,7 @@ export default async function PortalLayout({ children }: { children: React.React
       </div>
       <Footer company={company} waMessageTemplate={contact.waMessageTemplate} contactWaNumber={contact.waNumber} navLinks={navLinks} />
       <BackToTop />
+      <VisitorChatWidget company={company} />
     </>
   )
 }

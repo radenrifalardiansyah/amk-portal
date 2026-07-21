@@ -77,6 +77,20 @@ service cloud.firestore {
       }
     }
 
+    // Public visitor live chat (portal widget): anyone can create/read a thread and
+    // bump its meta (bot replies are written client-side from the visitor's own
+    // browser — no server involved), same trust boundary as leads/ above since the
+    // conversation id is an unguessable client-generated UUID. Only an admin may
+    // delete a thread; message edits/deletes are also admin-only.
+    match /visitorChats/{convoId} {
+      allow read, create, update: if true;
+      allow delete: if isAdmin();
+      match /messages/{messageId} {
+        allow read, create: if true;
+        allow update, delete: if isAdmin();
+      }
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;
