@@ -80,7 +80,7 @@ export const chatService = {
       lastMessageAt: now,
       lastMessageSenderEmail: input.senderEmail,
       // Sending a message implies you've read up to this point yourself.
-      [`lastReadAt.${input.senderEmail}`]: now,
+      lastReadAt: { [input.senderEmail]: now },
     }, { merge: true })
 
     await addDoc(collection(convoRef, 'messages'), {
@@ -96,6 +96,6 @@ export const chatService = {
   },
 
   async markRead(conversationId: string, email: string): Promise<void> {
-    await setDoc(doc(db, COL, conversationId), { [`lastReadAt.${email}`]: new Date().toISOString() }, { merge: true })
+    await setDoc(doc(db, COL, conversationId), { lastReadAt: { [email]: new Date().toISOString() } }, { merge: true })
   },
 }
