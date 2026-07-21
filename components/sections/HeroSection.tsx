@@ -61,7 +61,7 @@ export default function HeroSection({ content }: { content: HeroContent }) {
           <div className="relative z-10 w-full h-[300px] sm:h-[380px] lg:h-[500px]">
             <SafeImage
               src={content.image}
-              alt="Hero Visual"
+              alt={`${content.titleLine1} ${content.titleLine2} ${content.titleLine3}`.trim() || 'AMK Agency'}
               fill
               className="rounded-[2rem] shadow-2xl shadow-primary/20 border border-outline-variant/20 object-cover animate-float"
               priority

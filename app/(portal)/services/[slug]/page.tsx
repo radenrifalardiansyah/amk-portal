@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
-import { servicesService } from '@/lib/services'
+import { servicesService, siteContentService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
 
 export const revalidate = false
@@ -38,7 +38,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const service = await servicesService.getBySlug(slug)
+  const [service, company] = await Promise.all([
+    servicesService.getBySlug(slug),
+    siteContentService.getCompany(),
+  ])
   if (!service) notFound()
 
   const breadcrumbSchema = {
@@ -51,11 +54,29 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     ],
   }
 
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: service.title,
+    description: service.subtitle,
+    url: `${SITE_URL}/services/${slug}`,
+    provider: {
+      '@type': 'ProfessionalService',
+      name: company.legalName || 'PT. Adikara Mandala Kreasi',
+      url: SITE_URL,
+    },
+    areaServed: ['Bogor', 'Indonesia'],
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
       <main>
         <section className="relative pt-32 pb-20 overflow-hidden bg-surface">

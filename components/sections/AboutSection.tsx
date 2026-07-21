@@ -55,7 +55,7 @@ export default function AboutSection({ content }: { content: AboutHomeContent })
               <div className="relative h-80 rounded-2xl overflow-hidden reveal-scale">
                 <SafeImage
                   src={content.teamImage}
-                  alt="Team Work"
+                  alt="Tim AMK Agency sedang bekerja"
                   fill
                   className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
                 />

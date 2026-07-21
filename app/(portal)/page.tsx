@@ -12,6 +12,7 @@ import TeamsSection from '@/components/sections/TeamsSection'
 import NewsSection from '@/components/sections/NewsSection'
 import ContactSection from '@/components/sections/ContactSection'
 import ClientsSection from '@/components/sections/ClientsSection'
+import FaqSection from '@/components/sections/FaqSection'
 
 export const revalidate = false
 
@@ -24,7 +25,7 @@ export default async function HomePage() {
   const [
     services, advantages, portfolioAll, leaders, partners, clients, hero, aboutPage, contact,
     servicesSection, advantageSection, portfolioSection, teamsSection, clientsSection, gallerySection, newsSection,
-    newsAll, galleryAll, menuItems,
+    newsAll, galleryAll, menuItems, company,
   ] = await Promise.all([
     servicesService.getAll(),
     advantagesService.getAll(),
@@ -45,6 +46,7 @@ export default async function HomePage() {
     newsService.getAllPublished(),
     galleryService.getAll(),
     menuItemsService.getAll(),
+    siteContentService.getCompany(),
   ])
 
   const previews = portfolioAll.slice(0, 3)
@@ -71,6 +73,7 @@ export default async function HomePage() {
       <HeroSection content={hero} />
       <VisionMissionSection content={aboutPage} />
       {sections.map((s) => s.node)}
+      <FaqSection services={services} company={company} />
       <ContactSection content={contact} />
     </>
   )

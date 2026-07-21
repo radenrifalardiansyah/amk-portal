@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { siteContentService } from '@/lib/services'
 import { SITE_URL, faviconUrl } from '@/lib/seo'
@@ -35,8 +35,16 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: ['/images/company.png'],
     },
-    icons: { icon: faviconUrl(company) },
+    icons: {
+      icon: faviconUrl(company),
+      // iOS is unreliable with data: URI apple-touch-icon tags, so always use the bundled PNG.
+      apple: '/icons/apple-touch-icon.png',
+    },
   }
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0752B7',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -44,11 +52,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const organizationSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': 'ProfessionalService',
     name: company.legalName || 'PT. Adikara Mandala Kreasi',
     alternateName: company.shortName || 'AMK',
     url: SITE_URL,
     logo: company.logoUrl ? absoluteAsset(company.logoUrl) : `${SITE_URL}/images/logo.png`,
+    image: company.logoUrl ? absoluteAsset(company.logoUrl) : `${SITE_URL}/images/logo.png`,
     description: company.tagline,
     address: company.address ? {
       '@type': 'PostalAddress',
@@ -57,6 +66,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     } : undefined,
     email: company.email || undefined,
     telephone: company.phone ? `+${company.phone}` : undefined,
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '09:00',
+      closes: '17:00',
+    },
     sameAs: [company.instagramUrl, company.linkedinUrl, company.tiktokUrl, company.youtubeUrl].filter(Boolean),
   }
 
