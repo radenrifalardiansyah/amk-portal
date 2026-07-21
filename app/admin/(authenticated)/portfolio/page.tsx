@@ -285,8 +285,19 @@ function PortfolioModal({
   )
 }
 
-function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast: (type: ToastState['type'], message: string) => void }) {
-  const { data, mutate } = useSWR('portfolioSection', siteContentService.getPortfolioSection)
+function SectionHeaderCard({
+  canEdit, showToast, swrKey, getContent, saveContent, title, subtitle, revalidate,
+}: {
+  canEdit: boolean
+  showToast: (type: ToastState['type'], message: string) => void
+  swrKey: string
+  getContent: () => Promise<PortfolioSectionContent>
+  saveContent: (data: PortfolioSectionContent) => Promise<void>
+  title: string
+  subtitle: string
+  revalidate: string[]
+}) {
+  const { data, mutate } = useSWR(swrKey, getContent)
   const [form, setForm] = useState<PortfolioSectionContent | null>(null)
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
@@ -302,12 +313,12 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
     if (!form) return
     setSaving(true)
     try {
-      await siteContentService.savePortfolioSection(form)
+      await saveContent(form)
       await mutate(form, false)
-      showToast('success', 'Judul & deskripsi section berhasil disimpan!')
-      revalidatePaths(['/', '/portfolio'])
+      showToast('success', 'Judul & deskripsi berhasil disimpan!')
+      revalidatePaths(revalidate)
     } catch {
-      showToast('error', 'Gagal menyimpan judul & deskripsi section')
+      showToast('error', 'Gagal menyimpan judul & deskripsi')
     } finally {
       setSaving(false)
     }
@@ -320,8 +331,8 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
       <button type="button" onClick={() => setOpen((o) => !o)}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
-          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Recent Manifestations" yang tampil di homepage & halaman /portfolio</p>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>{title}</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{subtitle}</p>
         </div>
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
       </button>
@@ -448,7 +459,14 @@ export default function PortfolioPage() {
           onError={(msg) => showToast('error', msg)} />
       )}
 
-      <SectionHeaderCard canEdit={edit} showToast={showToast} />
+      <SectionHeaderCard canEdit={edit} showToast={showToast}
+        swrKey="portfolioSection" getContent={siteContentService.getPortfolioSection} saveContent={siteContentService.savePortfolioSection}
+        title="Judul & Deskripsi Section (Homepage)" subtitle='Teks "Recent Manifestations" yang tampil di homepage sebelum daftar portfolio'
+        revalidate={['/']} />
+      <SectionHeaderCard canEdit={edit} showToast={showToast}
+        swrKey="portfolioPage" getContent={siteContentService.getPortfolioPage} saveContent={siteContentService.savePortfolioPage}
+        title="Judul & Deskripsi Halaman /portfolio" subtitle="Teks hero yang tampil di halaman /portfolio (daftar lengkap portfolio)"
+        revalidate={['/portfolio']} />
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-5">

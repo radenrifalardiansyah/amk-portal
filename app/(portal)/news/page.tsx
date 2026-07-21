@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default async function NewsPage() {
   const [articles, content] = await Promise.all([
     newsService.getAllPublished(),
-    siteContentService.getNewsSection(),
+    siteContentService.getNewsPage(),
   ])
 
   return (

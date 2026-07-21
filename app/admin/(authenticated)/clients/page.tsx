@@ -197,8 +197,19 @@ function ClientModal({
   )
 }
 
-function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast: (type: ToastState['type'], message: string) => void }) {
-  const { data, mutate } = useSWR('clientsSection', siteContentService.getClientsSection)
+function SectionHeaderCard({
+  canEdit, showToast, swrKey, getContent, saveContent, title, subtitle, revalidate,
+}: {
+  canEdit: boolean
+  showToast: (type: ToastState['type'], message: string) => void
+  swrKey: string
+  getContent: () => Promise<ClientsSectionContent>
+  saveContent: (data: ClientsSectionContent) => Promise<void>
+  title: string
+  subtitle: string
+  revalidate: string[]
+}) {
+  const { data, mutate } = useSWR(swrKey, getContent)
   const [form, setForm] = useState<ClientsSectionContent | null>(null)
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
@@ -214,12 +225,12 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
     if (!form) return
     setSaving(true)
     try {
-      await siteContentService.saveClientsSection(form)
+      await saveContent(form)
       await mutate(form, false)
-      showToast('success', 'Judul section berhasil disimpan!')
-      revalidatePaths(['/', '/clients'])
+      showToast('success', 'Judul & deskripsi berhasil disimpan!')
+      revalidatePaths(revalidate)
     } catch {
-      showToast('error', 'Gagal menyimpan judul section')
+      showToast('error', 'Gagal menyimpan judul & deskripsi')
     } finally {
       setSaving(false)
     }
@@ -232,8 +243,8 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
       <button type="button" onClick={() => setOpen((o) => !o)}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
         <div style={{ textAlign: 'left' }}>
-          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>Judul & Deskripsi Section</h2>
-          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>Teks "Our Clients" yang tampil di homepage & halaman /clients</p>
+          <h2 style={{ fontWeight: 700, color: theme.text, fontSize: 14, fontFamily: theme.fontHeadline }}>{title}</h2>
+          <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}>{subtitle}</p>
         </div>
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: theme.textMuted }}>{open ? 'expand_less' : 'expand_more'}</span>
       </button>
@@ -330,7 +341,14 @@ export default function ClientsPage() {
           onError={(msg) => showToast('error', msg)} />
       )}
 
-      <SectionHeaderCard canEdit={edit} showToast={showToast} />
+      <SectionHeaderCard canEdit={edit} showToast={showToast}
+        swrKey="clientsSection" getContent={siteContentService.getClientsSection} saveContent={siteContentService.saveClientsSection}
+        title="Judul & Deskripsi Section (Homepage)" subtitle='Teks "Our Clients" yang tampil di homepage sebelum daftar logo client'
+        revalidate={['/']} />
+      <SectionHeaderCard canEdit={edit} showToast={showToast}
+        swrKey="clientsPage" getContent={siteContentService.getClientsPage} saveContent={siteContentService.saveClientsPage}
+        title="Judul & Deskripsi Halaman /clients" subtitle="Teks hero yang tampil di halaman /clients (daftar lengkap client)"
+        revalidate={['/clients']} />
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 sm:gap-3 mb-5">

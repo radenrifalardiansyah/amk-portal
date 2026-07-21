@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 export default async function ClientsPage() {
   const [clients, content] = await Promise.all([
     clientsService.getAll(),
-    siteContentService.getClientsSection(),
+    siteContentService.getClientsPage(),
   ])
 
   return (

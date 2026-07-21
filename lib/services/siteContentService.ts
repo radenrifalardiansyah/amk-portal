@@ -243,6 +243,11 @@ const seedData = {
     description: 'Intip beberapa karya terpilih yang mendefinisikan standar keunggulan kami.',
   } as PortfolioSectionContent,
 
+  portfolioPage: {
+    heading: 'Recent Manifestations',
+    description: 'Setiap proyek adalah bukti nyata dari dedikasi kami terhadap kualitas dan inovasi.',
+  } as PortfolioSectionContent,
+
   teamsSection: {
     heading: 'Teams',
     description: 'Pemimpin, talenta, dan mitra di balik inovasi PT. Adikara Mandala Kreasi.',
@@ -255,6 +260,11 @@ const seedData = {
     description: 'Kepercayaan dari berbagai institusi dan brand adalah bukti nyata dedikasi kami terhadap kualitas.',
   } as ClientsSectionContent,
 
+  clientsPage: {
+    heading: 'Our Clients',
+    description: 'Kepercayaan dari berbagai institusi dan brand adalah bukti nyata dedikasi kami terhadap kualitas.',
+  } as ClientsSectionContent,
+
   gallerySection: {
     heading: 'Gallery',
     description: 'Momen di balik layar dan hasil visual dari perjalanan kreatif kami.',
@@ -263,6 +273,11 @@ const seedData = {
   newsSection: {
     heading: 'Berita',
     description: 'Kabar terbaru, pencapaian, dan wawasan industri kreatif dari tim AMK.',
+  } as NewsSectionContent,
+
+  newsPage: {
+    heading: 'Kabar Terbaru AMK',
+    description: 'Ikuti pencapaian, kolaborasi, dan wawasan industri kreatif langsung dari tim kami.',
   } as NewsSectionContent,
 
   company: {
@@ -319,11 +334,17 @@ export const siteContentService = {
   getPortfolioSection: () => getContent<PortfolioSectionContent>('portfolioSection', seedData.portfolioSection),
   savePortfolioSection: (data: PortfolioSectionContent) => saveContent('portfolioSection', data),
 
+  getPortfolioPage: () => getContent<PortfolioSectionContent>('portfolioPage', seedData.portfolioPage),
+  savePortfolioPage: (data: PortfolioSectionContent) => saveContent('portfolioPage', data),
+
   getTeamsSection: () => getContent<TeamsSectionContent>('teamsSection', seedData.teamsSection),
   saveTeamsSection: (data: TeamsSectionContent) => saveContent('teamsSection', data),
 
   getClientsSection: () => getContent<ClientsSectionContent>('clientsSection', seedData.clientsSection),
   saveClientsSection: (data: ClientsSectionContent) => saveContent('clientsSection', data),
+
+  getClientsPage: () => getContent<ClientsSectionContent>('clientsPage', seedData.clientsPage),
+  saveClientsPage: (data: ClientsSectionContent) => saveContent('clientsPage', data),
 
   getGallerySection: () => getContent<GallerySectionContent>('gallerySection', seedData.gallerySection),
   saveGallerySection: (data: GallerySectionContent) => saveContent('gallerySection', data),
@@ -331,13 +352,17 @@ export const siteContentService = {
   getNewsSection: () => getContent<NewsSectionContent>('newsSection', seedData.newsSection),
   saveNewsSection: (data: NewsSectionContent) => saveContent('newsSection', data),
 
+  getNewsPage: () => getContent<NewsSectionContent>('newsPage', seedData.newsPage),
+  saveNewsPage: (data: NewsSectionContent) => saveContent('newsPage', data),
+
   getCompany: () => getContent<CompanyProfile>('company', empty.company),
   saveCompany: (data: CompanyProfile) => saveContent('company', data),
 
   async seedDefaults(): Promise<{ key: string; seeded: boolean }[]> {
     const keys = [
       'hero', 'aboutHome', 'aboutPage', 'contact', 'servicesSection', 'advantageSection',
-      'portfolioSection', 'teamsSection', 'clientsSection', 'gallerySection', 'newsSection', 'company',
+      'portfolioSection', 'portfolioPage', 'teamsSection', 'clientsSection', 'clientsPage',
+      'gallerySection', 'newsSection', 'newsPage', 'company',
     ] as const
     const results: { key: string; seeded: boolean }[] = []
     for (const key of keys) {

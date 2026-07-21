@@ -51,6 +51,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [messageInput, setMessageInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => usersService.watchUsers(setUsers), [])
@@ -59,6 +60,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
 
   useEffect(() => {
     if (!activeChat) { setMessages([]); return }
+    setSendError(false)
     return chatService.watchMessages(activeChat.id, setMessages)
   }, [activeChat?.id])
 
@@ -122,6 +124,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
     if (!activeChat || !messageInput.trim()) return
     const text = messageInput
     setMessageInput('')
+    setSendError(false)
     setSending(true)
     try {
       await chatService.sendMessage({
@@ -134,6 +137,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
       })
     } catch {
       setMessageInput(text)
+      setSendError(true)
     } finally {
       setSending(false)
     }
@@ -257,7 +261,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
                             </p>
                             <p style={{ fontSize: 10.5, color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {active
-                                ? `${u.activeSession!.device === 'mobile' ? 'Mobile' : 'Desktop'} · Login ${relativeTime(u.lastLoginAt ?? u.activeSession!.lastActiveAt)}`
+                                ? `${u.activeSession!.device === 'mobile' ? 'Mobile' : 'Desktop'} · Aktif ${relativeTime(u.activeSession!.lastActiveAt)}`
                                 : 'Offline'}
                             </p>
                           </div>
@@ -355,27 +359,35 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
                   <div ref={messagesEndRef} />
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, padding: '10px 12px', borderTop: `1px solid ${theme.divider}` }}>
-                  <input
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                    placeholder="Tulis pesan..."
-                    style={{ flex: 1, fontSize: 12.5, padding: '9px 12px', borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.surfaceSoft, color: theme.text, outline: 'none' }}
-                  />
-                  <button
-                    onClick={handleSend}
-                    disabled={sending || !messageInput.trim()}
-                    style={{
-                      width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: (sending || !messageInput.trim()) ? theme.surfaceSoft : theme.accent,
-                      color: (sending || !messageInput.trim()) ? theme.textMuted : '#fff',
-                      cursor: (sending || !messageInput.trim()) ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 17 }}>send</span>
-                  </button>
+                <div style={{ borderTop: `1px solid ${theme.divider}` }}>
+                  {sendError && (
+                    <p style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10.5, color: theme.danger, padding: '6px 12px 0' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13 }}>error</span>
+                      Gagal terkirim. Periksa koneksi lalu kirim ulang.
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, padding: '10px 12px' }}>
+                    <input
+                      value={messageInput}
+                      onChange={(e) => { setMessageInput(e.target.value); setSendError(false) }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+                      placeholder="Tulis pesan..."
+                      style={{ flex: 1, fontSize: 12.5, padding: '9px 12px', borderRadius: 10, border: `1px solid ${sendError ? theme.danger : theme.border}`, background: theme.surfaceSoft, color: theme.text, outline: 'none' }}
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={sending || !messageInput.trim()}
+                      style={{
+                        width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: (sending || !messageInput.trim()) ? theme.surfaceSoft : theme.accent,
+                        color: (sending || !messageInput.trim()) ? theme.textMuted : '#fff',
+                        cursor: (sending || !messageInput.trim()) ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 17 }}>send</span>
+                    </button>
+                  </div>
                 </div>
               </>
             )}

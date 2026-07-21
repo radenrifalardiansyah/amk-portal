@@ -26,7 +26,7 @@ export default async function PortfolioPage() {
   const [projects, clients, content] = await Promise.all([
     portfolioService.getAllPublished(),
     clientsService.getAll(),
-    siteContentService.getPortfolioSection(),
+    siteContentService.getPortfolioPage(),
   ])
   const clientMap = new Map(clients.map((c) => [c.id, c]))
 
