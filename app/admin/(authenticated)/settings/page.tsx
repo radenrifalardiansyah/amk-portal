@@ -290,6 +290,7 @@ export default function SettingsPage() {
   }
 
   const handleForceDeploy = async () => {
+    if (!confirm('Yakin? Ini akan build ulang & regenerate SEMUA halaman situs dari awal. Pakai hanya kalau update konten benar-benar tidak muncul setelah disimpan.')) return
     setDeploying(true)
     try {
       const token = await auth.currentUser?.getIdToken()
@@ -308,6 +309,11 @@ export default function SettingsPage() {
   }
 
   const initials = (profile?.name || profile?.email || 'A')[0].toUpperCase()
+
+  const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const recentLoginHistory = (profile?.loginHistory ?? [])
+    .filter((h) => new Date(h.at).getTime() >= sevenDaysAgoMs)
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
 
   return (
     <>
@@ -428,6 +434,24 @@ export default function SettingsPage() {
                       ? <span>{new Date(profile.lastLoginAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })} · {profile.lastLoginDevice === 'mobile' ? 'Mobile' : 'Desktop'}</span>
                       : <span style={{ color: theme.textMuted }}>Belum ada catatan login</span>}
                   </div>
+                </Field>
+                <Field label="Riwayat Login (7 Hari Terakhir)" hint="Riwayat mulai tercatat sejak fitur ini aktif — login sebelumnya tidak tersimpan.">
+                  {recentLoginHistory.length === 0 ? (
+                    <p style={{ fontSize: 12, color: theme.textMuted, padding: '10px 12px', borderRadius: 12, background: theme.surfaceSoft, border: `1px solid ${theme.border}` }}>
+                      Belum ada riwayat login dalam 7 hari terakhir.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto' }}>
+                      {recentLoginHistory.map((h, i) => (
+                        <div key={`${h.at}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 10, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, fontSize: 12.5, color: theme.textSecondary }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 16, color: theme.textMuted }}>
+                            {h.device === 'mobile' ? 'smartphone' : 'computer'}
+                          </span>
+                          <span>{new Date(h.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })} · {h.device === 'mobile' ? 'Mobile' : 'Desktop'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </Field>
               </SectionCard>
             </>

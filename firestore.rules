@@ -54,6 +54,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Internal team chat (group room + 1-on-1 DMs): only signed-in admin-panel
+    // users can read/write, same trust boundary as the users/ collection above.
+    match /chatConversations/{convoId} {
+      allow read, write: if isAdmin();
+      match /messages/{messageId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;

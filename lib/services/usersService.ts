@@ -22,6 +22,11 @@ export interface LoginRequest {
   status: 'pending' | 'approved' | 'rejected'
 }
 
+export interface LoginHistoryEntry {
+  at: string
+  device: DeviceType
+}
+
 export interface AdminUser {
   email: string
   name: string
@@ -32,10 +37,14 @@ export interface AdminUser {
   avatarUrl?: string
   lastLoginAt?: string
   lastLoginDevice?: DeviceType
+  loginHistory?: LoginHistoryEntry[]
   activeSession?: ActiveSession | null
   loginRequest?: LoginRequest | null
   forceLogoutAt?: string | null
 }
+
+const LOGIN_HISTORY_MAX_DAYS = 7
+const LOGIN_HISTORY_MAX_ENTRIES = 50
 
 export type SessionUser = AdminUser
 
@@ -109,10 +118,18 @@ export const usersService = {
     const sessionId = generateSessionId()
     const activeSession: ActiveSession = { sessionId, device, lastActiveAt: now }
 
-    await updateDoc(doc(db, COL, email), { lastLoginAt: now, lastLoginDevice: device, activeSession, loginRequest: null, forceLogoutAt: null })
+    const cutoff = Date.now() - LOGIN_HISTORY_MAX_DAYS * 24 * 60 * 60 * 1000
+    const loginHistory: LoginHistoryEntry[] = [
+      { at: now, device },
+      ...(profile.loginHistory ?? []).filter((h) => new Date(h.at).getTime() >= cutoff),
+    ].slice(0, LOGIN_HISTORY_MAX_ENTRIES)
+
+    await updateDoc(doc(db, COL, email), {
+      lastLoginAt: now, lastLoginDevice: device, activeSession, loginRequest: null, forceLogoutAt: null, loginHistory,
+    })
     if (typeof window !== 'undefined') localStorage.setItem(SESSION_ID_KEY, sessionId)
 
-    return { ...profile, lastLoginAt: now, lastLoginDevice: device, activeSession }
+    return { ...profile, lastLoginAt: now, lastLoginDevice: device, activeSession, loginHistory }
   },
 
   async logout(): Promise<void> {

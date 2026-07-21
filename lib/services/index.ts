@@ -15,6 +15,7 @@ export { galleryService } from './galleryService'
 export { modulesService } from './modulesService'
 export { menuItemsService } from './menuItemsService'
 export { rolePermissionService } from './rolePermissionService'
+export { chatService, getDmConversationId, TEAM_CHAT_ID } from './chatService'
 
 export type { Lead, CreateLeadInput } from './leadsService'
 export type { PageView, CreatePageViewInput, DeviceType } from './analyticsService'
@@ -30,6 +31,7 @@ export type { GalleryItem } from './galleryService'
 export type { AdminModule } from './modulesService'
 export type { AdminMenuItem } from './menuItemsService'
 export type { Role, ModulePermission, PermissionMap, RolePermission } from './rolePermissionService'
+export type { ChatMessage, ChatConversationMeta } from './chatService'
 export type {
   HeroContent, AboutHomeContent, AboutPageContent, ContactContent, ServicesSectionContent, AdvantageSectionContent,
   PortfolioSectionContent, TeamsSectionContent, ClientsSectionContent, GallerySectionContent, NewsSectionContent,
