@@ -42,6 +42,7 @@ const seedData: AdminMenuItem[] = [
   { id: 'menu-struktur', moduleId: 'sistem', parentId: null, href: '/admin/menu-struktur', icon: 'account_tree', label: 'Struktur Menu', subtitle: 'Kelola modul & menu navigasi admin panel', order: 1, alwaysVisible: true, adminOnly: true, showInBottomNav: false, showOnPortal: true },
   { id: 'hak-akses', moduleId: 'sistem', parentId: null, href: '/admin/hak-akses', icon: 'lock', label: 'Hak Akses Role', subtitle: 'Atur permission matrix per role (admin/editor)', order: 2, alwaysVisible: true, adminOnly: true, showInBottomNav: false, showOnPortal: true },
   { id: 'pengguna', moduleId: 'sistem', parentId: null, href: '/admin/pengguna', icon: 'group', label: 'Pengguna', subtitle: 'Kelola akun admin & editor', order: 3, alwaysVisible: true, adminOnly: true, showInBottomNav: false, showOnPortal: true },
+  { id: 'cron-logs', moduleId: 'sistem', parentId: null, href: '/admin/cron-logs', icon: 'history', label: 'Riwayat Cron', subtitle: 'Log eksekusi cron job terjadwal (GitHub Actions)', order: 4, alwaysVisible: true, adminOnly: true, showInBottomNav: false, showOnPortal: false },
 
   { id: 'settings', moduleId: 'akun', parentId: null, href: '/admin/settings', icon: 'manage_accounts', label: 'Pengaturan Profil', subtitle: 'Kelola informasi akun dan keamanan login Anda', order: 1, alwaysVisible: true, adminOnly: false, showInBottomNav: false, showOnPortal: true },
 ]

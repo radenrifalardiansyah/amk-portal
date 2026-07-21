@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { newsService, type NewsArticle } from '@/lib/services'
 import { jakartaNowInstant, publishInstant } from '@/lib/services/newsService'
+import { adminDb } from '@/lib/firebaseAdmin'
+
+async function logRun(entry: {
+  status: 'success' | 'error'
+  durationMs: number
+  dueSlugs: string[]
+  revalidatedPaths: string[]
+  error?: string
+}) {
+  await adminDb().collection('cron_logs').add({
+    job: 'revalidate-scheduled',
+    ranAt: new Date().toISOString(),
+    trigger: 'github-actions',
+    ...entry,
+  }).catch(() => {})
+}
 
 function requireCron(req: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -21,20 +37,31 @@ function isDue(article: NewsArticle, nowInstant: string): boolean {
   return article.publishedAt >= cutoffStr
 }
 
-// Runs daily via Vercel Cron: brings statically-cached pages (revalidate = false)
-// back in sync with articles whose scheduled publishedAt/publishedTime has now arrived.
+// Runs daily via GitHub Actions (see .github/workflows/cron-revalidate-scheduled.yml):
+// brings statically-cached pages (revalidate = false) back in sync with articles
+// whose scheduled publishedAt/publishedTime has now arrived. Each run is logged to
+// the `cron_logs` collection so /admin/cron-logs can show execution history.
 export async function GET(req: NextRequest) {
   if (!requireCron(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const nowInstant = jakartaNowInstant()
-  const all = await newsService.getAll()
-  const due = all.filter((n) => isDue(n, nowInstant))
+  const startedAt = Date.now()
+  try {
+    const nowInstant = jakartaNowInstant()
+    const all = await newsService.getAll()
+    const due = all.filter((n) => isDue(n, nowInstant))
+    const dueSlugs = due.map((n) => n.slug)
 
-  revalidatePath('/')
-  revalidatePath('/news')
-  due.forEach((n) => revalidatePath(`/news/${n.slug}`))
+    const revalidatedPaths = ['/', '/news', ...dueSlugs.map((slug) => `/news/${slug}`)]
+    revalidatedPaths.forEach((path) => revalidatePath(path))
 
-  return NextResponse.json({ revalidated: true, due: due.map((n) => n.slug) })
+    await logRun({ status: 'success', durationMs: Date.now() - startedAt, dueSlugs, revalidatedPaths })
+
+    return NextResponse.json({ revalidated: true, due: dueSlugs })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    await logRun({ status: 'error', durationMs: Date.now() - startedAt, dueSlugs: [], revalidatedPaths: [], error: message })
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

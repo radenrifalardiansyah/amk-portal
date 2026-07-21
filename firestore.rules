@@ -54,6 +54,14 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Cron execution history (written server-side only, via Admin SDK using
+    // CRON_SECRET — bypasses these rules entirely). Signed-in admin-panel users
+    // can read it to see what ran and what changed; no client can write to it.
+    match /cron_logs/{docId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // Internal team chat (group room + 1-on-1 DMs): only signed-in admin-panel
     // users can read/write, same trust boundary as the users/ collection above.
     match /chatConversations/{convoId} {

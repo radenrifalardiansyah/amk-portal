@@ -1,0 +1,21 @@
+name: Cron - Revalidate Scheduled News
+
+on:
+  schedule:
+    - cron: '0 17 * * *' # 00:00 WIB
+  workflow_dispatch: {}
+
+jobs:
+  revalidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call revalidate-scheduled endpoint
+        run: |
+          status=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET "https://amk-portal.vercel.app/api/cron/revalidate-scheduled" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          cat /tmp/response.json
+          if [ "$status" -ge 300 ]; then
+            echo "Request failed with status $status"
+            exit 1
+          fi
