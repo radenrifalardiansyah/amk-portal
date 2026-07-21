@@ -27,10 +27,15 @@ function toNavItem(m: AdminMenuItem): NavItem {
   }
 }
 
-/** Assembles the admin sidebar structure from Firestore `modules`/`menu_items` (managed via /admin/menu-struktur). */
-export function useAdminNav() {
-  const { data: modules = [], isLoading: modulesLoading } = useSWR('admin-modules', modulesService.getAll)
-  const { data: menuItems = [], isLoading: menuItemsLoading } = useSWR('admin-menu-items', menuItemsService.getAll)
+/**
+ * Assembles the admin sidebar structure from Firestore `modules`/`menu_items` (managed via /admin/menu-struktur).
+ * `ready` should reflect that the auth session is confirmed (not just mounted) — firing these reads before
+ * the Firestore SDK has attached the fresh sign-in's ID token can silently resolve to `[]` (services swallow
+ * errors), which then sticks around for the SWR dedupingInterval and shows a blank sidebar until a hard refresh.
+ */
+export function useAdminNav(ready: boolean = true) {
+  const { data: modules = [], isLoading: modulesLoading } = useSWR(ready ? 'admin-modules' : null, modulesService.getAll)
+  const { data: menuItems = [], isLoading: menuItemsLoading } = useSWR(ready ? 'admin-menu-items' : null, menuItemsService.getAll)
 
   const byModule = new Map<string, AdminMenuItem[]>()
   menuItems.filter((m) => !m.parentId).forEach((m) => {

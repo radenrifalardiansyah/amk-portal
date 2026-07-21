@@ -39,7 +39,7 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const { navGroups, bottomNavItems, menuItems } = useAdminNav()
+  const { navGroups, bottomNavItems, menuItems } = useAdminNav(!!session)
   const permission = usePermissionValue(session)
 
   const canView = (item: NavItem) => (item.adminOnly ? permission.isAdminRole : (item.alwaysVisible || permission.get(item.id).view))
