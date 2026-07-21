@@ -26,7 +26,7 @@ export default function BackToTop() {
       id="back-to-top"
       onClick={scrollToTop}
       aria-label="Kembali ke atas halaman"
-      className="fixed bottom-10 right-10 z-30 w-14 h-14 bg-primary text-surface rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group"
+      className="fixed bottom-6 right-24 z-30 w-14 h-14 bg-primary text-surface rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group"
     >
       <span className="material-symbols-outlined font-bold group-hover:-translate-y-1 transition-transform">
         arrow_upward

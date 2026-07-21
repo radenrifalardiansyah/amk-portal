@@ -115,7 +115,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
   const showContactForm = Boolean(meta?.needsAdmin) && !meta?.contactSubmitted && meta?.status !== 'closed'
 
   return (
-    <div className="fixed bottom-28 right-6 z-40 flex flex-col items-end gap-3">
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[92vw] max-w-sm h-[70vh] max-h-[520px] bg-white rounded-2xl shadow-2xl border border-black/5 flex flex-col overflow-hidden">
           <div className="bg-primary text-surface px-4 py-3 flex items-center justify-between shrink-0">
