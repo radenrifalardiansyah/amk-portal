@@ -40,6 +40,10 @@ const MailIcon = () => (
   </svg>
 )
 
+function normalizeUrl(url: string) {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`
+}
+
 function formatPhoneDisplay(phone: string) {
   const digits = phone.replace(/\D/g, '')
   const local = digits.startsWith('62') ? `0${digits.slice(2)}` : digits
@@ -84,25 +88,25 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
             <Link href="/#contact" className="hover:text-accent transition-colors">Contact</Link>
             <br />
             {company?.instagramUrl && (
-              <a href={company.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center space-x-2">
+              <a href={normalizeUrl(company.instagramUrl)} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center space-x-2">
                 <InstagramIcon />
                 <span>Instagram</span>
               </a>
             )}
             {company?.linkedinUrl && (
-              <a href={company.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi LinkedIn ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
+              <a href={normalizeUrl(company.linkedinUrl)} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi LinkedIn ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <LinkedInIcon />
                 <span>LinkedIn</span>
               </a>
             )}
             {company?.tiktokUrl && (
-              <a href={company.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi TikTok ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
+              <a href={normalizeUrl(company.tiktokUrl)} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi TikTok ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <TikTokIcon />
                 <span>TikTok</span>
               </a>
             )}
             {company?.youtubeUrl && (
-              <a href={company.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi YouTube ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
+              <a href={normalizeUrl(company.youtubeUrl)} target="_blank" rel="noopener noreferrer" aria-label={`Kunjungi YouTube ${shortName}`} className="hover:text-accent transition-colors flex items-center space-x-2">
                 <YouTubeIcon />
                 <span>YouTube</span>
               </a>
