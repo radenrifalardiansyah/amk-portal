@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
 import Toast from '@/components/admin/Toast'
-import { usersService } from '@/lib/services'
-import type { AdminUser, SessionUser } from '@/lib/services'
+import { usersService, notificationService } from '@/lib/services'
+import type { AdminUser, SessionUser, NotificationPermissionState } from '@/lib/services'
 import { uploadMedia, uploadErrorMessage } from '@/lib/upload'
 import { seedInitialContent, type SeedResult } from '@/lib/seedContent'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
@@ -139,6 +139,9 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
 
+  const [notifState, setNotifState] = useState<NotificationPermissionState>('default')
+  const [notifBusy, setNotifBusy] = useState(false)
+
   const [seeding, setSeeding] = useState(false)
   const [seedResults, setSeedResults] = useState<SeedResult[] | null>(null)
   const [deploying, setDeploying] = useState(false)
@@ -162,6 +165,33 @@ export default function SettingsPage() {
   useEffect(() => {
     if (profileData && !profile) setProfile(profileData)
   }, [profileData, profile])
+
+  useEffect(() => {
+    notificationService.getState().then(setNotifState)
+  }, [])
+
+  const handleToggleNotif = async () => {
+    if (!session?.email) return
+    setNotifBusy(true)
+    try {
+      if (notifState === 'granted') {
+        await notificationService.disable(session.email)
+        setNotifState('default')
+        showToast('success', 'Notifikasi chat dimatikan')
+      } else {
+        const result = await notificationService.enable(session.email)
+        if (result.ok) {
+          setNotifState('granted')
+          showToast('success', 'Notifikasi chat diaktifkan')
+        } else {
+          setNotifState(await notificationService.getState())
+          showToast('error', result.error || 'Gagal mengaktifkan notifikasi')
+        }
+      }
+    } finally {
+      setNotifBusy(false)
+    }
+  }
 
   const handleAvatarPick = () => fileInputRef.current?.click()
 
@@ -459,6 +489,33 @@ export default function SettingsPage() {
 
           {activeTab === 'security' && (
             <>
+              <SectionCard title="Notifikasi Chat" subtitle="Dapatkan notifikasi push saat ada pesan baru, meski aplikasi tidak dibuka">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>
+                      {notifState === 'granted' ? 'Notifikasi aktif di perangkat ini'
+                        : notifState === 'denied' ? 'Notifikasi diblokir oleh browser'
+                        : notifState === 'unsupported' ? 'Tidak didukung di browser ini'
+                        : 'Notifikasi belum diaktifkan'}
+                    </p>
+                    <p style={{ fontSize: 11.5, color: theme.textMuted, marginTop: 4 }}>
+                      {notifState === 'denied'
+                        ? 'Aktifkan lewat pengaturan notifikasi browser atau HP kamu, lalu muat ulang halaman ini'
+                        : 'Berlaku untuk Team Chat & pesan pribadi di admin panel ini'}
+                    </p>
+                  </div>
+                  {notifState !== 'unsupported' && notifState !== 'denied' && (
+                    <button onClick={handleToggleNotif} disabled={notifBusy}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 12, fontSize: 12.5, fontWeight: 600, color: notifState === 'granted' ? theme.danger : '#fff', background: notifBusy ? 'rgba(0,0,0,0.05)' : notifState === 'granted' ? theme.dangerSoft : theme.accent, border: 'none', cursor: notifBusy ? 'default' : 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                      {notifBusy
+                        ? <span className="w-4 h-4 border-2 rounded-full admin-spin" style={{ borderColor: theme.divider, borderTopColor: theme.accent }} />
+                        : <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{notifState === 'granted' ? 'notifications_off' : 'notifications_active'}</span>}
+                      {notifState === 'granted' ? 'Matikan' : 'Aktifkan'}
+                    </button>
+                  )}
+                </div>
+              </SectionCard>
+
               <SectionCard title="Ubah Password" subtitle="Gunakan password yang kuat dan tidak digunakan di tempat lain"
                 footer={
                   <button onClick={handleChangePassword} disabled={changingPassword}

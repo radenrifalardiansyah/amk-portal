@@ -17,6 +17,8 @@ export { menuItemsService } from './menuItemsService'
 export { rolePermissionService } from './rolePermissionService'
 export { chatService, getDmConversationId, TEAM_CHAT_ID } from './chatService'
 export { cronLogsService } from './cronLogsService'
+export { notificationService } from './notificationService'
+export type { NotificationPermissionState } from './notificationService'
 
 export type { Lead, CreateLeadInput } from './leadsService'
 export type { PageView, CreatePageViewInput, DeviceType } from './analyticsService'

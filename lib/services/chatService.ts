@@ -2,7 +2,7 @@ import {
   collection, doc, addDoc, setDoc, onSnapshot,
   query, where, orderBy, limitToLast,
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 
 export const TEAM_CHAT_ID = 'team'
 
@@ -86,6 +86,13 @@ export const chatService = {
     await addDoc(collection(convoRef, 'messages'), {
       text, senderEmail: input.senderEmail, senderName: input.senderName, createdAt: now,
     })
+
+    // Push notification for recipients — fire-and-forget, never blocks sending.
+    void auth.currentUser?.getIdToken().then((token) => fetch('/api/chat/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ conversationId: input.conversationId, text }),
+    })).catch(() => {})
   },
 
   async markRead(conversationId: string, email: string): Promise<void> {
