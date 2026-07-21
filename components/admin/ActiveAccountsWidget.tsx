@@ -21,6 +21,15 @@ function hasUnread(meta: ChatConversationMeta | null | undefined, myEmail: strin
   return new Date(readAt).getTime() < new Date(meta.lastMessageAt).getTime()
 }
 
+// A message counts as "read" once every recipient's last-read mark is at or past its timestamp.
+function isReadByAll(message: ChatMessage, recipients: string[], lastReadAt: Record<string, string> | undefined): boolean {
+  if (recipients.length === 0) return false
+  return recipients.every((email) => {
+    const readAt = lastReadAt?.[email]
+    return !!readAt && new Date(readAt).getTime() >= new Date(message.createdAt).getTime()
+  })
+}
+
 interface ActiveChat {
   id: string
   type: 'team' | 'dm'
@@ -89,6 +98,11 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
     const other = m.participants?.find((p) => p !== session.email)
     if (other) dmMetaByOtherEmail.set(other, m)
   })
+
+  const activeChatMeta = activeChat?.type === 'team' ? teamMeta : dmMetaByOtherEmail.get(activeChat?.otherEmail || '')
+  const activeChatRecipients = activeChat?.type === 'team'
+    ? otherUsers.map((u) => u.email)
+    : (activeChat?.otherEmail ? [activeChat.otherEmail] : [])
 
   const teamUnread = hasUnread(teamMeta, session.email)
   const dmUnreadCount = sortedOtherUsers.filter((u) => hasUnread(dmMetaByOtherEmail.get(u.email), session.email)).length
@@ -309,6 +323,7 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
                   )}
                   {messages.map((m) => {
                     const mine = m.senderEmail === session.email
+                    const read = mine && isReadByAll(m, activeChatRecipients, activeChatMeta?.lastReadAt)
                     return (
                       <div key={m.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                         <div style={{ maxWidth: '78%', display: 'flex', flexDirection: 'column', gap: 2, alignItems: mine ? 'flex-end' : 'flex-start' }}>
@@ -325,8 +340,13 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
                           }}>
                             {m.text}
                           </div>
-                          <span style={{ fontSize: 9.5, color: theme.textMuted, padding: '0 4px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 9.5, color: theme.textMuted, padding: '0 4px' }}>
                             {new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            {mine && (
+                              <span className="material-symbols-outlined" style={{ fontSize: 13, color: read ? theme.accent : theme.textMuted }}>
+                                {read ? 'done_all' : 'done'}
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>
