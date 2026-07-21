@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import Magnetic from '@/components/Magnetic'
 import type { CompanyProfile } from '@/lib/services'
 import { DEFAULT_NAV_LINKS, type NavLink } from '@/components/Navbar'
 
@@ -29,8 +28,15 @@ const YouTubeIcon = () => (
 )
 
 const WhatsAppIcon = () => (
-  <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.88-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+  </svg>
+)
+
+const MailIcon = () => (
+  <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 6-10 7L2 6" />
   </svg>
 )
 
@@ -53,7 +59,7 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-primary to-primary-600 w-full py-12 px-8">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto font-['Inter'] text-sm text-white/75">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto font-['Inter'] text-sm text-white/75">
         <div className="space-y-6 reveal-left">
           <div className="inline-block text-xl font-bold text-on-surface font-headline bg-white rounded-xl px-3 py-2">
             <Image
@@ -104,37 +110,42 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
           </div>
         </div>
 
-        <div className="space-y-6 reveal">
-          <h4 className="text-accent font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
-          <div className="space-y-4">
-            <a href={waHref} target="_blank" rel="noopener noreferrer" className="block hover:text-accent transition-colors">
-              WhatsApp: {formatPhoneDisplay(waNumber)}
-            </a>
-            <a href={`mailto:${email}`} className="block hover:text-accent transition-colors">
-              Email: {email}
-            </a>
-          </div>
-        </div>
-
         <div className="space-y-6 reveal-right">
-          <h4 className="text-accent font-bold font-headline uppercase tracking-widest text-xs">Ready to innovate?</h4>
-          <Magnetic strength={0.3}>
+          <h4 className="text-accent font-bold font-headline uppercase tracking-widest text-xs">Direct Contact</h4>
+          <div className="space-y-3">
             <a
               href={waHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:scale-105 hover:bg-[#20b958] transition-all shadow-lg"
+              className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:border-accent/40 hover:bg-white/10"
             >
-              <WhatsAppIcon />
-              <span>Hubungi via WhatsApp</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366]/20 text-[#25D366] transition-colors group-hover:bg-[#25D366] group-hover:text-white">
+                <WhatsAppIcon />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-xs text-white/50">WhatsApp</span>
+                <span className="font-medium text-white transition-colors group-hover:text-accent">{formatPhoneDisplay(waNumber)}</span>
+              </span>
             </a>
-          </Magnetic>
-          <p className="pt-8 text-white/60">
-            Copyright &copy; {year} {copyrightText}{' '}
-            <br />
-            Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-accent text-white/60">RMedia Solution</a>
-          </p>
+            <a
+              href={`mailto:${email}`}
+              className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 transition-colors hover:border-accent/40 hover:bg-white/10"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent transition-colors group-hover:bg-accent group-hover:text-primary">
+                <MailIcon />
+              </span>
+              <span className="flex flex-col min-w-0">
+                <span className="text-xs text-white/50">Email</span>
+                <span className="font-medium text-white transition-colors group-hover:text-accent truncate">{email}</span>
+              </span>
+            </a>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-white/10 text-xs text-white/50 font-['Inter'] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p>Copyright &copy; {year} {copyrightText}</p>
+        <p>Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-accent text-white/50">RMedia Solution</a></p>
       </div>
     </footer>
   )
