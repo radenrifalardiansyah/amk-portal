@@ -11,7 +11,7 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
   const [category, setCategory] = useState('Semua')
 
   const categories = useMemo(
-    () => ['Semua', ...Array.from(new Set(articles.map((a) => a.category)))],
+    () => ['Semua', ...Array.from(new Set(articles.map((a) => a.category).filter(Boolean)))],
     [articles],
   )
 
@@ -45,7 +45,9 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
             </div>
           </div>
           <div className="p-8 md:p-10 flex flex-col justify-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-primary mb-3">{featured.category}</span>
+            {featured.category && (
+              <span className="text-xs font-bold uppercase tracking-widest text-primary mb-3">{featured.category}</span>
+            )}
             <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary mb-4 leading-tight">{featured.title}</h2>
             <p className="text-on-surface-variant leading-relaxed mb-6">{featured.excerpt}</p>
             <div className="flex items-center justify-between text-sm text-on-surface-variant">
@@ -108,11 +110,13 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-widest">
-                    {article.category}
-                  </span>
-                </div>
+                {article.category && (
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-widest">
+                      {article.category}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <p className="text-xs text-on-surface-variant mb-2">{formatPublishedAt(article, { month: 'short' })}</p>

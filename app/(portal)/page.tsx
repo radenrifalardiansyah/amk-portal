@@ -57,7 +57,7 @@ export default async function HomePage() {
   const sections = [
     { id: 'services', node: <ServicesSection key="services" services={services} content={servicesSection} /> },
     { id: 'advantages', node: <AdvantageSection key="advantages" advantages={advantages} content={advantageSection} /> },
-    { id: 'portfolio', node: <PortfolioSection key="portfolio" previews={previews} content={portfolioSection} /> },
+    { id: 'portfolio', node: <PortfolioSection key="portfolio" previews={previews} content={portfolioSection} clients={clients} /> },
     { id: 'gallery', node: <GallerySection key="gallery" previews={galleryPreviews} content={gallerySection} /> },
     { id: 'news', node: <NewsSection key="news" previews={newsPreviews} content={newsSection} /> },
     { id: 'teams', node: <TeamsSection key="teams" leaders={leaders} partners={partners} content={teamsSection} /> },

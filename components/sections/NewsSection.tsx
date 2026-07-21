@@ -40,11 +40,13 @@ export default function NewsSection({ previews, content }: { previews: NewsArtic
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-widest">
-                    {item.category}
-                  </span>
-                </div>
+                {item.category && (
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1 rounded-full bg-primary/90 text-white text-xs font-bold uppercase tracking-widest">
+                      {item.category}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <p className="text-xs text-on-surface-variant mb-2">{formatPublishedAt(item, { month: 'short' })}</p>

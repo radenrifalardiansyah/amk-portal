@@ -96,9 +96,11 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
       <section className="relative pt-32 pb-16 overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(7,82,183,0.05),transparent_70%)] animate-fluid" />
         <div className="max-w-4xl mx-auto px-8 relative z-10 text-center reveal-scale active">
-          <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest mb-4">
-            {article.category}
-          </span>
+          {article.category && (
+            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest mb-4">
+              {article.category}
+            </span>
+          )}
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-6 leading-tight">{article.title}</h1>
           <div className="flex items-center justify-center gap-2 text-on-surface-variant text-sm">
             <span className="font-semibold">{article.author}</span>
