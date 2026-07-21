@@ -12,7 +12,7 @@ import TeamsSection from '@/components/sections/TeamsSection'
 import NewsSection from '@/components/sections/NewsSection'
 import ContactSection from '@/components/sections/ContactSection'
 import ClientsSection from '@/components/sections/ClientsSection'
-import FaqSection from '@/components/sections/FaqSection'
+import FaqSchema from '@/components/sections/FaqSchema'
 
 export const revalidate = false
 
@@ -70,10 +70,10 @@ export default async function HomePage() {
 
   return (
     <>
+      <FaqSchema services={services} company={company} />
       <HeroSection content={hero} />
       <VisionMissionSection content={aboutPage} />
       {sections.map((s) => s.node)}
-      <FaqSection services={services} company={company} />
       <ContactSection content={contact} />
     </>
   )

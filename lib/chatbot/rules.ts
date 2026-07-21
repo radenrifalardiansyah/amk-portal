@@ -19,6 +19,7 @@ const PORTFOLIO_KEYWORDS = ['portofolio', 'portfolio', 'karya', 'proyek', 'proje
 const CONTACT_KEYWORDS = ['kontak', 'hubungi', 'whatsapp', 'wa', 'nomor', 'telepon', 'email', 'alamat', 'admin', 'lokasi', 'kantor']
 const ORDER_KEYWORDS = ['pesan', 'order', 'pemesanan', 'booking']
 const HOURS_KEYWORDS = ['jam operasional', 'jam kerja', 'jam buka', 'operasional', 'buka jam berapa']
+const LEGAL_KEYWORDS = ['legal', 'legalitas', 'resmi', 'nib', 'badan hukum', 'perusahaan resmi', 'terdaftar']
 
 function matchesAny(text: string, keywords: string[]): boolean {
   return keywords.some((keyword) => new RegExp(`\\b${keyword}\\b`, 'i').test(text))
@@ -67,6 +68,13 @@ export function getBotReply(userText: string, ctx: BotReplyContext): BotReply {
   if (matchesAny(text, HOURS_KEYWORDS)) {
     return {
       text: 'Tim kami aktif membalas setiap hari kerja, Senin–Sabtu pukul 09.00–17.00 WIB. Di luar jam tersebut, pesan Anda tetap kami terima dan akan dibalas secepatnya.',
+      needsAdmin: false,
+    }
+  }
+
+  if (matchesAny(text, LEGAL_KEYWORDS)) {
+    return {
+      text: `Ya, ${ctx.company.legalName || 'PT. Adikara Mandala Kreasi'} adalah perusahaan resmi berbadan hukum di Indonesia dengan NIB terdaftar, sehingga setiap kerja sama dijamin secara legal.`,
       needsAdmin: false,
     }
   }

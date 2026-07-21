@@ -15,6 +15,7 @@ const QUICK_REPLIES = [
   'Kontak & Alamat',
   'Cara Pemesanan',
   'Jam Operasional',
+  'Legalitas & NIB',
   'Hubungi Admin',
 ]
 

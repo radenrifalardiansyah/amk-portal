@@ -1,6 +1,9 @@
 import type { Service } from '@/data/services'
 import type { CompanyProfile } from '@/lib/services'
 
+// FAQ data used only for FAQPage structured data (SEO/GEO) — the same answers
+// are already surfaced to visitors interactively via the live chat quick
+// replies (see lib/chatbot/rules.ts), so no visible on-page duplicate here.
 function buildFaqs(services: Service[], company: CompanyProfile) {
   const serviceNames = services.slice(0, 6).map((s) => s.title).join(', ')
   const wa = company.waNumber || company.phone
@@ -35,13 +38,11 @@ function buildFaqs(services: Service[], company: CompanyProfile) {
   ]
 }
 
-export default function FaqSection({ services, company }: { services: Service[]; company: CompanyProfile }) {
-  const faqs = buildFaqs(services, company)
-
+export default function FaqSchema({ services, company }: { services: Service[]; company: CompanyProfile }) {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: buildFaqs(services, company).map((faq) => ({
       '@type': 'Question',
       name: faq.question,
       acceptedAnswer: { '@type': 'Answer', text: faq.answer },
@@ -49,35 +50,9 @@ export default function FaqSection({ services, company }: { services: Service[];
   }
 
   return (
-    <section className="py-24 bg-surface-container-lowest scroll-mt-8" id="faq">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <div className="max-w-4xl mx-auto px-8">
-        <div className="text-center mb-16 reveal-scale">
-          <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest mb-4">
-            FAQ
-          </span>
-          <h2 className="text-4xl font-headline font-bold text-primary">Pertanyaan Umum</h2>
-        </div>
-        <div className="space-y-4">
-          {faqs.map((faq) => (
-            <details
-              key={faq.question}
-              className="group p-6 bg-surface rounded-2xl border border-outline-variant/20 shadow-sm"
-            >
-              <summary className="flex items-center justify-between cursor-pointer font-bold text-lg text-on-surface list-none">
-                {faq.question}
-                <span className="material-symbols-outlined text-primary transition-transform group-open:rotate-180">
-                  expand_more
-                </span>
-              </summary>
-              <p className="mt-4 text-on-surface-variant leading-relaxed">{faq.answer}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+    />
   )
 }
