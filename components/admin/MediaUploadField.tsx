@@ -76,7 +76,7 @@ export default function MediaUploadField({
 
   const tabStyle = (active: boolean) => ({
     padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer',
-    fontSize: 11.5, fontWeight: 600,
+    fontSize: 11.5, fontWeight: 600, whiteSpace: 'nowrap' as const,
     background: active ? theme.accentSoftHover : 'transparent',
     color: active ? theme.accentText : theme.textMuted,
   })
@@ -87,7 +87,7 @@ export default function MediaUploadField({
       <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: -2, marginBottom: 8 }}>
         Format {SUPPORTED_IMAGE_FORMATS_LABEL} &middot; maks {MAX_SOURCE_MB}MB (otomatis dikompres)
       </p>
-      <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 10, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, width: 'fit-content', marginBottom: 8 }}>
+      <div style={{ display: 'inline-flex', gap: 4, padding: 3, borderRadius: 10, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, marginBottom: 8 }}>
         <button type="button" style={tabStyle(mode === 'file')} onClick={() => setMode('file')}>Upload File</button>
         <button type="button" style={tabStyle(mode === 'link')} onClick={() => setMode('link')}>Pakai Link</button>
       </div>

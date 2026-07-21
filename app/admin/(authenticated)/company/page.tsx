@@ -126,32 +126,31 @@ export default function CompanyProfilePage() {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <SectionCard title="Logo" subtitle="Digunakan di navbar & footer website, serta sidebar admin">
-            <div style={{ maxWidth: 220 }}>
-              <MediaUploadField
-                label="Logo Perusahaan"
-                value={company.logoUrl}
-                onChange={(url) => setCompany({ ...company, logoUrl: url })}
-                folder="company"
-                aspect="aspect-square"
-                onUploadingChange={setUploadingLogo}
-                onError={(msg) => showToast('error', msg)}
-              />
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Favicon" subtitle="Ikon tab browser. Foto otomatis dipotong jadi persegi agar tidak gepeng">
-            <div style={{ maxWidth: 140 }}>
-              <MediaUploadField
-                label="Favicon"
-                value={company.faviconUrl}
-                onChange={(url) => setCompany({ ...company, faviconUrl: url })}
-                folder="company"
-                aspect="aspect-square"
-                squareCrop
-                onUploadingChange={setUploadingFavicon}
-                onError={(msg) => showToast('error', msg)}
-              />
+          <SectionCard title="Logo & Favicon" subtitle="Digunakan di navbar, footer website, sidebar admin, dan ikon tab browser">
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="max-w-[220px]">
+                <MediaUploadField
+                  label="Logo Perusahaan"
+                  value={company.logoUrl}
+                  onChange={(url) => setCompany({ ...company, logoUrl: url })}
+                  folder="company"
+                  aspect="aspect-square"
+                  onUploadingChange={setUploadingLogo}
+                  onError={(msg) => showToast('error', msg)}
+                />
+              </div>
+              <div className="max-w-[220px]">
+                <MediaUploadField
+                  label="Favicon"
+                  value={company.faviconUrl}
+                  onChange={(url) => setCompany({ ...company, faviconUrl: url })}
+                  folder="company"
+                  aspect="aspect-square"
+                  squareCrop
+                  onUploadingChange={setUploadingFavicon}
+                  onError={(msg) => showToast('error', msg)}
+                />
+              </div>
             </div>
           </SectionCard>
 
