@@ -107,7 +107,7 @@ export default function AboutPageContentAdmin() {
       await mutate(content, false)
       await mutateAboutHome(aboutHome, false)
       showToast('success', 'Halaman About berhasil disimpan!')
-      revalidatePaths(['/about'])
+      revalidatePaths(['/about', '/'])
     } catch {
       showToast('error', 'Gagal menyimpan halaman About')
     } finally {
