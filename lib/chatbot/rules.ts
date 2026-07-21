@@ -17,6 +17,8 @@ const GREETING_KEYWORDS = ['halo', 'hai', 'hi', 'hello', 'pagi', 'siang', 'sore'
 const SERVICES_KEYWORDS = ['layanan', 'jasa', 'servis', 'service', 'produk', 'harga', 'biaya', 'tarif']
 const PORTFOLIO_KEYWORDS = ['portofolio', 'portfolio', 'karya', 'proyek', 'project', 'contoh kerja', 'hasil kerja']
 const CONTACT_KEYWORDS = ['kontak', 'hubungi', 'whatsapp', 'wa', 'nomor', 'telepon', 'email', 'alamat', 'admin', 'lokasi', 'kantor']
+const ORDER_KEYWORDS = ['pesan', 'order', 'pemesanan', 'booking']
+const HOURS_KEYWORDS = ['jam operasional', 'jam kerja', 'jam buka', 'operasional', 'buka jam berapa']
 
 function matchesAny(text: string, keywords: string[]): boolean {
   return keywords.some((keyword) => new RegExp(`\\b${keyword}\\b`, 'i').test(text))
@@ -53,6 +55,20 @@ export function getBotReply(userText: string, ctx: BotReplyContext): BotReply {
     }
     const list = published.map((p) => `- ${p.title} (${p.client})`).join('\n')
     return { text: `Beberapa proyek yang pernah kami kerjakan:\n${list}\n\nLihat selengkapnya di halaman Portfolio ya!`, needsAdmin: false }
+  }
+
+  if (matchesAny(text, ORDER_KEYWORDS)) {
+    return {
+      text: 'Untuk melakukan pemesanan, klik tombol "Hubungi Admin" di bawah ini ya. Tim kami akan bantu proses pemesanan Anda secara langsung.',
+      needsAdmin: false,
+    }
+  }
+
+  if (matchesAny(text, HOURS_KEYWORDS)) {
+    return {
+      text: 'Tim kami aktif membalas setiap hari kerja, Senin–Sabtu pukul 09.00–17.00 WIB. Di luar jam tersebut, pesan Anda tetap kami terima dan akan dibalas secepatnya.',
+      needsAdmin: false,
+    }
   }
 
   if (matchesAny(text, GREETING_KEYWORDS)) {

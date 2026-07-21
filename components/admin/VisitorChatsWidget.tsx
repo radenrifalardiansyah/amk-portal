@@ -151,9 +151,16 @@ export default function VisitorChatsWidget() {
                   }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person</span>
                   </div>
-                  <p style={{ flex: 1, fontSize: 13, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    Pengunjung #{activeId?.slice(0, 6)}
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      Pengunjung #{activeId?.slice(0, 6)}
+                    </p>
+                    {(active?.visitorEmail || active?.visitorPhone) && (
+                      <p style={{ fontSize: 10.5, color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {[active?.visitorEmail, active?.visitorPhone].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </div>
                   {active?.status !== 'closed' && (
                     <button
                       onClick={handleClose}

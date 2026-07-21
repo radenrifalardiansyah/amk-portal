@@ -1,11 +1,12 @@
 import {
-  collection, doc, addDoc, setDoc, onSnapshot,
+  collection, doc, addDoc, setDoc, getDoc, onSnapshot,
   query, orderBy, limitToLast,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 const COL = 'visitorChats'
 const STORAGE_KEY = 'amk_visitor_chat_id'
+const ADMIN_INTRO_TEXT = 'Halo, saya dengan Admin AMK 👋 Terima kasih sudah menghubungi kami, mohon maaf atas waktu tunggunya ya.'
 
 export interface VisitorMessage {
   id: string
@@ -20,6 +21,10 @@ export interface VisitorConversationMeta {
   needsAdmin: boolean
   lastMessageText?: string
   lastMessageAt?: string
+  contactSubmitted?: boolean
+  visitorEmail?: string
+  visitorPhone?: string
+  adminIntroSent?: boolean
 }
 
 // Stable per-browser id so a returning visitor resumes the same thread.
@@ -90,14 +95,48 @@ export const visitorChatService = {
     const trimmed = text.trim()
     if (!trimmed) return
     const now = new Date().toISOString()
-    await setDoc(doc(db, COL, conversationId), {
+    const ref = doc(db, COL, conversationId)
+
+    // First real reply from a human admin on this thread gets a fixed intro line
+    // so the visitor knows a person (not the bot) is now answering.
+    const snap = await getDoc(ref)
+    const alreadyIntroduced = Boolean(snap.exists() && (snap.data() as VisitorConversationMeta).adminIntroSent)
+    if (!alreadyIntroduced) {
+      await addDoc(collection(db, COL, conversationId, 'messages'), {
+        text: ADMIN_INTRO_TEXT, sender: 'admin', createdAt: now,
+      })
+    }
+
+    await setDoc(ref, {
       status: 'handled',
       needsAdmin: false,
+      adminIntroSent: true,
       lastMessageText: trimmed,
       lastMessageAt: now,
     }, { merge: true })
     await addDoc(collection(db, COL, conversationId, 'messages'), {
       text: trimmed, sender: 'admin', createdAt: now,
+    })
+  },
+
+  // Visitor leaves contact info so an admin can follow up outside the chat too.
+  async submitContactInfo(conversationId: string, email: string, phone: string): Promise<void> {
+    const trimmedEmail = email.trim()
+    const trimmedPhone = phone.trim()
+    if (!trimmedEmail || !trimmedPhone) return
+    const now = new Date().toISOString()
+    const text = `Kontak saya:\nEmail: ${trimmedEmail}\nNo. HP: ${trimmedPhone}`
+    await setDoc(doc(db, COL, conversationId), {
+      status: 'open',
+      needsAdmin: true,
+      contactSubmitted: true,
+      visitorEmail: trimmedEmail,
+      visitorPhone: trimmedPhone,
+      lastMessageText: text,
+      lastMessageAt: now,
+    }, { merge: true })
+    await addDoc(collection(db, COL, conversationId, 'messages'), {
+      text, sender: 'visitor', createdAt: now,
     })
   },
 

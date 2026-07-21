@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   visitorChatService, getOrCreateVisitorId, servicesService, portfolioService,
 } from '@/lib/services'
@@ -9,7 +9,14 @@ import type { Service } from '@/data/services'
 import type { PortfolioProject } from '@/data/portfolio'
 import { getBotReply } from '@/lib/chatbot/rules'
 
-const QUICK_REPLIES = ['Layanan Kami', 'Lihat Portofolio', 'Hubungi Admin']
+const QUICK_REPLIES = [
+  'Layanan Kami',
+  'Lihat Portofolio',
+  'Kontak & Alamat',
+  'Cara Pemesanan',
+  'Jam Operasional',
+  'Hubungi Admin',
+]
 
 export default function VisitorChatWidget({ company }: { company: CompanyProfile }) {
   const [open, setOpen] = useState(false)
@@ -19,6 +26,9 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [submittingContact, setSubmittingContact] = useState(false)
   const servicesRef = useRef<Service[]>([])
   const portfolioRef = useRef<PortfolioProject[]>([])
   const metaRef = useRef<VisitorConversationMeta | null>(null)
@@ -72,8 +82,40 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
     }
   }
 
+  // "Hubungi Admin" always hands off to a human, instead of the keyword-matched bot reply.
+  async function handleContactAdmin() {
+    if (!conversationId || sending) return
+    setSending(true)
+    try {
+      await visitorChatService.sendVisitorMessage(conversationId, 'Hubungi Admin')
+      if (metaRef.current?.status === 'handled') return
+      await visitorChatService.sendBotReply(
+        conversationId,
+        'Baik, tim admin kami akan segera membantu Anda. Mohon isi email dan nomor HP di bawah ini ya 🙏',
+        true,
+      )
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function handleContactSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!conversationId || !contactEmail.trim() || !contactPhone.trim() || submittingContact) return
+    setSubmittingContact(true)
+    try {
+      await visitorChatService.submitContactInfo(conversationId, contactEmail, contactPhone)
+      setContactEmail('')
+      setContactPhone('')
+    } finally {
+      setSubmittingContact(false)
+    }
+  }
+
+  const showContactForm = Boolean(meta?.needsAdmin) && !meta?.contactSubmitted && meta?.status !== 'closed'
+
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-3">
+    <div className="fixed bottom-28 right-6 z-40 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[92vw] max-w-sm h-[70vh] max-h-[520px] bg-white rounded-2xl shadow-2xl border border-black/5 flex flex-col overflow-hidden">
           <div className="bg-primary text-surface px-4 py-3 flex items-center justify-between shrink-0">
@@ -114,18 +156,54 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="px-3 pt-2 flex flex-wrap gap-2 bg-gray-50 shrink-0">
-            {QUICK_REPLIES.map((q) => (
+          {showContactForm ? (
+            <form
+              onSubmit={handleContactSubmit}
+              className="px-3 pt-2 pb-1 flex flex-col gap-2 bg-gray-50 shrink-0"
+            >
+              <p className="text-xs text-gray-500">
+                Isi email &amp; nomor HP Anda agar admin bisa segera menghubungi Anda:
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="Email"
+                  className="flex-1 min-w-0 text-xs px-3 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="tel"
+                  required
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="No. HP"
+                  className="flex-1 min-w-0 text-xs px-3 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-primary"
+                />
+              </div>
               <button
-                key={q}
-                onClick={() => handleSend(q)}
-                disabled={sending}
-                className="text-xs px-3 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                type="submit"
+                disabled={submittingContact || !contactEmail.trim() || !contactPhone.trim()}
+                className="text-xs px-3 py-2 rounded-full bg-primary text-surface disabled:opacity-50 transition-opacity"
               >
-                {q}
+                Kirim ke Admin
               </button>
-            ))}
-          </div>
+            </form>
+          ) : (
+            <div className="px-3 pt-2 flex flex-wrap gap-2 bg-gray-50 shrink-0">
+              {QUICK_REPLIES.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => (q === 'Hubungi Admin' ? handleContactAdmin() : handleSend(q))}
+                  disabled={sending}
+                  className="text-xs px-3 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form
             onSubmit={(e) => { e.preventDefault(); handleSend(input) }}
