@@ -78,37 +78,43 @@ export default function TeamsSection({ leaders, partners, content }: { leaders: 
                       </div>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="flex flex-wrap gap-4">
                       {p.members.map((m, j) => (
                         <div
                           key={j}
-                          className="flex items-center gap-3 p-3 rounded-2xl bg-surface-container-lowest border border-outline-variant/10 transition-colors hover:border-primary/20"
+                          className="group w-28 rounded-2xl overflow-hidden bg-surface-container-lowest border border-outline-variant/10 transition-colors hover:border-primary/20"
                         >
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#5de1e6] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold uppercase overflow-hidden">
+                          <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-primary to-[#5de1e6]">
                             {m.photo ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+                              <img
+                                src={m.photo}
+                                alt={m.name}
+                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                              />
                             ) : (
-                              m.name.slice(0, 2)
+                              <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold uppercase">
+                                {m.name.slice(0, 2)}
+                              </div>
+                            )}
+                            {m.instagram && (
+                              <a
+                                href={instagramUrl(m.instagram)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`Instagram ${m.name}`}
+                                className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-on-surface-variant bg-surface/90 backdrop-blur transition-all hover:text-white hover:bg-gradient-to-br hover:from-[#f09433] hover:via-[#e6683c] hover:to-[#bc1888]"
+                              >
+                                <InstagramIcon />
+                              </a>
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="block text-sm font-semibold text-on-surface truncate">{m.name}</span>
+                          <div className="p-2.5 text-center">
+                            <span className="block text-xs font-semibold text-on-surface truncate">{m.name}</span>
                             {m.role && (
-                              <span className="block text-xs text-on-surface-variant truncate">{m.role}</span>
+                              <span className="block text-[11px] text-on-surface-variant truncate">{m.role}</span>
                             )}
                           </div>
-                          {m.instagram && (
-                            <a
-                              href={instagramUrl(m.instagram)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              aria-label={`Instagram ${m.name}`}
-                              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-on-surface-variant bg-surface transition-all hover:text-white hover:bg-gradient-to-br hover:from-[#f09433] hover:via-[#e6683c] hover:to-[#bc1888]"
-                            >
-                              <InstagramIcon />
-                            </a>
-                          )}
                         </div>
                       ))}
                     </div>
