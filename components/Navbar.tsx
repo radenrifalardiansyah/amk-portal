@@ -109,7 +109,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
               width={96}
               height={96}
               unoptimized
-              className="h-8 lg:h-9 xl:h-10 w-auto object-contain mix-blend-multiply"
+              className="h-7 lg:h-8 xl:h-9 w-auto object-contain mix-blend-multiply"
             />
           </Link>
 

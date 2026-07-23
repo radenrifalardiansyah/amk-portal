@@ -73,7 +73,7 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
               width={96}
               height={96}
               unoptimized
-              className="h-9 w-auto object-contain mix-blend-multiply"
+              className="h-8 w-auto object-contain mix-blend-multiply"
             />
           </div>
           <p className="leading-relaxed">
