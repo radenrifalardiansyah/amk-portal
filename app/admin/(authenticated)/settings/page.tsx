@@ -205,7 +205,7 @@ export default function SettingsPage() {
     }
     setUploadingAvatar(true)
     try {
-      const url = await uploadMedia(file, 'avatars')
+      const url = await uploadMedia(file, 'avatars', undefined, 512, 512, true)
       const updated = { ...profile, avatarUrl: url }
       await usersService.updateProfile(profile.email, { avatarUrl: url })
       setProfile(updated)

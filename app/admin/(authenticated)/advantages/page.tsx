@@ -187,6 +187,7 @@ function SectionHeaderCard({ canEdit, showToast }: { canEdit: boolean; showToast
             </div>
             <MediaUploadField
               label="Gambar" folder="advantages/section" aspect="aspect-[4/3]"
+              recommendedWidth={1200} recommendedHeight={900} cropToAspect
               value={form.image} onChange={(url) => setForm({ ...form, image: url })}
               onUploadingChange={setUploading} onError={(msg) => showToast('error', msg)}
             />

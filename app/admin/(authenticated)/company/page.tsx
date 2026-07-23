@@ -76,6 +76,7 @@ export default function CompanyProfilePage() {
   const [company, setCompany] = useState<CompanyProfile | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingAdminLogo, setUploadingAdminLogo] = useState(false)
   const [uploadingFavicon, setUploadingFavicon] = useState(false)
   const [toast, setToast] = useState<ToastState | null>(null)
 
@@ -127,7 +128,7 @@ export default function CompanyProfilePage() {
       ) : (
         <div className="flex flex-col gap-5">
           <SectionCard title="Logo & Favicon" subtitle="Digunakan di navbar, footer website, sidebar admin, dan ikon tab browser">
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="max-w-[220px]">
                 <MediaUploadField
                   label="Logo Perusahaan"
@@ -135,9 +136,27 @@ export default function CompanyProfilePage() {
                   onChange={(url) => setCompany({ ...company, logoUrl: url })}
                   folder="company"
                   aspect="aspect-square"
+                  recommendedWidth={800}
+                  recommendedHeight={400}
                   onUploadingChange={setUploadingLogo}
                   onError={(msg) => showToast('error', msg)}
                 />
+                <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 6 }}>Tampil di navbar &amp; footer website. Gunakan PNG transparan, boleh memanjang (tidak harus persegi).</p>
+              </div>
+              <div className="max-w-[220px]">
+                <MediaUploadField
+                  label="Logo Admin"
+                  value={company.adminLogoUrl}
+                  onChange={(url) => setCompany({ ...company, adminLogoUrl: url })}
+                  folder="company"
+                  aspect="aspect-square"
+                  recommendedWidth={512}
+                  recommendedHeight={512}
+                  cropToAspect
+                  onUploadingChange={setUploadingAdminLogo}
+                  onError={(msg) => showToast('error', msg)}
+                />
+                <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 6 }}>Tampil di sidebar &amp; topbar halaman admin. Kosongkan untuk memakai Logo Perusahaan.</p>
               </div>
               <div className="max-w-[220px]">
                 <MediaUploadField
@@ -146,10 +165,13 @@ export default function CompanyProfilePage() {
                   onChange={(url) => setCompany({ ...company, faviconUrl: url })}
                   folder="company"
                   aspect="aspect-square"
-                  squareCrop
+                  recommendedWidth={512}
+                  recommendedHeight={512}
+                  cropToAspect
                   onUploadingChange={setUploadingFavicon}
                   onError={(msg) => showToast('error', msg)}
                 />
+                <p style={{ fontSize: 11, color: theme.textMuted, marginTop: 6 }}>Ikon tab browser. PNG persegi, background solid (bukan transparan) agar terbaca di tab gelap/terang.</p>
               </div>
             </div>
           </SectionCard>
@@ -204,8 +226,8 @@ export default function CompanyProfilePage() {
 
           <SectionCard title="Copyright" subtitle="Teks yang tampil di bagian bawah footer website"
             footer={
-              <button onClick={handleSave} disabled={saving || uploadingLogo || uploadingFavicon || !edit}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || uploadingFavicon || !edit) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
+              <button onClick={handleSave} disabled={saving || uploadingLogo || uploadingAdminLogo || uploadingFavicon || !edit}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 24px', borderRadius: 12, fontSize: 13, fontWeight: 600, color: '#fff', border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: (saving || uploadingLogo || uploadingAdminLogo || uploadingFavicon || !edit) ? 'rgba(7,82,183,0.5)' : theme.accent, boxShadow: (saving || uploadingLogo || uploadingAdminLogo || uploadingFavicon || !edit) ? 'none' : '0 2px 12px rgba(7,82,183,0.25)' }}>
                 {saving
                   ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full admin-spin" />Menyimpan...</>
                   : <><span className="material-symbols-outlined" style={{ fontSize: 15 }}>save</span>Simpan Profil Perusahaan</>}

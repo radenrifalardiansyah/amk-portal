@@ -11,13 +11,17 @@ interface MediaUploadFieldProps {
   onChange: (url: string) => void
   folder: string
   aspect?: string
-  squareCrop?: boolean
+  /** Target pixel size used both for the hint text and the actual upload resize. */
+  recommendedWidth: number
+  recommendedHeight: number
+  /** Center-crop to the recommended aspect ratio before resizing, instead of just capping the longer edge. */
+  cropToAspect?: boolean
   onUploadingChange?: (uploading: boolean) => void
   onError?: (message: string) => void
 }
 
 export default function MediaUploadField({
-  label, value, onChange, folder, aspect = 'aspect-video', squareCrop,
+  label, value, onChange, folder, aspect = 'aspect-video', recommendedWidth, recommendedHeight, cropToAspect,
   onUploadingChange, onError,
 }: MediaUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -59,7 +63,7 @@ export default function MediaUploadField({
     onUploadingChange?.(true)
     setProgress(0)
     try {
-      const url = await uploadMedia(file, folder, setProgress, squareCrop)
+      const url = await uploadMedia(file, folder, setProgress, recommendedWidth, recommendedHeight, cropToAspect)
       onChange(url)
     } catch (err) {
       console.error('Upload failed:', err)
@@ -85,7 +89,7 @@ export default function MediaUploadField({
     <div>
       <label style={labelStyle}>{label}</label>
       <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: -2, marginBottom: 8 }}>
-        Format {SUPPORTED_IMAGE_FORMATS_LABEL} &middot; maks {MAX_SOURCE_MB}MB (otomatis dikompres)
+        Rekomendasi {recommendedWidth}&times;{recommendedHeight}px{cropToAspect ? ' (otomatis dipotong & disesuaikan)' : ' (otomatis disesuaikan)'} &middot; format {SUPPORTED_IMAGE_FORMATS_LABEL} &middot; maks {MAX_SOURCE_MB}MB
       </p>
       <div style={{ display: 'inline-flex', gap: 4, padding: 3, borderRadius: 10, background: theme.surfaceSoft, border: `1px solid ${theme.border}`, marginBottom: 8 }}>
         <button type="button" style={tabStyle(mode === 'file')} onClick={() => setMode('file')}>Upload File</button>

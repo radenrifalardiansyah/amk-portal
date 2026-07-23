@@ -28,7 +28,7 @@ export default function AvatarPicker({
     }
     setUploading(true)
     try {
-      const url = await uploadMedia(file, 'members')
+      const url = await uploadMedia(file, 'members', undefined, 512, 512, true)
       onChange(url)
     } catch (err) {
       console.error('Upload failed:', err)

@@ -81,6 +81,7 @@ function ClientModal({
             </div>
             <MediaUploadField
               label="Logo Klien" folder="clients" aspect="aspect-[4/3]"
+              recommendedWidth={400} recommendedHeight={300} cropToAspect
               value={form.src} onChange={(url) => set('src', url)}
               onUploadingChange={setUploading} onError={onError}
             />

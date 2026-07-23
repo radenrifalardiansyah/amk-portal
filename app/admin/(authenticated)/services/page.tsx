@@ -162,6 +162,7 @@ function ServiceModal({
             </div>
             <MediaUploadField
               label="Foto Service" folder="services"
+              recommendedWidth={1280} recommendedHeight={720} cropToAspect
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />

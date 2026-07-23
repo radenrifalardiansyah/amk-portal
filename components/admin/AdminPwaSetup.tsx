@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { theme } from '@/lib/admin-theme'
+import { cloudinaryLogo } from '@/lib/cloudinary'
 
 // Detects whether the admin panel is running as an installed PWA (Android "standalone"
 // display mode, or iOS's older `navigator.standalone` flag) rather than a normal browser tab.
@@ -45,7 +46,7 @@ export default function AdminPwaSetup({ logoUrl }: { logoUrl?: string }) {
       }}
       className="admin-splash-fade"
     >
-      <img src={logoUrl || '/icons/icon-192.png'} alt="AMK Admin" style={{ width: 88, height: 88, borderRadius: 20, objectFit: 'contain' }} />
+      <img src={logoUrl ? cloudinaryLogo(logoUrl) : '/icons/icon-192.png'} alt="AMK Admin" style={{ width: 88, height: 88, borderRadius: 20, objectFit: 'contain' }} />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
         <p style={{ fontSize: 15, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline, letterSpacing: '0.01em' }}>
           AMK Admin Portal

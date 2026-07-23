@@ -7,6 +7,7 @@ import { usersService, siteContentService, LoginApprovalPendingError } from '@/l
 import type { CompanyProfile, DeviceType } from '@/lib/services'
 import { theme } from '@/lib/admin-theme'
 import InstallPwaCard from '@/components/admin/InstallPwaCard'
+import { cloudinaryLogo } from '@/lib/cloudinary'
 
 const APPROVAL_TIMEOUT_MS = 60_000
 
@@ -35,6 +36,7 @@ export default function AdminLoginPage() {
   }, [])
 
   const brandName = company?.shortName || 'AMK'
+  const adminLogoUrl = company?.adminLogoUrl || company?.logoUrl
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault()
@@ -175,9 +177,9 @@ export default function AdminLoginPage() {
         <div style={{ padding: '36px 36px 32px' }}>
           {/* Logo & Title */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
-            {company?.logoUrl ? (
+            {adminLogoUrl ? (
               <img
-                src={company.logoUrl}
+                src={cloudinaryLogo(adminLogoUrl)}
                 alt={brandName}
                 style={{ width: 60, height: 60, objectFit: 'contain', marginBottom: 16 }}
               />

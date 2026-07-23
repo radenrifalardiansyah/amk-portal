@@ -155,7 +155,8 @@ function GalleryModal({
 
             {form.type === 'image' ? (
               <MediaUploadField
-                label="Foto Galeri *" folder="gallery" aspect="aspect-[4/3]"
+                label="Foto Galeri *" folder="gallery" aspect="aspect-square"
+                recommendedWidth={1200} recommendedHeight={1200} cropToAspect
                 value={form.url} onChange={(url) => set('url', url)}
                 onUploadingChange={setUploading} onError={onError}
               />

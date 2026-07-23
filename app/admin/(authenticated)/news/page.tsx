@@ -165,6 +165,7 @@ function NewsModal({
             </div>
             <MediaUploadField
               label="Cover Berita" folder="news"
+              recommendedWidth={1280} recommendedHeight={720} cropToAspect
               value={form.coverImage} onChange={(url) => set('coverImage', url)}
               onUploadingChange={setUploading} onError={onError}
             />

@@ -39,7 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="admin-root">
-      <AdminPwaSetup logoUrl={company.logoUrl} />
+      <AdminPwaSetup logoUrl={company.adminLogoUrl || company.logoUrl} />
       {children}
     </div>
   )

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { CompanyProfile } from '@/lib/services'
 import { DEFAULT_NAV_LINKS, type NavLink } from '@/components/Navbar'
+import { cloudinaryLogo } from '@/lib/cloudinary'
 
 const InstagramIcon = () => (
   <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -51,7 +52,7 @@ function formatPhoneDisplay(phone: string) {
 }
 
 export default function Footer({ company, waMessageTemplate, contactWaNumber, navLinks = DEFAULT_NAV_LINKS }: { company?: CompanyProfile; waMessageTemplate?: string; contactWaNumber?: string; navLinks?: NavLink[] }) {
-  const logoUrl = company?.logoUrl || '/images/logo.png'
+  const logoUrl = cloudinaryLogo(company?.logoUrl || '/images/logo.png')
   const shortName = company?.shortName || 'AMK'
   const tagline = company?.tagline || 'Transformasi digital melalui kreativitas berbasis data. Kami hadir di Bogor untuk jangkauan global.'
   const waNumber = company?.waNumber || company?.phone || contactWaNumber || '6285155336838'

@@ -175,6 +175,7 @@ function LeaderModal({
             </div>
             <MediaUploadField
               label="Foto" folder="leadership" aspect="aspect-[3/4]"
+              recommendedWidth={900} recommendedHeight={1200} cropToAspect
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />

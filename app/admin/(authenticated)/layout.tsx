@@ -10,6 +10,7 @@ import { theme } from '@/lib/admin-theme'
 import { useAdminNav } from '@/lib/useAdminNav'
 import type { NavItem } from '@/lib/useAdminNav'
 import { PermissionContext, usePermissionValue } from '@/lib/permissions'
+import { cloudinaryLogo } from '@/lib/cloudinary'
 import ActiveAccountsWidget from '@/components/admin/ActiveAccountsWidget'
 import VisitorChatsWidget from '@/components/admin/VisitorChatsWidget'
 
@@ -235,13 +236,14 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   }
 
   const brandName = company?.shortName || 'AMK'
+  const adminLogoUrl = company?.adminLogoUrl || company?.logoUrl
   const meta = pageMeta[pathname] ?? { title: 'Dashboard', subtitle: undefined }
 
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: theme.bg }}>
-        {company?.logoUrl ? (
-          <img src={company.logoUrl} alt={brandName} style={{ width: 48, height: 48, objectFit: 'contain' }} />
+        {adminLogoUrl ? (
+          <img src={cloudinaryLogo(adminLogoUrl)} alt={brandName} style={{ width: 48, height: 48, objectFit: 'contain' }} />
         ) : (
           <div style={{
             width: 48, height: 48, borderRadius: 14, overflow: 'hidden',
@@ -300,8 +302,8 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
         {/* Logo */}
         <div style={{ padding: collapsed ? '20px 10px 12px' : '20px 20px 16px', borderBottom: `1px solid ${theme.divider}`, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: collapsed ? 'center' : 'flex-start' }}>
-            {company?.logoUrl ? (
-              <img src={company.logoUrl} alt={brandName} style={{ width: 36, height: 36, flexShrink: 0, objectFit: 'contain' }} />
+            {adminLogoUrl ? (
+              <img src={cloudinaryLogo(adminLogoUrl)} alt={brandName} style={{ width: 36, height: 36, flexShrink: 0, objectFit: 'contain' }} />
             ) : (
               <div style={{
                 width: 36, height: 36, borderRadius: 11, flexShrink: 0, overflow: 'hidden',
@@ -554,8 +556,8 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
             >
               <span className="material-symbols-outlined">{collapsed ? 'menu_open' : 'menu'}</span>
             </button>
-          ) : company?.logoUrl ? (
-            <img src={company.logoUrl} alt={brandName} style={{ height: 32, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+          ) : adminLogoUrl ? (
+            <img src={cloudinaryLogo(adminLogoUrl)} alt={brandName} style={{ height: 32, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
           ) : (
             <span style={{ fontSize: 15, fontWeight: 700, color: theme.text, fontFamily: theme.fontHeadline }}>{brandName}</span>
           )}

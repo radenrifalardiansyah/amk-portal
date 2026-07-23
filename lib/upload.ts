@@ -1,5 +1,3 @@
-const MAX_DIMENSION = 1200
-
 // Source file cap before resize/compression kicks in — just a safety ceiling
 // against pathological uploads (e.g. an uncompressed scan) hanging the
 // browser during decode; ordinary photos never get close to this.
@@ -46,10 +44,12 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number)
   })
 }
 
-// Resizes down to MAX_DIMENSION before upload (saves bandwidth/time to Cloudinary);
-// Cloudinary itself handles further optimization/delivery, so unlike the old
-// Firestore-embedded approach there's no need to also squeeze quality/bytes here.
-async function resizeImage(file: File, squareCrop?: boolean): Promise<Blob> {
+// Resizes down to fit within targetWidth x targetHeight before upload (saves
+// bandwidth/time to Cloudinary, and keeps the stored file close to how it's
+// actually displayed); Cloudinary itself handles further optimization/delivery,
+// so unlike the old Firestore-embedded approach there's no need to also
+// squeeze quality/bytes here. Never upscales past the source image.
+async function resizeImage(file: File, targetWidth: number, targetHeight: number, cropToAspect?: boolean): Promise<Blob> {
   const dataUrl = await fileToDataUrl(file)
   const img = await loadImage(dataUrl)
 
@@ -57,16 +57,26 @@ async function resizeImage(file: File, squareCrop?: boolean): Promise<Blob> {
   const ctx = canvas.getContext('2d')
   if (!ctx) return file
 
-  // Center-crop to a square source rect first (rather than stretching), so a
-  // non-square upload (e.g. for a favicon) still renders undistorted when a
-  // browser/OS forces it into a square tile.
-  const cropSize = squareCrop ? Math.min(img.width, img.height) : null
-  const srcX = cropSize ? (img.width - cropSize) / 2 : 0
-  const srcY = cropSize ? (img.height - cropSize) / 2 : 0
-  const srcW = cropSize ?? img.width
-  const srcH = cropSize ?? img.height
+  // Center-crop the source to the target aspect ratio first (rather than
+  // stretching), so upload targets that render in a fixed-ratio box (e.g. a
+  // square admin icon or a 16:9 card) aren't distorted or letterboxed.
+  let srcX = 0
+  let srcY = 0
+  let srcW = img.width
+  let srcH = img.height
+  if (cropToAspect) {
+    const targetRatio = targetWidth / targetHeight
+    const srcRatio = img.width / img.height
+    if (srcRatio > targetRatio) {
+      srcW = img.height * targetRatio
+      srcX = (img.width - srcW) / 2
+    } else {
+      srcH = img.width / targetRatio
+      srcY = (img.height - srcH) / 2
+    }
+  }
 
-  const scale = Math.min(1, MAX_DIMENSION / Math.max(srcW, srcH))
+  const scale = Math.min(1, targetWidth / srcW, targetHeight / srcH)
   canvas.width = Math.round(srcW * scale)
   canvas.height = Math.round(srcH * scale)
   ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height)
@@ -118,12 +128,14 @@ function uploadToCloudinary(blob: Blob, folder: string, onProgress?: (percent: n
 export async function uploadMedia(
   file: File,
   folder: string,
-  onProgress?: (percent: number) => void,
-  squareCrop?: boolean,
+  onProgress: ((percent: number) => void) | undefined,
+  targetWidth: number,
+  targetHeight: number,
+  cropToAspect?: boolean,
 ): Promise<string> {
   validateImageFile(file)
   onProgress?.(5)
-  const blob = await resizeImage(file, squareCrop)
+  const blob = await resizeImage(file, targetWidth, targetHeight, cropToAspect)
   onProgress?.(15)
   return uploadToCloudinary(blob, folder, onProgress)
 }

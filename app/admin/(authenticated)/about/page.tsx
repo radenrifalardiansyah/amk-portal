@@ -179,6 +179,7 @@ export default function AboutPageContentAdmin() {
               </Field>
               <MediaUploadField
                 label="Gambar Tim" folder="homepage/about"
+                recommendedWidth={1280} recommendedHeight={720} cropToAspect
                 value={aboutHome.teamImage} onChange={(url) => setAboutHome({ ...aboutHome, teamImage: url })}
                 onUploadingChange={setUploadingAboutImage} onError={(msg) => showToast('error', msg)}
               />

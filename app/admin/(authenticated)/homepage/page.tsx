@@ -259,6 +259,7 @@ export default function HomepageContentPage() {
             </div>
             <MediaUploadField
               label="Gambar Hero" folder="homepage/hero" aspect="aspect-[21/9]"
+              recommendedWidth={1600} recommendedHeight={686} cropToAspect
               value={hero.image} onChange={(url) => setHero({ ...hero, image: url })}
               onUploadingChange={setUploadingHeroImage} onError={(msg) => showToast('error', msg)}
             />

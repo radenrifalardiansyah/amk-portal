@@ -179,6 +179,7 @@ function PortfolioModal({
             </div>
             <MediaUploadField
               label="Foto Proyek" folder="portfolio"
+              recommendedWidth={1280} recommendedHeight={720} cropToAspect
               value={form.image} onChange={(url) => set('image', url)}
               onUploadingChange={setUploading} onError={onError}
             />
@@ -220,6 +221,7 @@ function PortfolioModal({
                       {g.type === 'image' ? (
                         <MediaUploadField
                           label="" folder="portfolio-gallery" aspect="aspect-video"
+                          recommendedWidth={1280} recommendedHeight={720} cropToAspect
                           value={g.url} onChange={(url) => updateGalleryItem(g.id, { url })}
                           onUploadingChange={(v) => setGalleryUploading((u) => ({ ...u, [g.id]: v }))}
                           onError={onError}

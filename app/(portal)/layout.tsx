@@ -49,7 +49,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <Navbar company={company} navLinks={navLinks} />
       <RevealProvider />
       <PageViewTracker />
-      <div className="pt-[88px] md:pt-0 page-enter">
+      <div className="pt-[104px] md:pt-0 page-enter">
         {children}
       </div>
       <Footer company={company} waMessageTemplate={contact.waMessageTemplate} contactWaNumber={contact.waNumber} navLinks={navLinks} />
