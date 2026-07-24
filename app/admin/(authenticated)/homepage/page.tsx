@@ -8,7 +8,10 @@ import { siteContentService } from '@/lib/services'
 import type { HeroContent, ContactContent, AboutPageContent } from '@/lib/services'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
+import VideoCoverThumb from '@/components/VideoCoverThumb'
 import SearchSelect from '@/components/admin/SearchSelect'
+import { getVideoEmbed } from '@/lib/videoEmbed'
+import { useMediaTypeDrafts } from '@/lib/useMediaTypeDrafts'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 
@@ -121,6 +124,7 @@ export default function HomepageContentPage() {
   const [uploadingHeroImage, setUploadingHeroImage] = useState(false)
   const [missionPage, setMissionPage] = useState(1)
   const [toast, setToast] = useState<ToastState | null>(null)
+  const switchHeroImageType = useMediaTypeDrafts(hero?.imageType, hero?.image ?? '')
 
   const showToast = (type: ToastState['type'], message: string) => {
     setToast({ type, message })
@@ -257,12 +261,52 @@ export default function HomepageContentPage() {
               <Field label="Ukuran Font Baris 2"><Select value={hero.titleLine2Size} onChange={(v) => setHero({ ...hero, titleLine2Size: v })} options={HERO_TITLE_SIZE_OPTIONS} /></Field>
               <Field label="Ukuran Font Baris 3"><Select value={hero.titleLine3Size} onChange={(v) => setHero({ ...hero, titleLine3Size: v })} options={HERO_TITLE_SIZE_OPTIONS} /></Field>
             </div>
-            <MediaUploadField
-              label="Gambar Hero" folder="homepage/hero" aspect="aspect-[21/9]"
-              recommendedWidth={1600} recommendedHeight={686} cropToAspect
-              value={hero.image} onChange={(url) => setHero({ ...hero, image: url })}
-              onUploadingChange={setUploadingHeroImage} onError={(msg) => showToast('error', msg)}
-            />
+            <div>
+              <label style={labelStyle}>Gambar/Video Hero</label>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {(['image', 'video'] as const).map((t) => (
+                  <button key={t} type="button"
+                    onClick={() => setHero({ ...hero, imageType: t, image: switchHeroImageType(t) })}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      padding: '9px 12px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                      border: `1.5px solid ${(hero.imageType ?? 'image') === t ? theme.accent : theme.border}`,
+                      background: (hero.imageType ?? 'image') === t ? theme.accentSoft : theme.surfaceSoft,
+                      color: (hero.imageType ?? 'image') === t ? theme.accentText : theme.textSecondary,
+                    }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{t === 'image' ? 'image' : 'movie'}</span>
+                    {t === 'image' ? 'Foto' : 'Video'}
+                  </button>
+                ))}
+              </div>
+
+              {(hero.imageType ?? 'image') === 'image' ? (
+                <MediaUploadField
+                  label="" folder="homepage/hero" aspect="aspect-[21/9]"
+                  recommendedWidth={1600} recommendedHeight={686} cropToAspect
+                  value={hero.image} onChange={(url) => setHero({ ...hero, image: url })}
+                  onUploadingChange={setUploadingHeroImage} onError={(msg) => showToast('error', msg)}
+                />
+              ) : (
+                <>
+                  <input className={inputCls} style={inputStyle} value={hero.image}
+                    placeholder="https://www.youtube.com/watch?v=... atau link mp4"
+                    onChange={(e) => setHero({ ...hero, image: e.target.value })}
+                    onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                  {hero.image && (
+                    <>
+                      <div className="aspect-[21/9] relative w-full overflow-hidden rounded-xl mt-2" style={{ background: theme.surfaceSoft }}>
+                        <VideoCoverThumb url={hero.image} alt="Gambar Hero" />
+                      </div>
+                      <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
+                        Terdeteksi sebagai: {getVideoEmbed(hero.image).kind}
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
             <Field label="Deskripsi"><TextArea value={hero.description} onChange={(v) => setHero({ ...hero, description: v })} /></Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Label CTA Utama"><TextInput value={hero.primaryCtaLabel} onChange={(v) => setHero({ ...hero, primaryCtaLabel: v })} /></Field>

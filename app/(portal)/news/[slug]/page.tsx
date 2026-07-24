@@ -2,8 +2,11 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
+import VideoHeroEmbed from '@/components/VideoHeroEmbed'
 import { newsService, siteContentService } from '@/lib/services'
 import { isVisible, formatPublishedAt, publishInstant } from '@/lib/services/newsService'
+import { getVideoEmbed } from '@/lib/videoEmbed'
 import { SITE_URL, absoluteUrl, ogImage } from '@/lib/seo'
 
 export const revalidate = false
@@ -17,6 +20,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const article = await newsService.getBySlug(slug)
   if (!article || !isVisible(article)) return {}
+  // Social crawlers can't render a video embed, so the cover image for a
+  // video article falls back to its thumbnail (or the site default).
+  const coverImage = article.imageType === 'video' ? getVideoEmbed(article.coverImage).thumbnailUrl : article.coverImage
   return {
     title: `${article.title} | AMK News`,
     description: article.excerpt,
@@ -25,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: article.title,
       description: article.excerpt,
       url: `/news/${slug}`,
-      images: [ogImage(article.coverImage)],
+      images: [ogImage(coverImage)],
       type: 'article',
       publishedTime: `${publishInstant(article)}:00+07:00`,
       authors: [article.author],
@@ -35,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title: article.title,
       description: article.excerpt,
-      images: [ogImage(article.coverImage)],
+      images: [ogImage(coverImage)],
     },
   }
 }
@@ -52,13 +58,14 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
   const others = all.filter((a) => a.slug !== article.slug).slice(0, 3)
   const tags = article.tags.split(',').map((t) => t.trim()).filter(Boolean)
   const paragraphs = article.content.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
+  const coverEmbed = article.imageType === 'video' ? getVideoEmbed(article.coverImage) : null
 
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
     headline: article.title,
     description: article.excerpt,
-    image: [absoluteUrl(article.coverImage)],
+    image: [absoluteUrl(coverEmbed ? (coverEmbed.thumbnailUrl ?? '/images/company.png') : article.coverImage)],
     datePublished: `${publishInstant(article)}:00+07:00`,
     dateModified: `${publishInstant(article)}:00+07:00`,
     articleSection: article.category,
@@ -112,14 +119,18 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
 
       <section className="max-w-4xl mx-auto px-8 pb-20">
         <div className="relative w-full h-[40vh] md:h-[55vh] rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 mb-14">
-          <SafeImage
-            src={article.coverImage}
-            alt={article.title}
-            fill
-            sizes="(min-width: 896px) 896px, 100vw"
-            className="object-cover"
-            priority
-          />
+          {coverEmbed ? (
+            <VideoHeroEmbed embed={coverEmbed} alt={article.title} />
+          ) : (
+            <SafeImage
+              src={article.coverImage}
+              alt={article.title}
+              fill
+              sizes="(min-width: 896px) 896px, 100vw"
+              className="object-cover"
+              priority
+            />
+          )}
         </div>
 
         <article className="prose-none space-y-6 max-w-3xl mx-auto">
@@ -158,11 +169,10 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ slu
                   className="group block rounded-3xl overflow-hidden bg-surface border border-outline-variant/10 hover-lift"
                 >
                   <div className="relative aspect-video overflow-hidden">
-                    <SafeImage
-                      src={item.coverImage}
+                    <MediaCoverThumb
+                      image={item.coverImage}
+                      imageType={item.imageType}
                       alt={item.title}
-                      fill
-                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                   </div>

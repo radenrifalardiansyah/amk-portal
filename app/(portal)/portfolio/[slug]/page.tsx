@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import SafeImage from '@/components/SafeImage'
+import VideoHeroEmbed from '@/components/VideoHeroEmbed'
 import { portfolioService, clientsService } from '@/lib/services'
 import { SITE_URL, ogImage } from '@/lib/seo'
+import { getVideoEmbed } from '@/lib/videoEmbed'
 import ProjectGallery from './ProjectGallery'
 
 export const revalidate = false
@@ -17,6 +19,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const project = await portfolioService.getBySlug(slug)
   if (!project || project.status !== 'published') return {}
+  // Social crawlers can't render a video embed, so the cover image for a
+  // video project falls back to its thumbnail (or the site default).
+  const coverImage = project.imageType === 'video' ? getVideoEmbed(project.image).thumbnailUrl : project.image
   return {
     title: `${project.title} | AMK Portfolio`,
     description: project.description,
@@ -25,14 +30,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: project.title,
       description: project.description,
       url: `/portfolio/${slug}`,
-      images: [ogImage(project.image)],
+      images: [ogImage(coverImage)],
       type: 'article',
     },
     twitter: {
       card: 'summary_large_image',
       title: project.title,
       description: project.description,
-      images: [ogImage(project.image)],
+      images: [ogImage(coverImage)],
     },
   }
 }
@@ -43,6 +48,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
   if (!project || project.status !== 'published') notFound()
 
   const client = project.clientId ? await clientsService.getById(project.clientId) : null
+  const coverEmbed = project.imageType === 'video' ? getVideoEmbed(project.image) : null
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -71,14 +77,18 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
             <p className="text-xl text-on-surface-variant max-w-3xl mx-auto mb-10">{project.description}</p>
 
             <div className="relative w-full h-[60vh] rounded-[2rem] overflow-hidden shadow-2xl border border-outline-variant/20 mb-16">
-              <SafeImage
-                src={project.image}
-                alt={project.title}
-                fill
-                sizes="(min-width: 1280px) 1280px, 100vw"
-                className="object-cover"
-                priority
-              />
+              {coverEmbed ? (
+                <VideoHeroEmbed embed={coverEmbed} alt={project.title} />
+              ) : (
+                <SafeImage
+                  src={project.image}
+                  alt={project.title}
+                  fill
+                  sizes="(min-width: 1280px) 1280px, 100vw"
+                  className="object-cover"
+                  priority
+                />
+              )}
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 text-left border-t border-b border-outline-variant/20 py-12 mb-16">

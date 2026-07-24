@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import SafeImage from '@/components/SafeImage'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
 import TiltCard from '@/components/TiltCard'
 import ClientLogo from '@/components/ClientLogo'
 import type { PortfolioProject } from '@/data/portfolio'
@@ -39,10 +39,10 @@ export default function PortfolioSection({ previews, content, clients }: { previ
                 href={`/portfolio/${item.slug}`}
                 className="group relative overflow-hidden rounded-2xl aspect-video bg-surface-bright shadow-lg block h-full"
               >
-                <SafeImage
-                  src={item.image}
+                <MediaCoverThumb
+                  image={item.image}
+                  imageType={item.imageType}
                   alt={item.title}
-                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">

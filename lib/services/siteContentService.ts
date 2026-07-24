@@ -16,6 +16,8 @@ export interface HeroContent {
   secondaryCtaLabel: string
   secondaryCtaHref: string
   image: string
+  /** Missing on legacy docs — treat as 'image' when absent. */
+  imageType?: 'image' | 'video'
 }
 
 export interface AboutHomeContent {

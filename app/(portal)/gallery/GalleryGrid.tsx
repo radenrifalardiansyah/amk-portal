@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import SafeImage from '@/components/SafeImage'
 import MediaPlaceholder from '@/components/MediaPlaceholder'
 import type { GalleryItem } from '@/lib/services'
@@ -81,7 +82,7 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
         ))}
       </div>
 
-      {active && (
+      {active && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10 bg-black/90 backdrop-blur-sm"
           onClick={close}
@@ -124,7 +125,8 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
           <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm font-headline font-bold px-4 text-center">
             {active.title}
           </p>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

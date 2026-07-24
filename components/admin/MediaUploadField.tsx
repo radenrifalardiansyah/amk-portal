@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme } from '@/lib/admin-theme'
 import { uploadMedia, uploadErrorMessage, validateImageFile, MAX_SOURCE_MB, SUPPORTED_IMAGE_FORMATS_LABEL } from '@/lib/upload'
 
@@ -31,12 +32,16 @@ export default function MediaUploadField({
   const [progress, setProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
   const [localPreview, setLocalPreview] = useState<string | null>(null)
+  const [previewBroken, setPreviewBroken] = useState(false)
 
   const previewSrc = localPreview || value
 
   useEffect(() => () => {
     if (localPreview) URL.revokeObjectURL(localPreview)
   }, [localPreview])
+
+  // A new src (fresh upload, pasted link, or cleared field) deserves a fresh chance to load.
+  useEffect(() => { setPreviewBroken(false) }, [previewSrc])
 
   const applyLink = () => {
     const url = linkDraft.trim()
@@ -120,8 +125,11 @@ export default function MediaUploadField({
               if (!uploading) handleFile(e.dataTransfer.files?.[0])
             }}
           >
-            {previewSrc && (
-              <Image src={previewSrc} alt={label} fill className="object-cover" unoptimized />
+            {previewSrc && !previewBroken && (
+              <Image src={previewSrc} alt={label} fill className="object-cover" unoptimized onError={() => setPreviewBroken(true)} />
+            )}
+            {previewSrc && previewBroken && (
+              <MediaPlaceholder label="Foto gagal dimuat" />
             )}
             {!previewSrc && (
               <div
@@ -175,8 +183,11 @@ export default function MediaUploadField({
           className={`${aspect} relative w-full overflow-hidden rounded-xl group`}
           style={{ background: theme.surfaceSoft, border: `1.5px dashed ${theme.border}` }}
         >
-          {previewSrc && (
-            <Image src={previewSrc} alt={label} fill className="object-cover" unoptimized />
+          {previewSrc && !previewBroken && (
+            <Image src={previewSrc} alt={label} fill className="object-cover" unoptimized onError={() => setPreviewBroken(true)} />
+          )}
+          {previewSrc && previewBroken && (
+            <MediaPlaceholder label="Foto gagal dimuat" />
           )}
           {!previewSrc && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2" style={{ color: theme.textMuted }}>

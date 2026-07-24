@@ -38,6 +38,9 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
   const [showAboutModal, setShowAboutModal] = useState(false)
   const [loginRequest, setLoginRequest] = useState<LoginRequest | null>(null)
   const [respondingToLoginRequest, setRespondingToLoginRequest] = useState(false)
+  const [widgetsCollapsed, setWidgetsCollapsed] = useState(false)
+  const [accountsBadge, setAccountsBadge] = useState({ active: 0, unread: 0 })
+  const [visitorBadge, setVisitorBadge] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -206,7 +209,15 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem('admin-nav-collapsed-groups')
       if (stored) setCollapsedGroups(JSON.parse(stored))
     } catch { /* ignore malformed storage */ }
+    setWidgetsCollapsed(localStorage.getItem('admin-widgets-collapsed') === '1')
   }, [])
+
+  const toggleWidgetsCollapsed = () => {
+    setWidgetsCollapsed((prev) => {
+      localStorage.setItem('admin-widgets-collapsed', prev ? '0' : '1')
+      return !prev
+    })
+  }
 
   const toggleSidebarCollapsed = () => {
     setSidebarCollapsed((prev) => {
@@ -750,8 +761,39 @@ function AdminAuthenticatedLayoutInner({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      <ActiveAccountsWidget session={session} canKick={permission.isAdminRole} />
-      <VisitorChatsWidget />
+      <ActiveAccountsWidget
+        session={session}
+        canKick={permission.isAdminRole}
+        collapsed={widgetsCollapsed}
+        onBadgeChange={setAccountsBadge}
+      />
+      <VisitorChatsWidget collapsed={widgetsCollapsed} onBadgeChange={setVisitorBadge} />
+
+      {/* Collapse/expand toggle for the floating chat & accounts widgets */}
+      <button
+        onClick={toggleWidgetsCollapsed}
+        title={widgetsCollapsed ? 'Tampilkan chat & akun aktif' : 'Sembunyikan chat & akun aktif'}
+        className={`fixed z-40 ${widgetsCollapsed ? 'bottom-[88px] lg:bottom-6' : 'bottom-[144px] lg:bottom-[82px]'}`}
+        style={{
+          right: 16, width: 36, height: 36, borderRadius: '50%', border: `1px solid ${theme.border}`, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: theme.surface, color: theme.textMuted, boxShadow: theme.shadowCard, transition: 'bottom 0.15s',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          {widgetsCollapsed ? 'forum' : 'keyboard_arrow_down'}
+        </span>
+        {widgetsCollapsed && (accountsBadge.unread + visitorBadge) > 0 && (
+          <span style={{
+            position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, padding: '0 3px', borderRadius: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: theme.danger, color: '#fff', fontSize: 9.5, fontWeight: 700,
+            border: `2px solid ${theme.bg}`,
+          }}>
+            {accountsBadge.unread + visitorBadge}
+          </span>
+        )}
+      </button>
 
       {/* Incoming Login Request Modal */}
       {loginRequest && (

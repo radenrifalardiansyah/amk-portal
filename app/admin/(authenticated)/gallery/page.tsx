@@ -7,12 +7,13 @@ import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { galleryService, siteContentService } from '@/lib/services'
 import type { GalleryItem, GallerySectionContent } from '@/lib/services'
-import Image from 'next/image'
+import SafeImage from '@/components/SafeImage'
 import MediaPlaceholder from '@/components/MediaPlaceholder'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import { revalidatePaths } from '@/lib/revalidate'
 import { getVideoEmbed } from '@/lib/videoEmbed'
+import { useMediaTypeDrafts } from '@/lib/useMediaTypeDrafts'
 import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
@@ -20,13 +21,16 @@ interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 const emptyItem: GalleryItem = { id: '', title: '', type: 'image', url: '', order: 1 }
 
 function GalleryThumb({ item, className }: { item: GalleryItem; className: string }) {
+  const [videoThumbBroken, setVideoThumbBroken] = useState(false)
+
   if (item.type === 'video') {
     const embed = getVideoEmbed(item.url)
+    const showThumb = embed.thumbnailUrl && !videoThumbBroken
     return (
       <>
-        {embed.thumbnailUrl ? (
+        {showThumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={embed.thumbnailUrl} alt={item.title} className={className} />
+          <img src={embed.thumbnailUrl} alt={item.title} className={className} onError={() => setVideoThumbBroken(true)} />
         ) : (
           <MediaPlaceholder icon="movie" className={className} />
         )}
@@ -36,9 +40,7 @@ function GalleryThumb({ item, className }: { item: GalleryItem; className: strin
       </>
     )
   }
-  return item.url
-    ? <Image src={item.url} alt={item.title} fill className={className} unoptimized />
-    : <MediaPlaceholder className={className} />
+  return <SafeImage src={item.url} alt={item.title} fill className={className} />
 }
 
 function PreviewModal({ item, onClose }: { item: GalleryItem; onClose: () => void }) {
@@ -60,9 +62,7 @@ function PreviewModal({ item, onClose }: { item: GalleryItem; onClose: () => voi
 
       <div className="relative w-full max-w-4xl aspect-video" onClick={(e) => e.stopPropagation()}>
         {item.type === 'image' ? (
-          item.url
-            ? <Image src={item.url} alt={item.title} fill unoptimized className="object-contain" />
-            : <MediaPlaceholder label="Tidak ada foto" className="rounded-2xl" />
+          <SafeImage src={item.url} alt={item.title} fill className="object-contain rounded-2xl" />
         ) : embed?.kind === 'file' ? (
           // eslint-disable-next-line jsx-a11y/media-has-caption
           <video src={embed.embedUrl} controls autoPlay className="w-full h-full object-contain" />
@@ -97,6 +97,7 @@ function GalleryModal({
   const [form, setForm] = useState<GalleryItem>({ ...emptyItem, ...item })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const switchType = useMediaTypeDrafts(form.type, form.url)
 
   const set = (k: keyof GalleryItem, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -138,7 +139,7 @@ function GalleryModal({
               <div style={{ display: 'flex', gap: 6 }}>
                 {(['image', 'video'] as const).map((t) => (
                   <button key={t} type="button"
-                    onClick={() => setForm((f) => ({ ...f, type: t, url: '' }))}
+                    onClick={() => setForm((f) => ({ ...f, type: t, url: switchType(t) }))}
                     style={{
                       flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                       padding: '9px 12px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',

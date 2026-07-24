@@ -13,6 +13,8 @@ export interface PortfolioProject {
   title: string
   description: string
   image: string
+  /** Missing on legacy docs — treat as 'image' when absent. */
+  imageType?: 'image' | 'video'
   client: string
   clientId?: string | null
   services: string

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import SafeImage from '@/components/SafeImage'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
 import type { NewsArticle } from '@/lib/services'
 import { formatPublishedAt } from '@/lib/services/newsService'
 
@@ -32,10 +32,10 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
           className="reveal-scale group grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden bg-surface-container-low border border-outline-variant/10 hover-lift mb-16"
         >
           <div className="relative aspect-video md:aspect-auto md:h-full overflow-hidden">
-            <SafeImage
-              src={featured.coverImage}
+            <MediaCoverThumb
+              image={featured.coverImage}
+              imageType={featured.imageType}
               alt={featured.title}
-              fill
               className="object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute top-5 left-5">
@@ -104,10 +104,10 @@ export default function NewsExplorer({ articles }: { articles: NewsArticle[] }) 
               style={i > 0 ? { transitionDelay: `${Math.min(i, 6) * 0.1}s` } : {}}
             >
               <div className="relative aspect-video overflow-hidden">
-                <SafeImage
-                  src={article.coverImage}
+                <MediaCoverThumb
+                  image={article.coverImage}
+                  imageType={article.imageType}
                   alt={article.title}
-                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 {article.category && (

@@ -37,7 +37,10 @@ interface ActiveChat {
   otherEmail?: string
 }
 
-export default function ActiveAccountsWidget({ session, canKick }: { session: SessionUser; canKick: boolean }) {
+export default function ActiveAccountsWidget({ session, canKick, collapsed = false, onBadgeChange }: {
+  session: SessionUser; canKick: boolean; collapsed?: boolean
+  onBadgeChange?: (info: { active: number; unread: number }) => void
+}) {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [open, setOpen] = useState(false)
   const [kickTarget, setKickTarget] = useState<string | null>(null)
@@ -110,6 +113,15 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
   const dmUnreadCount = sortedOtherUsers.filter((u) => hasUnread(dmMetaByOtherEmail.get(u.email), session.email)).length
   const totalUnreadCount = (teamUnread ? 1 : 0) + dmUnreadCount
 
+  useEffect(() => {
+    onBadgeChange?.({ active: activeUsers.length, unread: totalUnreadCount })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUsers.length, totalUnreadCount])
+
+  useEffect(() => {
+    if (collapsed) setOpen(false)
+  }, [collapsed])
+
   const openChat = (type: 'team' | 'dm', id: string, title: string, otherEmail?: string) => {
     setActiveChat({ id, type, title, otherEmail })
     setView('chat')
@@ -152,6 +164,8 @@ export default function ActiveAccountsWidget({ session, canKick }: { session: Se
       setKickTarget(null)
     }
   }
+
+  if (collapsed) return null
 
   return (
     <div ref={rootRef} className="fixed z-40 bottom-[88px] lg:bottom-6" style={{ right: 16 }}>

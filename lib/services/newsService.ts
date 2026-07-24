@@ -12,6 +12,8 @@ export interface NewsArticle {
   excerpt: string
   content: string
   coverImage: string
+  /** Missing on legacy docs — treat as 'image' when absent. */
+  imageType?: 'image' | 'video'
   category: string
   author: string
   status: NewsStatus

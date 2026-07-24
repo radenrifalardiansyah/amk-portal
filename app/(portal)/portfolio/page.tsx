@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import SafeImage from '@/components/SafeImage'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
 import { portfolioService, clientsService, siteContentService } from '@/lib/services'
 
 export const revalidate = false
@@ -58,10 +58,10 @@ export default async function PortfolioPage() {
                 style={i > 0 ? { transitionDelay: `${i * 0.15}s` } : {}}
               >
                 <div className="relative aspect-video overflow-hidden">
-                  <SafeImage
-                    src={project.image}
+                  <MediaCoverThumb
+                    image={project.image}
+                    imageType={project.imageType}
                     alt={project.title}
-                    fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {project.category && (
@@ -83,7 +83,7 @@ export default async function PortfolioPage() {
                   </div>
                   <p className="text-on-surface-variant text-sm leading-relaxed">{project.description}</p>
                   <div className="mt-4 flex items-center space-x-2 text-primary font-bold text-sm">
-                    <span>View Case Study</span>
+                    <span>Baca Selengkapnya</span>
                     <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
                       arrow_forward
                     </span>

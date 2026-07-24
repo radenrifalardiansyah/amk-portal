@@ -8,19 +8,20 @@ import Pagination from '@/components/admin/Pagination'
 import { portfolioService, servicesService, clientsService, siteContentService, Client } from '@/lib/services'
 import type { PortfolioSectionContent } from '@/lib/services'
 import { PortfolioProject, PortfolioGalleryItem, PortfolioStatus } from '@/data/portfolio'
-import Image from 'next/image'
-import MediaPlaceholder from '@/components/MediaPlaceholder'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
+import VideoCoverThumb from '@/components/VideoCoverThumb'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
 import { getVideoEmbed } from '@/lib/videoEmbed'
+import { useMediaTypeDrafts } from '@/lib/useMediaTypeDrafts'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 
 interface ToastState { type: 'success' | 'error' | 'info'; message: string }
 
 const emptyProject: PortfolioProject = {
-  slug: '', category: '', title: '', description: '', image: '/images/company.png',
+  slug: '', category: '', title: '', description: '', image: '/images/company.png', imageType: 'image',
   client: '', clientId: null, services: '', year: new Date().getFullYear().toString(),
   challenge: '', solution: '', result: '', gallery: [], status: 'draft',
   prevSlug: null, nextSlug: null, nextLabel: null,
@@ -44,6 +45,7 @@ function PortfolioModal({
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [galleryUploading, setGalleryUploading] = useState<Record<string, boolean>>({})
+  const switchImageType = useMediaTypeDrafts(form.imageType, form.image)
 
   const set = (k: keyof PortfolioProject, v: string | null) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -70,6 +72,7 @@ function PortfolioModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.clientId) { onError('Pilih client terlebih dahulu'); return }
+    if (!form.image) { onError(form.imageType === 'video' ? 'Link video proyek wajib diisi' : 'Foto proyek wajib diunggah'); return }
     if (gallery.some((g) => !g.url)) { onError('Lengkapi atau hapus item galeri yang masih kosong'); return }
     setSaving(true)
     await onSave(form)
@@ -177,16 +180,71 @@ function PortfolioModal({
                 onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
-            <MediaUploadField
-              label="Foto Proyek" folder="portfolio"
-              recommendedWidth={1280} recommendedHeight={720} cropToAspect
-              value={form.image} onChange={(url) => set('image', url)}
-              onUploadingChange={setUploading} onError={onError}
-            />
+            <div>
+              <label style={labelStyle}>Foto/Video Proyek *</label>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {(['image', 'video'] as const).map((t) => (
+                  <button key={t} type="button"
+                    onClick={() => setForm((f) => ({ ...f, imageType: t, image: switchImageType(t) }))}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      padding: '9px 12px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                      border: `1.5px solid ${(form.imageType ?? 'image') === t ? theme.accent : theme.border}`,
+                      background: (form.imageType ?? 'image') === t ? theme.accentSoft : theme.surfaceSoft,
+                      color: (form.imageType ?? 'image') === t ? theme.accentText : theme.textSecondary,
+                    }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{t === 'image' ? 'image' : 'movie'}</span>
+                    {t === 'image' ? 'Foto' : 'Video'}
+                  </button>
+                ))}
+              </div>
 
-            <div style={{ paddingTop: 6, marginTop: 4, borderTop: `1px solid ${theme.divider}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '14px 0 12px' }}>
-                <p style={{ fontSize: 11.5, fontWeight: 700, color: theme.textSecondary }}>Project Gallery (Foto & Video)</p>
+              {(form.imageType ?? 'image') === 'image' ? (
+                <MediaUploadField
+                  label="" folder="portfolio"
+                  recommendedWidth={1280} recommendedHeight={720} cropToAspect
+                  value={form.image} onChange={(url) => set('image', url)}
+                  onUploadingChange={setUploading} onError={onError}
+                />
+              ) : (
+                <>
+                  <input className={inputCls} style={inputStyle} value={form.image}
+                    placeholder="https://www.youtube.com/watch?v=... atau link mp4"
+                    onChange={(e) => set('image', e.target.value)}
+                    onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                  {form.image && (
+                    <>
+                      <div className="aspect-video relative w-full overflow-hidden rounded-xl mt-2" style={{ background: theme.surfaceSoft }}>
+                        <VideoCoverThumb url={form.image} alt="Foto Proyek" />
+                      </div>
+                      <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
+                        Terdeteksi sebagai: {getVideoEmbed(form.image).kind}
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+
+            {([
+              { key: 'challenge' as const, label: 'Tantangan' },
+              { key: 'solution' as const, label: 'Solusi' },
+              { key: 'result' as const, label: 'Hasil' },
+            ]).map(({ key, label }) => (
+              <div key={key}>
+                <label style={labelStyle}>{label}</label>
+                <textarea rows={3} className={inputCls} style={{ ...inputStyle, resize: 'none' }}
+                  value={form[key] as string} placeholder={`Ceritakan ${label.toLowerCase()}...`}
+                  onChange={(e) => set(key, e.target.value)}
+                  onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                  onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+              </div>
+            ))}
+
+            <div style={{ paddingTop: 20, marginTop: 4, borderTop: `1px dashed ${theme.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2px 0 12px' }}>
+                <p style={{ fontSize: 11.5, fontWeight: 700, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Project Gallery (Foto & Video)</p>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button type="button" onClick={() => addGalleryItem('image')}
                     style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: theme.accentText, background: theme.accentSoft, border: 'none', cursor: 'pointer' }}>
@@ -234,9 +292,14 @@ function PortfolioModal({
                           onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
                       )}
                       {g.type === 'video' && g.url && (
-                        <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
-                          Terdeteksi sebagai: {getVideoEmbed(g.url).kind}
-                        </p>
+                        <>
+                          <div className="aspect-video relative w-full overflow-hidden rounded-xl mt-2" style={{ background: theme.surface }}>
+                            <VideoCoverThumb url={g.url} alt={g.caption || 'Video galeri'} />
+                          </div>
+                          <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
+                            Terdeteksi sebagai: {getVideoEmbed(g.url).kind}
+                          </p>
+                        </>
                       )}
                       <input className={inputCls} style={{ ...inputStyle, marginTop: 8 }} value={g.caption ?? ''}
                         placeholder="Keterangan (opsional)"
@@ -248,21 +311,6 @@ function PortfolioModal({
                 </div>
               )}
             </div>
-
-            {([
-              { key: 'challenge' as const, label: 'Tantangan' },
-              { key: 'solution' as const, label: 'Solusi' },
-              { key: 'result' as const, label: 'Hasil' },
-            ]).map(({ key, label }) => (
-              <div key={key}>
-                <label style={labelStyle}>{label}</label>
-                <textarea rows={3} className={inputCls} style={{ ...inputStyle, resize: 'none' }}
-                  value={form[key] as string} placeholder={`Ceritakan ${label.toLowerCase()}...`}
-                  onChange={(e) => set(key, e.target.value)}
-                  onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
-                  onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
-              </div>
-            ))}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, padding: '14px 24px', borderTop: `1px solid ${theme.divider}` }}>
@@ -568,9 +616,7 @@ export default function PortfolioPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-video relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                {p.image
-                  ? <Image src={p.image} alt={p.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  : <MediaPlaceholder label="Tidak ada foto" />}
+                <MediaCoverThumb image={p.image} imageType={p.imageType} alt={p.title} className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div style={{ position: 'absolute', top: 10, right: 10 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: PORTFOLIO_STATUS_STYLES[p.status].color, background: PORTFOLIO_STATUS_STYLES[p.status].background }}>
                     {PORTFOLIO_STATUS_STYLES[p.status].label}

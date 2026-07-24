@@ -7,11 +7,13 @@ import Toast from '@/components/admin/Toast'
 import Pagination from '@/components/admin/Pagination'
 import { newsService, newsCategoriesService, siteContentService } from '@/lib/services'
 import type { NewsArticle, NewsStatus, NewsSectionContent } from '@/lib/services'
-import Image from 'next/image'
-import MediaPlaceholder from '@/components/MediaPlaceholder'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
+import VideoCoverThumb from '@/components/VideoCoverThumb'
 import { theme, inputStyle, inputFocusStyle, inputBlurStyle } from '@/lib/admin-theme'
 import MediaUploadField from '@/components/admin/MediaUploadField'
 import SearchSelect from '@/components/admin/SearchSelect'
+import { getVideoEmbed } from '@/lib/videoEmbed'
+import { useMediaTypeDrafts } from '@/lib/useMediaTypeDrafts'
 import { revalidatePaths } from '@/lib/revalidate'
 import { usePermission } from '@/lib/permissions'
 import { formatPublishedAt } from '@/lib/services/newsService'
@@ -22,7 +24,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10)
 const nowHHMM = () => new Date().toTimeString().slice(0, 5)
 
 const emptyArticle: NewsArticle = {
-  slug: '', title: '', excerpt: '', content: '', coverImage: '/images/company.png',
+  slug: '', title: '', excerpt: '', content: '', coverImage: '/images/company.png', imageType: 'image',
   category: '', author: '', status: 'draft', publishedAt: todayISO(), publishedTime: nowHHMM(), tags: '',
 }
 
@@ -48,6 +50,7 @@ function NewsModal({
   const [slugTouched, setSlugTouched] = useState(mode === 'edit')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const switchImageType = useMediaTypeDrafts(form.imageType, form.coverImage)
 
   const set = <K extends keyof NewsArticle>(k: K, v: NewsArticle[K]) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -58,6 +61,7 @@ function NewsModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.coverImage) { onError(form.imageType === 'video' ? 'Link video cover wajib diisi' : 'Cover berita wajib diunggah'); return }
     setSaving(true)
     await onSave(form)
     setSaving(false)
@@ -163,12 +167,52 @@ function NewsModal({
                 onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
             </div>
-            <MediaUploadField
-              label="Cover Berita" folder="news"
-              recommendedWidth={1280} recommendedHeight={720} cropToAspect
-              value={form.coverImage} onChange={(url) => set('coverImage', url)}
-              onUploadingChange={setUploading} onError={onError}
-            />
+            <div>
+              <label style={labelStyle}>Cover Berita *</label>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                {(['image', 'video'] as const).map((t) => (
+                  <button key={t} type="button"
+                    onClick={() => setForm((f) => ({ ...f, imageType: t, coverImage: switchImageType(t) }))}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      padding: '9px 12px', borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                      border: `1.5px solid ${(form.imageType ?? 'image') === t ? theme.accent : theme.border}`,
+                      background: (form.imageType ?? 'image') === t ? theme.accentSoft : theme.surfaceSoft,
+                      color: (form.imageType ?? 'image') === t ? theme.accentText : theme.textSecondary,
+                    }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{t === 'image' ? 'image' : 'movie'}</span>
+                    {t === 'image' ? 'Foto' : 'Video'}
+                  </button>
+                ))}
+              </div>
+
+              {(form.imageType ?? 'image') === 'image' ? (
+                <MediaUploadField
+                  label="" folder="news"
+                  recommendedWidth={1280} recommendedHeight={720} cropToAspect
+                  value={form.coverImage} onChange={(url) => set('coverImage', url)}
+                  onUploadingChange={setUploading} onError={onError}
+                />
+              ) : (
+                <>
+                  <input className={inputCls} style={inputStyle} value={form.coverImage}
+                    placeholder="https://www.youtube.com/watch?v=... atau link mp4"
+                    onChange={(e) => set('coverImage', e.target.value)}
+                    onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
+                  {form.coverImage && (
+                    <>
+                      <div className="aspect-video relative w-full overflow-hidden rounded-xl mt-2" style={{ background: theme.surfaceSoft }}>
+                        <VideoCoverThumb url={form.coverImage} alt="Cover Berita" />
+                      </div>
+                      <p style={{ fontSize: 10.5, color: theme.textMuted, marginTop: 5 }}>
+                        Terdeteksi sebagai: {getVideoEmbed(form.coverImage).kind}
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
             <div>
               <label style={labelStyle}>Isi Berita *</label>
               <textarea rows={10} className={inputCls} style={{ ...inputStyle, resize: 'vertical' }} required
@@ -495,9 +539,7 @@ export default function NewsPage() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = theme.border; (e.currentTarget as HTMLDivElement).style.boxShadow = theme.shadowCard }}
             >
               <div className="aspect-video relative overflow-hidden" style={{ background: theme.surfaceSoft }}>
-                {a.coverImage
-                  ? <Image src={a.coverImage} alt={a.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  : <MediaPlaceholder label="Tidak ada foto" />}
+                <MediaCoverThumb image={a.coverImage} imageType={a.imageType} alt={a.title} className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div style={{ position: 'absolute', top: 10, right: 10 }}>
                   <span style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, color: NEWS_STATUS_STYLES[a.status].color, background: NEWS_STATUS_STYLES[a.status].background }}>
                     {NEWS_STATUS_STYLES[a.status].label}

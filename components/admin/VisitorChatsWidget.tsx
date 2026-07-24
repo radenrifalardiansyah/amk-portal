@@ -14,7 +14,10 @@ function relativeTime(iso: string): string {
   return `${hours} jam lalu`
 }
 
-export default function VisitorChatsWidget() {
+export default function VisitorChatsWidget({ collapsed = false, onBadgeChange }: {
+  collapsed?: boolean
+  onBadgeChange?: (needsAdmin: number) => void
+} = {}) {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<'list' | 'chat'>('list')
   const [conversations, setConversations] = useState<VisitorConversationMeta[]>([])
@@ -48,6 +51,15 @@ export default function VisitorChatsWidget() {
   const needsAdminCount = conversations.filter((c) => c.needsAdmin).length
   const active = conversations.find((c) => c.id === activeId)
 
+  useEffect(() => {
+    onBadgeChange?.(needsAdminCount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsAdminCount])
+
+  useEffect(() => {
+    if (collapsed) setOpen(false)
+  }, [collapsed])
+
   const openChat = (id: string) => {
     setActiveId(id)
     setView('chat')
@@ -75,6 +87,8 @@ export default function VisitorChatsWidget() {
     await visitorChatService.closeConversation(activeId)
     backToList()
   }
+
+  if (collapsed) return null
 
   return (
     <div ref={rootRef} className="fixed z-40 bottom-[88px] lg:bottom-6" style={{ right: 82 }}>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import SafeImage from '@/components/SafeImage'
+import MediaCoverThumb from '@/components/MediaCoverThumb'
 import type { NewsArticle, NewsSectionContent } from '@/lib/services'
 import { formatPublishedAt } from '@/lib/services/newsService'
 
@@ -34,10 +34,10 @@ export default function NewsSection({ previews, content }: { previews: NewsArtic
               style={i > 0 ? { transitionDelay: `${i * 0.15}s` } : {}}
             >
               <div className="relative aspect-video overflow-hidden">
-                <SafeImage
-                  src={item.coverImage}
+                <MediaCoverThumb
+                  image={item.coverImage}
+                  imageType={item.imageType}
                   alt={item.title}
-                  fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 {item.category && (
