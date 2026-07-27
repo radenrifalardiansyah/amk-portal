@@ -387,7 +387,7 @@ export default function ServicesPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Service berhasil ditambahkan!' : 'Service berhasil diperbarui!')
-      revalidatePaths(['/', '/portfolio', `/services/${data.slug}`])
+      revalidatePaths(['/', '/portfolio', `/services/${data.slug}`, '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menyimpan service')
     }
@@ -400,7 +400,7 @@ export default function ServicesPage() {
       await servicesService.delete(slug)
       await mutate()
       showToast('success', 'Service berhasil dihapus')
-      revalidatePaths(['/', '/portfolio', `/services/${slug}`])
+      revalidatePaths(['/', '/portfolio', `/services/${slug}`, '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menghapus service')
     } finally {

@@ -108,7 +108,7 @@ function PortfolioModal({
                 <label style={labelStyle}>Slug *</label>
                 <input className={inputCls} style={inputStyle} required value={form.slug}
                   placeholder="nippon-express"
-                  onChange={(e) => set('slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                  onChange={(e) => set('slug', e.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))}
                   onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                   onBlur={(e) => Object.assign(e.target.style, inputBlurStyle)} />
               </div>
@@ -454,7 +454,7 @@ export default function PortfolioPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Portfolio berhasil ditambahkan!' : 'Portfolio berhasil diperbarui!')
-      revalidatePaths(['/', '/portfolio', `/portfolio/${data.slug}`, '/gallery'])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${data.slug}`, '/gallery', '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menyimpan portfolio')
     }
@@ -467,7 +467,7 @@ export default function PortfolioPage() {
       await portfolioService.delete(slug)
       await mutate()
       showToast('success', 'Portfolio berhasil dihapus')
-      revalidatePaths(['/', '/portfolio', `/portfolio/${slug}`, '/gallery'])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${slug}`, '/gallery', '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menghapus portfolio')
     } finally {
@@ -480,7 +480,7 @@ export default function PortfolioPage() {
       await portfolioService.save({ ...project, status })
       await mutate()
       showToast('success', message)
-      revalidatePaths(['/', '/portfolio', `/portfolio/${project.slug}`, '/gallery'])
+      revalidatePaths(['/', '/portfolio', `/portfolio/${project.slug}`, '/gallery', '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal memperbarui status portfolio')
     }

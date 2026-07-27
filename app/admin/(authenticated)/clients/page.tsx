@@ -303,7 +303,7 @@ export default function ClientsPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Client berhasil ditambahkan!' : 'Client berhasil diperbarui!')
-      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${data.id}`])
+      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${data.id}`, '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menyimpan client')
     }
@@ -316,7 +316,7 @@ export default function ClientsPage() {
       await clientsService.delete(id)
       await mutate()
       showToast('success', 'Client berhasil dihapus')
-      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${id}`])
+      revalidatePaths(['/', '/clients', '/portfolio', `/clients/${id}`, '/sitemap.xml'])
     } catch {
       showToast('error', 'Gagal menghapus client')
     } finally {

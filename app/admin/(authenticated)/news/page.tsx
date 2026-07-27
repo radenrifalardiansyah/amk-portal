@@ -374,7 +374,7 @@ export default function NewsPage() {
       await mutate()
       setModal(null)
       showToast('success', modal?.mode === 'add' ? 'Berita berhasil ditambahkan!' : 'Berita berhasil diperbarui!')
-      const revalidated = await revalidatePaths(['/', '/news', `/news/${data.slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${data.slug}`, '/sitemap.xml'])
       if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal menyimpan berita')
@@ -388,7 +388,7 @@ export default function NewsPage() {
       await newsService.delete(slug)
       await mutate()
       showToast('success', 'Berita berhasil dihapus')
-      const revalidated = await revalidatePaths(['/', '/news', `/news/${slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${slug}`, '/sitemap.xml'])
       if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal menghapus berita')
@@ -402,7 +402,7 @@ export default function NewsPage() {
       await newsService.save({ ...article, status })
       await mutate()
       showToast('success', message)
-      const revalidated = await revalidatePaths(['/', '/news', `/news/${article.slug}`])
+      const revalidated = await revalidatePaths(['/', '/news', `/news/${article.slug}`, '/sitemap.xml'])
       if (!revalidated) notifyRevalidateFailure()
     } catch {
       showToast('error', 'Gagal memperbarui status berita')
