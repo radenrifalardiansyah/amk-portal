@@ -20,6 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
       'Creative Agency Bogor, Video Production Bogor, Digital Marketing Bogor, Branding Agency, Konten Kreatif',
     alternates: { canonical: '/' },
     robots: { index: true, follow: true },
+    verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : undefined,
     openGraph: {
       title,
       description,
