@@ -2,6 +2,11 @@ import type { MetadataRoute } from 'next'
 import { portfolioService, servicesService, newsService, clientsService } from '@/lib/services'
 import { SITE_URL } from '@/lib/seo'
 
+// Without this, Next statically bakes the sitemap at build time and Vercel's
+// persistent data cache can keep serving that snapshot across deployments —
+// new/renamed/removed slugs then never show up even after a fresh redeploy.
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [portfolioSlugs, serviceSlugs, newsSlugs, clients] = await Promise.all([
     portfolioService.getAllSlugs(),
