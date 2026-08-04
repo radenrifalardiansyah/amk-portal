@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
   },
   devIndicators: false,
   serverExternalPackages: ['firebase-admin'],
+  async redirects() {
+    return [
+      // Domain produksi sudah pindah ke www.adikaramandalakreasi.com — 301 dari
+      // vercel.app memastikan Google berhenti mengindeks URL lama, bukan cuma
+      // "disarankan" lewat canonical tag.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'adikaramandalakreasi.vercel.app' }],
+        destination: 'https://www.adikaramandalakreasi.com/:path*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig
