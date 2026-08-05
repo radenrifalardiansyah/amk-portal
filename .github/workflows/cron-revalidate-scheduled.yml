@@ -12,7 +12,7 @@ jobs:
       - name: Call revalidate-scheduled endpoint
         run: |
           status=$(curl -s -o /tmp/response.json -w "%{http_code}" \
-            -X GET "https://adikaramandalakreasi.vercel.app/api/cron/revalidate-scheduled" \
+            -X GET "https://www.adikaramandalakreasi.com/api/cron/revalidate-scheduled" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
           cat /tmp/response.json
           if [ "$status" -ge 300 ]; then
