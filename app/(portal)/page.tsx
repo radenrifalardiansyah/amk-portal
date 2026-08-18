@@ -3,6 +3,7 @@ import {
   keyPartnersService, newsService, galleryService, menuItemsService, heroSlidesService,
 } from '@/lib/services'
 import HeroSection from '@/components/sections/HeroSection'
+import ProjectShowcaseSlider from '@/components/sections/ProjectShowcaseSlider'
 import VisionMissionSection from '@/components/sections/VisionMissionSection'
 import ServicesSection from '@/components/sections/ServicesSection'
 import AdvantageSection from '@/components/sections/AdvantageSection'
@@ -72,7 +73,8 @@ export default async function HomePage() {
   return (
     <>
       <FaqSchema services={services} company={company} />
-      <HeroSection content={hero} slides={heroSlides} />
+      <ProjectShowcaseSlider slides={heroSlides} />
+      <HeroSection content={hero} hasSlidesAbove={heroSlides.length > 0} />
       {/* <VisionMissionSection content={aboutPage} /> */}
       {sections.map((s) => s.node)}
       <ContactSection content={contact} />
