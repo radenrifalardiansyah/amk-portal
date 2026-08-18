@@ -164,6 +164,16 @@ body {
   animation: fluid-gradient 15s ease-in-out infinite;
 }
 
+@keyframes hero-slide-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.hero-slide-progress {
+  animation-name: hero-slide-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 .stagger-item {
   opacity: 0;
   transform: translateY(20px);
@@ -393,4 +403,5 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .cursor-glow, .scroll-progress-bar { display: none; }
   .tilt-card { transition: none; }
+  .hero-slide-progress { animation: none; }
 }

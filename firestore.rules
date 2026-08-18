@@ -25,6 +25,7 @@ service cloud.firestore {
     match /keyPartners/{docId}{ allow read: if true; allow write: if isAdmin(); }
     match /portfolio/{docId}  { allow read: if true; allow write: if isAdmin(); }
     match /gallery/{docId}    { allow read: if true; allow write: if isAdmin(); }
+    match /hero_slides/{docId}{ allow read: if true; allow write: if isAdmin(); }
     match /site_content/{docId} { allow read: if true; allow write: if isAdmin(); }
 
     // RBAC: admin-panel module/menu structure & per-role permission matrix. Readable

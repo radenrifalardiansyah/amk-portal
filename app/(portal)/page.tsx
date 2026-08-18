@@ -1,6 +1,6 @@
 import {
   portfolioService, servicesService, advantagesService, leadersService, clientsService, siteContentService,
-  keyPartnersService, newsService, galleryService, menuItemsService,
+  keyPartnersService, newsService, galleryService, menuItemsService, heroSlidesService,
 } from '@/lib/services'
 import HeroSection from '@/components/sections/HeroSection'
 import VisionMissionSection from '@/components/sections/VisionMissionSection'
@@ -23,7 +23,7 @@ const DEFAULT_SECTION_ORDER: Record<string, number> = {
 
 export default async function HomePage() {
   const [
-    services, advantages, portfolioAll, leaders, partners, clients, hero, aboutPage, contact,
+    services, advantages, portfolioAll, leaders, partners, clients, hero, heroSlides, aboutPage, contact,
     servicesSection, advantageSection, portfolioSection, teamsSection, clientsSection, gallerySection, newsSection,
     newsAll, galleryAll, menuItems, company,
   ] = await Promise.all([
@@ -34,6 +34,7 @@ export default async function HomePage() {
     keyPartnersService.getAll(),
     clientsService.getAll(),
     siteContentService.getHero(),
+    heroSlidesService.getAll(),
     siteContentService.getAboutPage(),
     siteContentService.getContact(),
     siteContentService.getServicesSection(),
@@ -71,8 +72,8 @@ export default async function HomePage() {
   return (
     <>
       <FaqSchema services={services} company={company} />
-      <HeroSection content={hero} />
-      <VisionMissionSection content={aboutPage} />
+      <HeroSection content={hero} slides={heroSlides} />
+      {/* <VisionMissionSection content={aboutPage} /> */}
       {sections.map((s) => s.node)}
       <ContactSection content={contact} />
     </>

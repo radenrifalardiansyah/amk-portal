@@ -25,8 +25,8 @@ export default function BarList({ items }: BarListProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {items.map((item) => (
-        <div key={item.label}>
+      {items.map((item, idx) => (
+        <div key={`${item.label}-${idx}`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
             <span style={{ fontSize: 12.5, fontWeight: 500, color: theme.textSecondary }}>{item.label}</span>
             <span style={{ fontSize: 12.5, fontWeight: 700, color: theme.text }}>{item.value}</span>
