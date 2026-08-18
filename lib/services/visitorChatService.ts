@@ -13,6 +13,8 @@ export interface VisitorMessage {
   text: string
   sender: 'visitor' | 'bot' | 'admin'
   createdAt: string
+  /** Optional in-page anchor link (e.g. "/#portfolio") shown as a clickable link under the message. */
+  link?: string
 }
 
 export interface VisitorConversationMeta {
@@ -79,7 +81,7 @@ export const visitorChatService = {
     })
   },
 
-  async sendBotReply(conversationId: string, text: string, needsAdmin: boolean): Promise<void> {
+  async sendBotReply(conversationId: string, text: string, needsAdmin: boolean, link?: string): Promise<void> {
     const now = new Date().toISOString()
     await setDoc(doc(db, COL, conversationId), {
       needsAdmin,
@@ -87,7 +89,7 @@ export const visitorChatService = {
       lastMessageAt: now,
     }, { merge: true })
     await addDoc(collection(db, COL, conversationId, 'messages'), {
-      text, sender: 'bot', createdAt: now,
+      text, sender: 'bot', createdAt: now, ...(link ? { link } : {}),
     })
   },
 

@@ -209,6 +209,16 @@ export default function VisitorChatsWidget({ collapsed = false, onBadgeChange }:
                             border: mine ? 'none' : `1px solid ${theme.border}`,
                           }}>
                             {m.text}
+                            {m.link && (
+                              <a
+                                href={m.link}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 600, textDecoration: 'underline', color: mine ? '#fff' : theme.accent }}
+                              >
+                                Buka bagian ini →
+                              </a>
+                            )}
                           </div>
                           <span style={{ fontSize: 9.5, color: theme.textMuted, padding: '0 4px' }}>
                             {new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

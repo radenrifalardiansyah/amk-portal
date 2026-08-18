@@ -11,6 +11,8 @@ export interface BotReplyContext {
 export interface BotReply {
   text: string
   needsAdmin: boolean
+  /** Anchor id on the homepage the widget should scroll to instead of narrating an answer. */
+  sectionId?: string
 }
 
 const GREETING_KEYWORDS = ['halo', 'hai', 'hi', 'hello', 'pagi', 'siang', 'sore', 'malam']
@@ -31,31 +33,22 @@ export function getBotReply(userText: string, ctx: BotReplyContext): BotReply {
   if (!text) return { text: 'Silakan tulis pertanyaan Anda ya 🙂', needsAdmin: false }
 
   if (matchesAny(text, CONTACT_KEYWORDS)) {
-    const wa = ctx.company.waNumber || ctx.company.phone
-    const lines = [
-      'Anda bisa menghubungi kami langsung:',
-      wa ? `- WhatsApp: wa.me/${wa}` : null,
-      ctx.company.email ? `- Email: ${ctx.company.email}` : null,
-      ctx.company.address ? `- Alamat: ${ctx.company.address}` : null,
-    ].filter(Boolean)
-    return { text: lines.join('\n'), needsAdmin: false }
+    return { text: 'Baik, ini dia bagian Kontak kami 👇', needsAdmin: false, sectionId: 'contact' }
   }
 
   if (matchesAny(text, SERVICES_KEYWORDS)) {
     if (ctx.services.length === 0) {
       return { text: 'Maaf, data layanan belum tersedia saat ini. Tim kami akan segera membantu.', needsAdmin: true }
     }
-    const list = ctx.services.slice(0, 6).map((s) => `- ${s.title}: ${s.subtitle}`).join('\n')
-    return { text: `Berikut layanan utama kami:\n${list}\n\nKetik "kontak" untuk konsultasi lebih lanjut dengan tim kami.`, needsAdmin: false }
+    return { text: 'Baik, ini dia bagian Layanan Kami 👇', needsAdmin: false, sectionId: 'services' }
   }
 
   if (matchesAny(text, PORTFOLIO_KEYWORDS)) {
-    const published = ctx.portfolio.filter((p) => p.status === 'published').slice(0, 5)
+    const published = ctx.portfolio.filter((p) => p.status === 'published')
     if (published.length === 0) {
       return { text: 'Maaf, data portofolio belum tersedia saat ini. Tim kami akan segera membantu.', needsAdmin: true }
     }
-    const list = published.map((p) => `- ${p.title} (${p.client})`).join('\n')
-    return { text: `Beberapa proyek yang pernah kami kerjakan:\n${list}\n\nLihat selengkapnya di halaman Portfolio ya!`, needsAdmin: false }
+    return { text: 'Baik, ini dia bagian Portofolio kami 👇', needsAdmin: false, sectionId: 'portfolio' }
   }
 
   if (matchesAny(text, ORDER_KEYWORDS)) {

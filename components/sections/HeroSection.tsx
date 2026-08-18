@@ -67,7 +67,7 @@ export default function HeroSection({ content, slides = [] }: { content: HeroCon
 
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden scroll-mt-8 bg-on-surface"
+      className="relative min-h-screen flex items-center overflow-hidden scroll-mt-8 bg-on-surface -mt-[104px] md:mt-0"
       id="home"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}

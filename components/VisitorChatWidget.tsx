@@ -77,7 +77,11 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
         portfolio: portfolioRef.current,
         company,
       })
-      await visitorChatService.sendBotReply(conversationId, reply.text, reply.needsAdmin)
+      const link = reply.sectionId ? `/#${reply.sectionId}` : undefined
+      await visitorChatService.sendBotReply(conversationId, reply.text, reply.needsAdmin, link)
+      if (reply.sectionId) {
+        document.getElementById(reply.sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
     } finally {
       setSending(false)
     }
@@ -151,6 +155,17 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
                   }`}
                 >
                   {m.text}
+                  {m.link && (
+                    <a
+                      href={m.link}
+                      onClick={() => setOpen(false)}
+                      className={`block mt-1 text-xs font-medium underline underline-offset-2 ${
+                        m.sender === 'visitor' ? 'text-white' : 'text-primary'
+                      }`}
+                    >
+                      Buka bagian ini →
+                    </a>
+                  )}
                 </div>
               </div>
             ))}

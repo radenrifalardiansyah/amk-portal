@@ -150,7 +150,7 @@ export default function Footer({ company, waMessageTemplate, contactWaNumber, na
 
       <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-white/10 text-xs text-white/50 font-['Inter'] flex flex-col sm:flex-row items-center justify-between gap-2">
         <p>Copyright &copy; {year} {copyrightText}</p>
-        <p>Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-accent text-white/50">RMedia Solution</a></p>
+        <p>Powered by <a href="#" target="_blank" rel="noopener noreferrer" className="hover:text-accent text-white/50">PT. Eleven Digital Indonesia</a> &middot; Support by RMedia Solutions</p>
       </div>
     </footer>
   )
