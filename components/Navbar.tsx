@@ -168,7 +168,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
         <Link
           href="/#contact"
           onClick={closeMenu}
-          className="mt-4 px-8 py-4 bg-primary text-white font-headline font-bold rounded-full shadow-lg"
+          className="mt-4 px-8 py-4 hero-gradient text-white font-headline font-bold rounded-full shadow-lg hover:scale-105 transition-all duration-300"
         >
           Contact Us
         </Link>
