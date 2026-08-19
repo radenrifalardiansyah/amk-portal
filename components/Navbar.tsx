@@ -129,7 +129,7 @@ export default function Navbar({ company, navLinks = DEFAULT_NAV_LINKS }: { comp
           <Magnetic strength={0.3}>
             <Link
               href="/#contact"
-              className="hidden lg:block shrink-0 font-headline tracking-[-0.04em] font-bold text-primary text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 border border-primary/20 rounded-full hover:bg-primary hover:text-white hover:shadow-[0_0_20px_rgba(7,82,183,0.4)] transition-all duration-500 ease-in-out"
+              className="hidden lg:block shrink-0 hero-gradient font-headline tracking-[-0.04em] font-bold text-white text-sm xl:text-base px-4 py-1.5 xl:px-6 xl:py-2 rounded-full hover:scale-105 hover:shadow-[0_0_20px_rgba(7,82,183,0.4)] transition-all duration-500 ease-in-out"
             >
               Contact Us
             </Link>
