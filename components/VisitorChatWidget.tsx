@@ -123,7 +123,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[92vw] max-w-sm h-[70vh] max-h-[520px] bg-white rounded-2xl shadow-2xl border border-black/5 flex flex-col overflow-hidden">
-          <div className="bg-primary text-surface px-4 py-3 flex items-center justify-between shrink-0">
+          <div className="hero-gradient text-surface px-4 py-3 flex items-center justify-between shrink-0">
             <div>
               <p className="font-semibold text-sm">Asisten AMK</p>
               <p className="text-xs text-white/70">Biasanya membalas dalam beberapa saat</p>
@@ -150,7 +150,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
                 <div
                   className={`max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-line ${
                     m.sender === 'visitor'
-                      ? 'bg-primary text-surface rounded-br-sm'
+                      ? 'hero-gradient text-surface rounded-br-sm'
                       : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
                   }`}
                 >
@@ -201,7 +201,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
               <button
                 type="submit"
                 disabled={submittingContact || !contactEmail.trim() || !contactPhone.trim()}
-                className="text-xs px-3 py-2 rounded-full bg-primary text-surface disabled:opacity-50 transition-opacity"
+                className="text-xs px-3 py-2 rounded-full hero-gradient text-surface disabled:opacity-50 transition-opacity"
               >
                 Kirim ke Admin
               </button>
@@ -235,7 +235,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
               type="submit"
               disabled={sending || !input.trim()}
               aria-label="Kirim pesan"
-              className="w-9 h-9 shrink-0 flex items-center justify-center bg-primary text-surface rounded-full disabled:opacity-40 transition-opacity"
+              className="w-9 h-9 shrink-0 flex items-center justify-center hero-gradient text-surface rounded-full disabled:opacity-40 transition-opacity"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
             </button>
@@ -246,7 +246,7 @@ export default function VisitorChatWidget({ company }: { company: CompanyProfile
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Tutup live chat' : 'Buka live chat'}
-        className="w-14 h-14 bg-primary text-surface rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300"
+        className="w-14 h-14 hero-gradient text-surface rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300"
       >
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
